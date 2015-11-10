@@ -1,16 +1,16 @@
 from zkEntity_impl import zkEntity
 from zkProject_impl import zkProject
-from zkInput_impl import zkInput
+from zkJob_impl import zkJob
 
-class zkJob(zkEntity):
+class zkFrame(zkEntity):
 
   __tmpProject = None
-  __tmpInput = None
+  __tmpJob = None
 
   def __init__(self, connection, id = None):
-    super(zkJob, self).__init__(connection, table = 'job', id = id)
+    super(zkFrame, self).__init__(connection, table = 'frame', id = id)
     self.__tmpProject = None
-    self.__tmpInput = None
+    self.__tmpJob = None
 
   def __getProject(self):
     if self.id is None:
@@ -20,25 +20,26 @@ class zkJob(zkEntity):
   def __setProject(self, value):
     self.__tmpProject = value
 
-  def __getInput(self):
+  def __getJob(self):
     if self.id is None:
-      return self.__tmpInput
-    return zkInput(self.connection, self.inputid)
+      return self.__tmpJob
+    return zkInput(self.connection, self.jobid)
 
-  def __setInput(self, value):
-    self.__tmpInput = value
+  def __setJob(self, value):
+    self.project = value.project
+    self.__tmpJob = value
 
   project = property(__getProject, __setProject)
-  input = property(__getInput, __setInput)
+  job = property(__getJob, __setJob)
 
   def write(self):
 
     if not self.__tmpProject is None:
       self.projectid = self.__tmpProject.id
       self.__tmpProject = None
-    if not self.__tmpInput is None:
-      self.inputid = self.__tmpInput.id
-      self.__tmpInput = None
+    if not self.__tmpJob is None:
+      self.jobid = self.__tmpJob.id
+      self.__tmpJob = None
 
-    super(zkJob, self).write()
+    super(zkFrame, self).write()
 

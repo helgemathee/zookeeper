@@ -1,5 +1,5 @@
 
-class zkCommit(object):
+class zkBracket(object):
 
   __entities = []
 
@@ -9,7 +9,7 @@ class zkCommit(object):
   def push(self, sql):
     self.__entities += [sql]
 
-  def execute(self):
+  def write(self):
     for entity in self.__entities:
       entity.write()
     self.__entities = []
