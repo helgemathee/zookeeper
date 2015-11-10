@@ -4,6 +4,7 @@ class zkConnection(object):
 
   __connector = None
   __lastId = None
+  __debug = None
 
   def __init__(self, ip = '192.168.1.18', port = 3306, user = 'mysql', password = 'mysql', database = 'zookeeper'):
     try:
@@ -12,6 +13,7 @@ class zkConnection(object):
     except mysql.connector.Error as err:
       print("Connection problem: {}".format(err))
     self.execute(('USE %s;' % database), 'Switching database')
+    self.__debug = False
 
   def __del__(self):
     self.__connector.close()
@@ -21,9 +23,14 @@ class zkConnection(object):
   def lastId(self):
     return self.__lastId
 
+  def setDebug(self, state):
+    self.__debug = state
+
   def execute(self, sql, errorPrefix = "Database"):
     try:
       cursor = self.__connector.cursor()
+      if self.__debug:
+        print sql
       cursor.execute(sql)
       result = []
       for r in cursor:
