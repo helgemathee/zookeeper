@@ -139,7 +139,7 @@ class zkEntity(object):
 
   @classmethod
   def getTableName(cls):
-    return cls.__name__[2].lower()+cls.__name__[3:]
+    return cls.__name__[2:].lower()
 
   @classmethod
   def getAll(cls, conn, condition=None, limit=None, order=None):

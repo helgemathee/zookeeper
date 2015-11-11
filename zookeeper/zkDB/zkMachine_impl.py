@@ -3,6 +3,7 @@ import socket
 import multiprocessing
 import psutil
 
+import zookeeper.zkDB
 from zkEntity_impl import zkEntity
 
 def getIps():
@@ -44,14 +45,23 @@ class zkMachine(zkEntity):
 
       self.ramgb = memoryGB
       self.status = 'ONLINE'
-      self.lastseen = 'NOW()'
+      self.updateLastSeen()
       self.write()
       self.read()
 
   def __del__(self):
     if self.__asClient:
       self.status = 'OFFLINE'
-      self.lastseen = 'NOW()'
+      self.updateLastSeen()
       self.write()
 
+  def updateLastSeen(self):
+    self.lastseen = 'NOW()'
 
+  def sendNotification(self, text, frame = None, severity = 'ERROR'):
+    notif = zookeeper.zkDB.zkNotification.createNew(self.connection)
+    notif.machine = self
+    notif.frame = frame
+    notif.severity = severity
+    notif.text = text
+    notif.write()

@@ -6,3 +6,5 @@ from zkInput_impl import zkInput
 from zkJob_impl import zkJob
 from zkFrame_impl import zkFrame
 from zkOutput_impl import zkOutput
+from zkExternalFile_impl import zkExternalFile
+from zkNotification_impl import zkNotification
