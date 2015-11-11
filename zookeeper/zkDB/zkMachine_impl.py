@@ -35,6 +35,9 @@ class zkMachine(zkEntity):
 
     # we are still not valid, make sure to insert ourselves in the DB
     if self.__asClient or self.id is None:
+
+      bracket = zookeeper.zkDB.zkBracket(self.connection)
+
       if self.id is None:
         self.name = platform.node()
         self.level = 3
@@ -49,7 +52,11 @@ class zkMachine(zkEntity):
       self.ramgb = memoryGB
       self.gpuramgb = zkConfig().get('gpuramgb', 1)
       self.status = 'ONLINE'
-      self.updatePhysicalState()
+      self.updatePhysicalState(write = False)
+      self._updateHangingFrames(bracket)
+
+      bracket.write()
+
       self.read()
 
   def __del__(self):
@@ -58,15 +65,17 @@ class zkMachine(zkEntity):
 
       self.status = 'OFFLINE'
       self.updatePhysicalState(write = False)
+      self._updateHangingFrames(bracket)
 
+      bracket.push(self)
+      bracket.write()
+
+  def _updateHangingFrames(self, bracket):
       cond = 'frame_machineid = %d and (frame_status = \'PROCESSING\' or frame_status = \'COMPLETED\')' % self.id
       frames = zookeeper.zkDB.zkFrame.getAll(self.connection, condition = cond)
       for frame in frames:
         frame.status = 'WAITING'
         bracket.push(frame)
-
-      bracket.push(self)
-      bracket.write()
 
   def updatePhysicalState(self, write = True):
     self.lastseen = 'NOW()'

@@ -12,9 +12,10 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
 
   def __init__(self, connection):
 
-    super(zkConsumer, self).__init__('Consumer')
     self.__conn = connection
     self.__machine = zookeeper.zkDB.zkMachine(self.__conn, asClient = True)
+
+    super(zkConsumer, self).__init__('Munch - %s' % self.__machine.name)
 
     cfg = zookeeper.zkConfig()
 
