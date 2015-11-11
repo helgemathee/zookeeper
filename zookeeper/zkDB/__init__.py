@@ -8,3 +8,5 @@ from zkFrame_impl import zkFrame
 from zkOutput_impl import zkOutput
 from zkExternalFile_impl import zkExternalFile
 from zkNotification_impl import zkNotification
+from zkUncMap_impl import zkUncMap
+from zkValidUnc_impl import zkValidUnc

@@ -1,3 +1,6 @@
 from zkSubmitter_impl import zkSubmitter
+from zkConsumer_impl import zkConsumer
+from zkWorkThread_impl import zkWorkThread
 from zkSoftimageSubmitter_impl import zkSoftimageSubmitter
+from zkSoftimageWorkThread_impl import zkSoftimageWorkThread
 

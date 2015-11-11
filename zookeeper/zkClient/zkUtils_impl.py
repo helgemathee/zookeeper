@@ -1,4 +1,5 @@
 import os
+from win_unc.internal.current_state import get_current_net_use_table
 
 def zk_resolveEnvVarsInPath(path):
   if path.startswith('$'):
@@ -10,7 +11,6 @@ def zk_resolveEnvVarsInPath(path):
 def zk_uncFromDrivePath(path):
   drive = os.path.splitdrive(path)[0]
   if drive[1] == ':':
-    from win_unc.internal.current_state import get_current_net_use_table
     table = get_current_net_use_table()
     for row in table.rows:
       if drive.lower() == row['local'].get_drive().lower():
@@ -28,7 +28,7 @@ def zk_validateFilePath(path, shouldExist=True):
       return False
   return True
 
-def zk_validateNetworkFilePath(path, shouldExist=True):
+def zk_validateNetworkFilePath(path, validUncPaths = None, shouldExist=True):
   if not zk_validateFilePath(path, shouldExist):
     return False
 
@@ -39,6 +39,16 @@ def zk_validateNetworkFilePath(path, shouldExist=True):
     if uncpath == path and uncpath[1] == ':':
       # local drive
       return False
+
+    if validUncPaths:
+      found = False
+      for validUncPath in validUncPaths:
+        if uncpath.lower().startswith(validUncPath.lower()):
+          found = True
+          break
+      if not found:
+        return False
+
     path = uncpath
 
     if shouldExist:

@@ -7,10 +7,19 @@ class zkSubmitter(object):
   __name = None
   __conn = None
   __app = None
+  __machine = None
+  __validUncPaths = None
 
   def __init__(self, name, connection):
     self.__name = name
     self.__conn = connection
+    self.__machine = zookeeper.zkDB.zkMachine(self.__conn, asClient = False)
+    self.__machine.updateUncMaps()
+
+    self.__validUncPaths = []
+    uncPathFieldList = zookeeper.zkDB.zkValidUnc.getFieldList(self.__conn, 'path')
+    for uncPath in uncPathFieldList:
+      self.__validUncPaths += [uncPath[1]]
 
   @property
   def name(self):
@@ -58,7 +67,7 @@ class zkSubmitter(object):
 
   # virtual: can be overloaded
   def validatePath(self, path, shouldExist = True):
-    return zk_validateNetworkFilePath(path, shouldExist=shouldExist)
+    return zk_validateNetworkFilePath(path, validUncPaths=self.__validUncPaths, shouldExist=shouldExist)
 
   # virtual: to be implemented
   def createJobFramesAndOutput(self, fields, connection, bracket, project, input):
@@ -73,6 +82,7 @@ class zkSubmitter(object):
     if not user:
       user = os.environ.get('USER', None)
     job.user = user
+    job.machine = self.__machine.id
     job.dcc = self.getDCCName()
     job.dccversion = self.getDCCVersion()
     job.renderer = self.getRendererName()
@@ -112,10 +122,10 @@ class zkSubmitter(object):
         return
 
     fields = []
-    fields += [{'name': 'dcc', 'value': self.getDCCName(), 'type': 'str', 'readonly': True}]
-    fields += [{'name': 'dccversion', 'value': self.getDCCVersion(), 'type': 'str', 'readonly': True}]
-    fields += [{'name': 'renderer', 'value': self.getRendererName(), 'type': 'str', 'readonly': True}]
-    fields += [{'name': 'rendererversion', 'value': self.getRendererVersion(), 'type': 'str', 'readonly': True}]
+    fields += [{'name': 'dcc', 'value': self.getDCCName(), 'type': 'str', 'readonly': True, 'tooltip': 'The name of the DCC'}]
+    fields += [{'name': 'dccversion', 'value': self.getDCCVersion(), 'type': 'str', 'readonly': True, 'tooltip': 'The version of the DCC'}]
+    fields += [{'name': 'renderer', 'value': self.getRendererName(), 'type': 'str', 'readonly': True, 'tooltip': 'The name of the renderer'}]
+    fields += [{'name': 'rendererversion', 'value': self.getRendererVersion(), 'type': 'str', 'readonly': True, 'tooltip': 'The version of the renderer'}]
 
     # ensure that we have one project at least!
     pairs = zookeeper.zkDB.zkProject.getNameComboPairs(self.__conn)
@@ -133,12 +143,12 @@ class zkSubmitter(object):
           projectid = pairs[0]
           break
 
-    fields += [{'name': 'projectid', 'value': projectid, 'type': 'combo', 'comboitems': pairs}]
-    fields += [{'name': 'jobname', 'value': self.getJobDefaultName(), 'type': 'str'}]
-    fields += [{'name': 'jobpriority', 'value': 50, 'type': 'int'}]
-    fields += [{'name': 'mincores', 'value': 4, 'type': 'int'}]
-    fields += [{'name': 'minramgb', 'value': 8, 'type': 'int'}]
-    fields += [{'name': 'mingpuramgb', 'value': 2, 'type': 'int'}]
+    fields += [{'name': 'projectid', 'value': projectid, 'type': 'combo', 'comboitems': pairs, 'tooltip': "The name of the project"}]
+    fields += [{'name': 'jobname', 'value': self.getJobDefaultName(), 'type': 'str', 'tooltip': "The name of the job"}]
+    fields += [{'name': 'jobpriority', 'value': 50, 'type': 'int', 'tooltip': "The priority of the job"}]
+    fields += [{'name': 'mincores', 'value': 4, 'type': 'int', 'tooltip': "The minimum of CPU cores a client machine requires."}]
+    fields += [{'name': 'minramgb', 'value': 8, 'type': 'int', 'tooltip': "The minimum of RAM (GB) a client machine requires."}]
+    fields += [{'name': 'mingpuramgb', 'value': 2, 'type': 'int', 'tooltip': "The minimum of GPU RAM (GB) a client machine requires."}]
     fields += self.getExtraFields()
 
     def onAccepted(fields):

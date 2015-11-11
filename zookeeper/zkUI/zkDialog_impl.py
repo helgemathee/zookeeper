@@ -51,7 +51,9 @@ class zkDialog(QtGui.QDialog):
     fields = self.getFields()
     offset = 0
     for field in fields:
+      tooltip = field.get('tooltip', '')
       label = QtGui.QLabel(field['name'], gridWidget)
+      label.setToolTip(tooltip)
       gridLayout.addWidget(label, offset, 0)
       edit = None
       if field['type'] == 'bool':
@@ -112,6 +114,7 @@ class zkDialog(QtGui.QDialog):
         gridLayout.addWidget(edit, offset, 1)
 
       if not edit is None:
+        edit.setToolTip(tooltip)
         if field.get('readonly', False):
           edit.setEnabled(False)
       self.__edits[field['name']] = edit

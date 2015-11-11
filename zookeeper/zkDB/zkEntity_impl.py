@@ -107,20 +107,23 @@ class zkEntity(object):
               value = value.strftime("%Y-%m-%d %H::%M::%S")
             self.__fields[field] = value
           self.__id = self.__fields[self.__table+'_id']
+        self.__initiallyRead = True
       self.__fieldsChanged = {}
       return
 
     if throw:
       raise(Exception('zkEntity::read called without an id.'))
 
-  def write(self):
+  def write(self, throw = True):
     if len(self.__fieldsChanged.keys()) == 0:
-      print '%s: Nothing to write. Please set some fields first.' % self.__class__.__name__
+      if throw:
+        print '%s: Nothing to write. Please set some fields first.' % self.__class__.__name__
       return
 
     fieldNames = []
     fieldValues = []
     fieldPairs = []
+
     for fieldName in zkEntity.__tableFields[self.__table]:
       if fieldName in self.__fieldsChanged:
         fieldValue = self.__fields[fieldName]
@@ -147,6 +150,27 @@ class zkEntity(object):
   @classmethod
   def getTableName(cls):
     return cls.__name__[2:].lower()
+
+  def delete(cls):
+    if self.id is None:
+      return
+    sql = 'DELETE FROM %s WHERE %s_id = %d;' % (self.table, self.table, self.id)
+    self.execute(sql)
+
+    self.__id = None
+    self.__initiallyRead = False
+    self.__fields = {}
+    for field in zkEntity.__tableFields[table]:
+      self.__fields[field] = None
+    self.__fieldsChanged = {}
+
+  @classmethod
+  def deleteAll(cls, conn, condition):
+    if not condition:
+      return
+    table = cls.getTableName()
+    sql = 'DELETE FROM %s WHERE ' + condition + ';'
+    self.execute(sql)
 
   @classmethod
   def getAll(cls, conn, condition=None, limit=None, order=None):
@@ -183,14 +207,18 @@ class zkEntity(object):
     return cls(conn)
 
   @classmethod
-  def getNameComboPairs(cls, conn):
+  def getFieldList(cls, conn, field):
     table = cls.getTableName()
-    sql = 'SELECT %s_id, %s_name FROM %s ORDER BY %s_name ASC;' % (table, table, table, table)
+    sql = 'SELECT %s_id, %s_%s FROM %s ORDER BY %s_%s ASC;' % (table, table, field, table, table, field)
     results = conn.execute(sql, errorPrefix=table)
     pairs = []
     for r in results:
       pairs += [[r[0], r[1]]]
     return pairs
+
+  @classmethod
+  def getNameComboPairs(cls, conn):
+    return cls.getFieldList(conn, 'name')
 
   @classmethod
   def getEnumComboPairs(cls, conn, field):

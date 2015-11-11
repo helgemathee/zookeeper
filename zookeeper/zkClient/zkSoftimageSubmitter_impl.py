@@ -114,11 +114,12 @@ class zkSoftimageSubmitter(zkSubmitter):
     else:
       print "Frame Set / Timeline not supported."
 
-    fields += [{'name': 'framestart', 'value': framestart, 'type': 'int'}]
-    fields += [{'name': 'frameend', 'value': frameend, 'type': 'int'}]
-    fields += [{'name': 'framestep', 'value': framestep, 'type': 'int'}]
-    fields += [{'name': 'capturejob', 'value': True, 'type': 'bool'}]
-    fields += [{'name': 'highprio_firstlast', 'value': True, 'type': 'bool'}]
+    fields += [{'name': 'framestart', 'value': framestart, 'type': 'int', 'tooltip': 'The first frame of the sequence'}]
+    fields += [{'name': 'frameend', 'value': frameend, 'type': 'int', 'tooltip': 'The last frame of the sequence'}]
+    fields += [{'name': 'framestep', 'value': framestep, 'type': 'int', 'tooltip': 'The stepping across the sequence'}]
+    fields += [{'name': 'packagesize', 'value': 20, 'type': 'int', 'tooltip': 'The number of frames which are processed as a batch.'}]
+    fields += [{'name': 'capturejob', 'value': True, 'type': 'bool', 'tooltip': 'Enabling this also creates a capture movie.'}]
+    fields += [{'name': 'highprio_firstlast', 'value': True, 'type': 'bool', 'tooltip': 'Use higher priority for the first and last frame.'}]
     return fields
 
   def validatePath(self, path, shouldExist = True):
@@ -138,6 +139,7 @@ class zkSoftimageSubmitter(zkSubmitter):
     framestart = results['framestart']
     frameend = results['frameend']
     framestep = results['framestep']
+    packagesize = results['packagesize']
     capturejob = results['capturejob']
     highprio_firstlast = results['highprio_firstlast']
 
@@ -178,12 +180,20 @@ class zkSoftimageSubmitter(zkSubmitter):
     self.decorateJobWithDefaults(fields, job)
     bracket.push(job)
 
+    packageoffset = 0
+    package = 0
+
     for f in range(framestart, frameend+1, framestep):
+
+      if packageoffset % packagesize == 0:
+        package = package + 1
+      packageoffset = packageoffset + 1
 
       frame = zookeeper.zkDB.zkFrame.createNew(self.connection)
       frame.job = job
       frame.time = f
       frame.priority = 50
+      frame.package = package
       if highprio_firstlast:
         if f == framestart or f == frameend:
           frame.priority = 75

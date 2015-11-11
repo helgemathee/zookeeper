@@ -2,6 +2,7 @@ import platform
 import socket
 import multiprocessing
 import psutil
+from win_unc.internal.current_state import get_current_net_use_table
 
 import zookeeper.zkDB
 from zookeeper.zkConfig_impl import zkConfig
@@ -32,7 +33,8 @@ class zkMachine(zkEntity):
     if self.id is None:
       self.read(condition = '%s_name = "%s";' % (self.table, platform.node()), throw = False)
 
-    if self.__asClient:
+    # we are still not valid, make sure to insert ourselves in the DB
+    if self.__asClient or self.id is None:
       if self.id is None:
         self.name = platform.node()
         self.level = 3
@@ -52,8 +54,19 @@ class zkMachine(zkEntity):
 
   def __del__(self):
     if self.__asClient:
+      bracket = zookeeper.zkDB.zkBracket(self.connection)
+
       self.status = 'OFFLINE'
-      self.updatePhysicalState()
+      self.updatePhysicalState(write = False)
+
+      cond = 'frame_machineid = %d and (frame_status = \'PROCESSING\' or frame_status = \'COMPLETED\')' % self.id
+      frames = zookeeper.zkDB.zkFrame.getAll(self.connection, condition = cond)
+      for frame in frames:
+        frame.status = 'WAITING'
+        bracket.push(frame)
+
+      bracket.push(self)
+      bracket.write()
 
   def updatePhysicalState(self, write = True):
     self.lastseen = 'NOW()'
@@ -62,7 +75,23 @@ class zkMachine(zkEntity):
     self.ramavailablemb = int(float(memory.available) / float(1024 * 1024) + 0.5)
     self.ramusedmb = int(float(memory.used) / float(1024 * 1024) + 0.5)
     if write:
-      self.write()
+      self.write(throw = False)
+
+  def updateUncMaps(self, write = True):
+
+    bracket = zookeeper.zkDB.zkBracket(self.connection)
+
+    table = get_current_net_use_table()
+    for row in table.rows:
+      drive = row['local'].get_drive().lower()
+      uncpath = row['remote'].get_path().lower()
+      uncMap = zookeeper.zkDB.zkUncMap(self.connection, machineid = self.id, drive = drive)
+      uncMap.machineid = self.id
+      uncMap.drive = drive
+      uncMap.uncpath = uncpath
+      bracket.push(uncMap)
+
+    bracket.write()
 
   def sendNotification(self, text, frame = None, severity = 'ERROR'):
     notif = zookeeper.zkDB.zkNotification.createNew(self.connection)

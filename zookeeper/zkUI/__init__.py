@@ -1,4 +1,5 @@
 from zkApp_impl import zkApp
+from zkMainWindow_impl import zkMainWindow
 from zkConfigDialog_impl import zkConfigDialog
 from zkSubmitDialog_impl import zkSubmitDialog
 from zkNewProjectDialog_impl import zkNewProjectDialog

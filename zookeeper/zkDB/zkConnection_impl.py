@@ -2,14 +2,16 @@ import mysql.connector
 
 class zkConnection(object):
 
+  __ip = None
   __connector = None
   __lastId = None
   __debug = None
 
   def __init__(self, ip = '192.168.1.18', port = 3306, user = 'mysql', password = 'mysql', database = 'zookeeper'):
+    self.__ip = str(ip)
     try:
       self.__connector = mysql.connector.connect(user=user, password=password, host=ip, port=port, database=database)
-      print 'Connection successful.'
+      print 'Connection successful to %s.' % self.__ip
     except mysql.connector.Error as err:
       print("Connection problem: {}".format(err))
     self.execute(('USE %s;' % database), 'Switching database')
@@ -17,7 +19,7 @@ class zkConnection(object):
 
   def __del__(self):
     self.__connector.close()
-    print 'Connection closed.'
+    print 'Connection closed to %s.' % self.__ip
 
   @property
   def lastId(self):
@@ -31,7 +33,7 @@ class zkConnection(object):
       cursor = self.__connector.cursor()
       if self.__debug:
         print sql
-      cursor.execute(sql, multi = sql.count(';') > 1)
+      cursor.execute(sql, multi = (sql.count(';') > 1 or sql.startswith('CALL')))
       result = []
       for r in cursor:
         result += [r]
@@ -42,5 +44,24 @@ class zkConnection(object):
       return result
     except mysql.connector.Error as err:
       print 'Error when executing: << %s >>' % sql
+      print(errorPrefix+": {}".format(err))
+    return None
+
+  def call(self, procedure, args, errorPrefix = "Database"):
+    try:
+      cursor = self.__connector.cursor()
+      if self.__debug:
+        strArgs = []
+        for arg in args:
+          strArgs += [str(arg)]
+        print '%s(%s);' % (procedure, ','.join(strArgs))
+      cursor.callproc(procedure, args)
+      iterator = cursor.stored_results()
+      result = []
+      for i in iterator:
+        result += i.fetchall()
+      return result
+    except mysql.connector.Error as err:
+      print 'Error when calling: << %s >>' % procedure
       print(errorPrefix+": {}".format(err))
     return None
