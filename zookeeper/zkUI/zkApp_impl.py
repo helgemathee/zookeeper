@@ -1,0 +1,11 @@
+import sys
+from PySide import QtCore, QtGui
+
+class zkApp(object):
+
+  __app = None
+
+  def __init__(self):
+    __app = QtGui.QApplication(sys.argv)
+
+  

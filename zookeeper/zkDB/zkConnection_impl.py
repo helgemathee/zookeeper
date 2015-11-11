@@ -31,7 +31,7 @@ class zkConnection(object):
       cursor = self.__connector.cursor()
       if self.__debug:
         print sql
-      cursor.execute(sql)
+      cursor.execute(sql, multi = sql.count(';') > 1)
       result = []
       for r in cursor:
         result += [r]

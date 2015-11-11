@@ -1,16 +1,21 @@
 import platform
 import socket
+import multiprocessing
+import psutil
 
 from zkEntity_impl import zkEntity
 
 def getIps():
-  ips = [i[4][0] for i in socket.getaddrinfo(socket.gethostname(), None)]
-  validIps = []
+  ips = psutil.net_if_addrs()
+  ips4v = []
+  mac = []
   for ip in ips:
-    if ip.find(':') > -1:
-      continue
-    validIps += [ip]
-  return ','.join(validIps)
+    for nic in ips[ip]:
+      if nic.family == 2:
+        ips4v += [nic.address]
+      elif nic.family == 23:
+        mac += [nic.address]
+  return (','.join(ips4v), ','.join(mac))
 
 class zkMachine(zkEntity):
 
@@ -24,12 +29,20 @@ class zkMachine(zkEntity):
 
     if self.id is None:
       self.read(condition = '%s_name = "%s";' % (self.table, platform.node()), throw = False)
-    
+
     if self.__asClient:
       if self.id is None:
         self.name = platform.node()
         self.level = 3
-      self.ip = getIps()
+      (ips, mac) = getIps()
+      self.ips = ips
+      self.macadresses = mac
+      self.cores = psutil.cpu_count()
+
+      memory = psutil.virtual_memory()
+      memoryGB = int(float(memory.total) / float(1024 * 1024 * 1024) + 0.5)
+
+      self.ramgb = memoryGB
       self.status = 'ONLINE'
       self.lastseen = 'NOW()'
       self.write()

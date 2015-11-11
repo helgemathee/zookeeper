@@ -1,13 +1,12 @@
-from zookeeper.zkDB import *
+from zookeeper import *
 
 conn = zkConnection()
 conn.setDebug(True)
-bracket = zkBracket()
+
+bracket = zkBracket(conn)
 
 p2 = zkProject.createNew(conn)
 p2.name = 'asdad'
-p2.dcc = 'softimage'
-p2.renderer = 'redshift'
 bracket.push(p2)
 
 i1 = zkInput.createNew(conn)
@@ -34,5 +33,5 @@ for i in range(1, 10):
 
 bracket.write()
 
-# machine = zkMachine(conn, asClient = True)
-# machine.read()
+machine = zkMachine(conn, asClient = True)
+machine.read()
