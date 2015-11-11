@@ -1,3 +1,5 @@
+import os
+import zookeeper
 from zkEntity_impl import zkEntity
 from zkProject_impl import zkProject
 from zkInput_impl import zkInput
@@ -42,3 +44,26 @@ class zkJob(zkEntity):
 
     super(zkJob, self).write()
 
+  def getAllFrames(self):
+    return zookeeper.zkDB.zkFrame.getAll(self.connection, condition = 'frame_jobid=%d' % self.id)
+
+  def getWaitingFrames(self):
+    return zookeeper.zkDB.zkFrame.getAll(self.connection, condition = 'frame_jobid=%d AND frame_status=\"%s\";' % (self.id, 'WAITING'))
+
+  def getCompletedFrames(self):
+    return zookeeper.zkDB.zkFrame.getAll(self.connection, condition = 'frame_jobid=%d AND frame_status=\"%s\";' % (self.id, 'COMPLETED'))
+
+  def getDeliveredFrames(self):
+    return zookeeper.zkDB.zkFrame.getAll(self.connection, condition = 'frame_jobid=%d AND frame_status=\"%s\";' % (self.id, 'DELIVERED'))
+
+  def getFailedFrames(self):
+    return zookeeper.zkDB.zkFrame.getAll(self.connection, condition = 'frame_jobid=%d AND frame_status=\"%s\";' % (self.id, 'FAILED'))
+
+  def getScratchKey(self):
+    return '%s_%d' % (self.name, self.id)
+
+  def getScratchFolder(self, config):
+    projectFolder =self.project.getScratchFolder(config)
+    if projectFolder is None:
+      return None
+    return os.path.join(projectFolder, 'jobs', self.getScratchKey())

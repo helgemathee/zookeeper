@@ -4,6 +4,7 @@ import multiprocessing
 import psutil
 
 import zookeeper.zkDB
+from zookeeper.zkConfig_impl import zkConfig
 from zkEntity_impl import zkEntity
 
 def getIps():
@@ -44,19 +45,24 @@ class zkMachine(zkEntity):
       memoryGB = int(float(memory.total) / float(1024 * 1024 * 1024) + 0.5)
 
       self.ramgb = memoryGB
+      self.gpuramgb = zkConfig().get('gpuramgb', 1)
       self.status = 'ONLINE'
-      self.updateLastSeen()
-      self.write()
+      self.updatePhysicalState()
       self.read()
 
   def __del__(self):
     if self.__asClient:
       self.status = 'OFFLINE'
-      self.updateLastSeen()
-      self.write()
+      self.updatePhysicalState()
 
-  def updateLastSeen(self):
+  def updatePhysicalState(self, write = True):
     self.lastseen = 'NOW()'
+    self.cpuusage = int(psutil.cpu_percent()+0.5)
+    memory = psutil.virtual_memory()
+    self.ramavailablemb = int(float(memory.available) / float(1024 * 1024) + 0.5)
+    self.ramusedmb = int(float(memory.used) / float(1024 * 1024) + 0.5)
+    if write:
+      self.write()
 
   def sendNotification(self, text, frame = None, severity = 'ERROR'):
     notif = zookeeper.zkDB.zkNotification.createNew(self.connection)

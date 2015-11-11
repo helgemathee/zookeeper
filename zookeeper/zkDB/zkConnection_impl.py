@@ -41,5 +41,6 @@ class zkConnection(object):
         self.__connector.commit()
       return result
     except mysql.connector.Error as err:
+      print 'Error when executing: << %s >>' % sql
       print(errorPrefix+": {}".format(err))
     return None

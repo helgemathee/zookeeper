@@ -5,6 +5,7 @@ class zkEntity(object):
   __table = None
   __conn = None
   __id = None
+  __initiallyRead = None
   __fields = None
   __fieldsChanged = None
   __tableFields = {}
@@ -27,20 +28,25 @@ class zkEntity(object):
     for field in zkEntity.__tableFields[table]:
       self.__fields[field] = None
 
+    self.__initiallyRead = True
     if not self.__id is None:
-      self.read()
+      self.__initiallyRead = False
 
   def __getattribute__(self, name):
     try:
       return object.__getattribute__(self, name)
     except AttributeError as e:
+      if not self.__initiallyRead:
+        self.read()
       key = self.__table + '_' + name
       if key in self.__fields:
         return self.__fields[key]
       raise e
 
   def __setattr__(self, name, value):
-    if not name in ['id', 'table', 'fields', 'connection']:
+    if not name.startswith('_') and not name in ['id', 'table', 'fields', 'connection']:
+      if not self.__initiallyRead and not self.__id is None:
+        self.read()
       if not self.__table is None and not self.__fields is None:
         key = self.__table + '_' + name
         if key in self.__fields:
@@ -109,6 +115,7 @@ class zkEntity(object):
 
   def write(self):
     if len(self.__fieldsChanged.keys()) == 0:
+      print '%s: Nothing to write. Please set some fields first.' % self.__class__.__name__
       return
 
     fieldNames = []
@@ -119,7 +126,7 @@ class zkEntity(object):
         fieldValue = self.__fields[fieldName]
         if fieldValue is None:
           continue
-        if isinstance(fieldValue, str) and not fieldValue.endswith('()'):
+        if (isinstance(fieldValue, str) or isinstance(fieldValue, unicode)) and not fieldValue.endswith('()'):
           fieldValue = '"%s"' % fieldValue
         fieldNames += [fieldName]
         fieldValues += [str(fieldValue)]
@@ -129,7 +136,7 @@ class zkEntity(object):
       return
 
     if self.__id is None:
-      sql = 'INSERT INTO %s (%s) VALUES(%s) ON DUPLICATE KEY UPDATE %s' % (self.table, ','.join(fieldNames), ','.join(fieldValues), ','.join(fieldPairs))
+      sql = 'INSERT INTO %s (%s) VALUES(%s);' % (self.table, ','.join(fieldNames), ','.join(fieldValues))
     else:
       sql = 'UPDATE %s SET %s WHERE %s_id = %d;' % (self.table, ','.join(fieldPairs), self.table, self.id)
 
@@ -146,11 +153,11 @@ class zkEntity(object):
     table = cls.getTableName()
     sql = 'SELECT %s_id FROM %s' % (table, table)
     if not condition is None:
-      sql += 'WHERE %s' % str(condition)
+      sql += ' WHERE %s' % str(condition)
     if not limit is None:
-      sql += 'LIMIT %s' % str(limit)
+      sql += ' LIMIT %s' % str(limit)
     if not order is None:
-      sql += 'ORDER BY %s' % str(order)
+      sql += ' ORDER BY %s' % str(order)
     sql += ';'
     ids = conn.execute(sql, errorPrefix=table)
     result = []
@@ -168,7 +175,33 @@ class zkEntity(object):
     return None
 
   @classmethod
+  def getById(cls, conn, id):
+    return cls(conn, id = id)
+
+  @classmethod
   def createNew(cls, conn):
     return cls(conn)
 
+  @classmethod
+  def getNameComboPairs(cls, conn):
+    table = cls.getTableName()
+    sql = 'SELECT %s_id, %s_name FROM %s ORDER BY %s_name ASC;' % (table, table, table, table)
+    results = conn.execute(sql, errorPrefix=table)
+    pairs = []
+    for r in results:
+      pairs += [[r[0], r[1]]]
+    return pairs
 
+  @classmethod
+  def getEnumComboPairs(cls, conn, field):
+    table = cls.getTableName()
+    sql = 'SHOW COLUMNS FROM %s WHERE Field = \'%s_%s\';' % (table, table, field)
+    results = conn.execute(sql, errorPrefix=table)
+    if len(results) == 0:
+      return []
+    enum = str(results[0][1])
+    values = enum.partition('(')[2].partition(')')[0].split(',')
+    result = []
+    for value in values:
+      result += [[len(result), value.strip('\'')]]
+    return result

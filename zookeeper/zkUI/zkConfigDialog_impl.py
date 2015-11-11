@@ -17,7 +17,6 @@ class zkConfigDialog(zkDialog):
   def getFields(self):
     return copy.deepcopy(self.__config.getFields())
 
-  # virtual: to be implemented
   def onAccepted(self, fields):
     for field in fields:
       self.__config.set(field['name'], field['value'], field['type'])

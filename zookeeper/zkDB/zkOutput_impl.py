@@ -1,3 +1,4 @@
+import os
 from zkEntity_impl import zkEntity
 from zkProject_impl import zkProject
 from zkJob_impl import zkJob
@@ -45,8 +46,11 @@ class zkOutput(zkEntity):
   job = property(__getJob, __setJob)
   frame = property(__getFrame, __setFrame)
 
-  def write(self):
+  @property
+  def ext(self):
+    return os.path.splitext(self.path)[1][1:]
 
+  def write(self):
     if not self.__tmpProject is None:
       self.projectid = self.__tmpProject.id
       self.__tmpProject = None
@@ -59,3 +63,13 @@ class zkOutput(zkEntity):
 
     super(zkOutput, self).write()
 
+  def getScratchKey(self):
+    time = str(self.frame.time).rjust(5, '0')
+    return self.name+'_'+time+'_'+str(self.id)+'.'+self.ext
+
+  def getScratchFile(self, config):
+    folder = self.frame.getScratchFolder(config)
+    enabled = config.get('scratchdisc_enabled', False)
+    if not enabled:
+      return None
+    return os.path.join(folder, self.name, self.getScratchKey())  

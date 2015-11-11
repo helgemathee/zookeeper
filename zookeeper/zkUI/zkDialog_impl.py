@@ -95,7 +95,25 @@ class zkDialog(QtGui.QDialog):
 
         subLayout.addWidget(button)
         gridLayout.addWidget(subWidget, offset, 1)
+      elif field['type'] == 'combo':
+        edit = QtGui.QComboBox(gridWidget)
+        if not 'comboitems' in field:
+          raise Exception('combo used without comboitems.')
 
+        pairs = field['comboitems']
+        for pair in pairs:
+          edit.addItem(pair[1], pair[0])
+
+        for i in range(len(pairs)):
+          if pairs[i][0] == field['value']:
+            edit.setCurrentIndex(i)
+            break
+
+        gridLayout.addWidget(edit, offset, 1)
+
+      if not edit is None:
+        if field.get('readonly', False):
+          edit.setEnabled(False)
       self.__edits[field['name']] = edit
 
       offset = offset + 1
@@ -121,6 +139,8 @@ class zkDialog(QtGui.QDialog):
           field['value'] = edit.text()
         elif field['type'] == 'folder':
           field['value'] = edit.text()
+        elif field['type'] == 'combo':
+          field['value'] = edit.itemData(edit.currentIndex())
       self.onAccepted(fields)
       self.close()
 

@@ -1,3 +1,5 @@
+import os
+import zookeeper
 from zkEntity_impl import zkEntity
 from zkProject_impl import zkProject
 from zkJob_impl import zkJob
@@ -43,3 +45,11 @@ class zkFrame(zkEntity):
 
     super(zkFrame, self).write()
 
+  def getAllOutputs(self):
+    return zookeeper.zkDB.zkOutput.getAll(self.connection, condition = 'output_frameid=%d' % self.id)
+
+  def getScratchKey(self):
+    return 'frame_'+str(self.id)
+
+  def getScratchFolder(self, config):
+    return self.job.getScratchFolder(config)
