@@ -6,6 +6,7 @@ from zkUtils_impl import zk_validateNetworkFilePath, zk_uncFromDrivePath
 class zkSubmitter(object):
   __name = None
   __conn = None
+  __app = None
 
   def __init__(self, name, connection):
     self.__name = name
@@ -55,6 +56,10 @@ class zkSubmitter(object):
   def getExtraFields(self):
     raise Exception("To be implemented in specialized class")
 
+  # virtual: can be overloaded
+  def validatePath(self, path, shouldExist = True):
+    return zk_validateNetworkFilePath(path, shouldExist=shouldExist)
+
   # virtual: to be implemented
   def createJobFramesAndOutput(self, fields, connection, bracket, project, input):
     raise Exception("To be implemented in specialized class")
@@ -91,18 +96,19 @@ class zkSubmitter(object):
   # the main submit process
   def submitWithDialog(self):
 
-    app = zookeeper.zkUI.zkApp()
+    if zkSubmitter.__app is None:
+      zkSubmitter.__app = zookeeper.zkUI.zkApp()
 
     # check input and external file paths
     inputpath = self.getInputPath()
-    if not zk_validateNetworkFilePath(inputpath):
+    if not self.validatePath(inputpath, shouldExist=True):
       QtGui.QMessageBox.warning(None, 'ZooKeeper Warning', 'The input path\n%s\n is not accessible by other machines on the network.' % inputpath)
       return
 
     externalfiles = self.getExternalFilePaths()
     for f in externalfiles:
-      if not zk_validateNetworkFilePath(f):
-        QtGui.QMessageBox.warning(None, 'ZooKeeper Warning', 'The input path\n%s\n is not accessible by other machines on the network.' % f)
+      if not self.validatePath(f['path'], shouldExist=f.get('exist', True)):
+        QtGui.QMessageBox.warning(None, 'ZooKeeper Warning', 'The input path\n%s\n is not accessible by other machines on the network.' % f['path'])
         return
 
     fields = []

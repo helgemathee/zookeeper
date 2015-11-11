@@ -1,2 +1,3 @@
 from zkSubmitter_impl import zkSubmitter
-from zkDCCs import *
+from zkSoftimageSubmitter_impl import zkSoftimageSubmitter
+
