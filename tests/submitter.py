@@ -34,7 +34,7 @@ class TestSubmitter(zookeeper.zkClient.zkSubmitter):
       {'name': 'maxcount', 'value': 1, 'type': 'int'}
     ]
 
-  def getFramesAndOutput(self, fields, connection, bracket, project, input):
+  def createJobFramesAndOutput(self, fields, connection, bracket, project, input):
     results = {}
     for field in fields:
       results[field['name']] = field['value']
@@ -46,8 +46,20 @@ class TestSubmitter(zookeeper.zkClient.zkSubmitter):
     job.input = input
     job.type = 'ALL'
     self.decorateJobWithDefaults(fields, job)
-
     bracket.push(job)
+
+    frame = zookeeper.zkDB.zkFrame.createNew(self.connection)
+    frame.job = job
+    frame.priority = 75
+    frame.time = 25
+    bracket.push(frame)
+
+    output = zookeeper.zkDB.zkOutput.createNew(self.connection)
+    output.frame = frame
+    output.name = 'diffuse'
+    output.path = '\\\\domain\\public\\exchange\\test.result'
+    bracket.push(output)
+
 
 cfg = zookeeper.zkConfig()
 conn = zookeeper.zkDB.zkConnection()

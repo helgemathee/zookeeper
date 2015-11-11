@@ -1,7 +1,7 @@
 import os
 import zookeeper
 from PySide import QtCore, QtGui
-from zkUtils_impl import zk_validateNetworkFilePath
+from zkUtils_impl import zk_validateNetworkFilePath, zk_uncFromDrivePath
 
 class zkSubmitter(object):
   __name = None
@@ -56,7 +56,7 @@ class zkSubmitter(object):
     raise Exception("To be implemented in specialized class")
 
   # virtual: to be implemented
-  def getFramesAndOutput(self, fields, connection, bracket, project, input):
+  def createJobFramesAndOutput(self, fields, connection, bracket, project, input):
     raise Exception("To be implemented in specialized class")
 
   def decorateJobWithDefaults(self, fields, job):
@@ -72,6 +72,11 @@ class zkSubmitter(object):
     job.dccversion = self.getDCCVersion()
     job.renderer = self.getRendererName()
     job.rendererversion = self.getRendererVersion()
+    job.priority = results['jobpriority']
+
+    job.mincores = results['mincores']
+    job.minramgb = results['minramgb']
+    job.mingpuramgb = results['mingpuramgb']
 
   def createNewProjectWithDialog(self):
 
@@ -124,6 +129,10 @@ class zkSubmitter(object):
 
     fields += [{'name': 'projectid', 'value': projectid, 'type': 'combo', 'comboitems': pairs}]
     fields += [{'name': 'jobname', 'value': self.getJobDefaultName(), 'type': 'str'}]
+    fields += [{'name': 'jobpriority', 'value': 50, 'type': 'int'}]
+    fields += [{'name': 'mincores', 'value': 4, 'type': 'int'}]
+    fields += [{'name': 'minramgb', 'value': 8, 'type': 'int'}]
+    fields += [{'name': 'mingpuramgb', 'value': 2, 'type': 'int'}]
     fields += self.getExtraFields()
 
     def onAccepted(fields):
@@ -135,10 +144,10 @@ class zkSubmitter(object):
       p = zookeeper.zkDB.zkProject.getById(self.__conn, results['projectid'])
 
       i = zookeeper.zkDB.zkInput.createNew(self.__conn)
-      i.path = inputpath
+      i.path = zk_uncFromDrivePath(inputpath)
       b.push(i)
       
-      self.getFramesAndOutput(fields, self.__conn, b, p, i)
+      self.createJobFramesAndOutput(fields, self.__conn, b, p, i)
       b.write()
 
       QtGui.QMessageBox.information(None, 'ZooKeeper', 'Job "%s" submitted.' % results['jobname'])

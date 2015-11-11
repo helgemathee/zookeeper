@@ -127,7 +127,7 @@ class zkEntity(object):
         if fieldValue is None:
           continue
         if (isinstance(fieldValue, str) or isinstance(fieldValue, unicode)) and not fieldValue.endswith('()'):
-          fieldValue = '"%s"' % fieldValue
+          fieldValue = repr(str(fieldValue))
         fieldNames += [fieldName]
         fieldValues += [str(fieldValue)]
         fieldPairs += [fieldName+'='+str(fieldValue)]
