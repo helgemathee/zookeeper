@@ -81,7 +81,7 @@ class zkSoftimageWorkThread(zkWorkThread):
     if os.path.exists(workGroupRender):
       workgroups += [workGroupRender]
 
-    # todo: localize workgroups...!
+    # todo: localize workgroups...! # WITH BAAZAARRRR!
 
     template = template.replace('%WORKGROUPS%', ';'.join(workgroups))
     open(os.path.join(prefsFolder, 'default.xsipref'), 'wb').write(template)

@@ -110,16 +110,27 @@ class zkSubmitter(object):
       zkSubmitter.__app = zookeeper.zkUI.zkApp()
 
     # check input and external file paths
+    brokenFiles = []
     inputpath = self.getInputPath()
     if not self.validatePath(inputpath, shouldExist=True):
-      QtGui.QMessageBox.warning(None, 'ZooKeeper Warning', 'The input path\n%s\n is not accessible by other machines on the network.' % inputpath)
-      return
+      brokenFiles += [{'group': inputpath}]
 
     externalfiles = self.getExternalFilePaths()
     for f in externalfiles:
       if not self.validatePath(f['path'], shouldExist=f.get('exist', True)):
-        QtGui.QMessageBox.warning(None, 'ZooKeeper Warning', 'The input path\n%s\n is not accessible by other machines on the network.' % f['path'])
-        return
+        brokenFiles += [f]
+
+    if len(brokenFiles) > 0:
+      text = "Some paths are not accessible by other machines on the network: \n"
+      for brokenFile in brokenFiles:
+        text += '\n%s: %s' % (brokenFile.get('group', 'file'), brokenFile['path'])
+      text += "\n\nThis info has been copied to the clipboard."
+
+      clipboard = QtGui.QApplication.clipboard()
+      clipboard.setText(text)
+
+      QtGui.QMessageBox.warning(None, 'ZooKeeper Warning', text)
+      return
 
     fields = []
     fields += [{'name': 'dcc', 'value': self.getDCCName(), 'type': 'str', 'readonly': True, 'tooltip': 'The name of the DCC'}]

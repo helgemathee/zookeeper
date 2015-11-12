@@ -61,7 +61,7 @@ class zkSoftimageSubmitter(zkSubmitter):
     extFiles = scene.ExternalFiles
     for i in range(extFiles.Count):
       extFile = extFiles(i)
-      result += [{'path': extFile.path, 'exist': True}]
+      result += [{'path': extFile.path, 'exist': True, 'group': 'external file'}]
 
     # also add the outputs for validation
     frameBuffers = currentPass.FrameBuffers
@@ -69,7 +69,9 @@ class zkSoftimageSubmitter(zkSubmitter):
       fb = frameBuffers(i)
       if not fb.Parameters.GetItem('Enabled').Value:
         continue
-      result += [{'path': fb.GetResolvedPath(1), 'exist': False}]
+      result += [{'path': fb.GetResolvedPath(1), 'exist': False, 'group': 'render output'}]
+
+    # todo: ICE caches etc, ass caches etc..
 
     return result
 
