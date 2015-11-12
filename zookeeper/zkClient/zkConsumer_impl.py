@@ -53,7 +53,11 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
 
   def poll(self):
     self.__machine.updatePhysicalState()
+    
     if self.__workThread:
+      if not self.__workThread.isRunning():
+        print 'we should check out outputs!'
+        print self.__workThread.log
       return
 
     work = self.__conn.call('look_for_work', [self.__machine.id, 1])

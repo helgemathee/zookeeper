@@ -22,6 +22,10 @@ class zkConnection(object):
     print 'Connection closed to %s.' % self.__ip
 
   @property
+  def ip(self):
+    return self.__ip
+
+  @property
   def lastId(self):
     return self.__lastId
 

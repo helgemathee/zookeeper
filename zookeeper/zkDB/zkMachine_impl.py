@@ -55,6 +55,7 @@ class zkMachine(zkEntity):
       self.updatePhysicalState(write = False)
       self._updateHangingFrames(bracket)
 
+      bracket.push(self)
       bracket.write()
 
       self.read()
@@ -71,6 +72,7 @@ class zkMachine(zkEntity):
       bracket.write()
 
   def _updateHangingFrames(self, bracket):
+    if not self.id is None:
       cond = 'frame_machineid = %d and (frame_status = \'PROCESSING\' or frame_status = \'COMPLETED\')' % self.id
       frames = zookeeper.zkDB.zkFrame.getAll(self.connection, condition = cond)
       for frame in frames:

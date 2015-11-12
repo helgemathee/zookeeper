@@ -41,7 +41,6 @@ class zkSoftimageSubmitter(zkSubmitter):
     path = path.replace('\\', '/')
     version = path.rpartition('/')[2]
     version = version.partition(' ')[2]
-    version = version.replace(' ', '')
     return version
 
   def getRendererName(self):

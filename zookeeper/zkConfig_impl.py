@@ -17,6 +17,7 @@ class zkConfig(object):
     # here you should define all fields
     # types supported are 'folder', 'str', 'int', 'bool'
     self.set('softimage_root_folder', 'C:/Program Files/Autodesk', type = 'folder', tooltip = 'Normally the Autodesk main folder.', onlyIfNotExists = True)
+    self.set('softimage_user_root', 'c:\\temp\\zookeeper\\Softimage', type = 'folder', tooltip = 'The softimage render user folder.', onlyIfNotExists = True)
     self.set('gpuramgb', 1, type='int', tooltip = 'The number of GBs of RAM on the largest GPU.', onlyIfNotExists = True)
     self.set('scratchdisc_enabled', False, type='bool', tooltip = 'Checking this enables a local scratch disc.', onlyIfNotExists = True)
     self.set('scratchdisc_folder', 'c:/temp/scratch', type='folder', tooltip = 'The location of the local scratch disc.', onlyIfNotExists = True)
