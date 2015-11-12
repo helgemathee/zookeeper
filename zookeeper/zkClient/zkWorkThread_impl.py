@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import psutil
 import tempfile
 import subprocess
 import zookeeper
@@ -58,6 +59,15 @@ class zkWorkThread(QtCore.QThread):
     cmdargs = [cmd] + args
     self.__log = []
     self.__process = subprocess.Popen(cmdargs, env = env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    p = psutil.Process(self.__process.pid)
+    if self.__machine.priority == 'LOW':
+      p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
+    elif self.__machine.priority == 'MED':
+      p.nice(psutil.NORMAL_PRIORITY_CLASS)
+    elif self.__machine.priority == 'HIGH':
+      p.nice(psutil.ABOVE_NORMAL_PRIORITY_CLASS)
+
 
   def waitForSubProcess(self):
     while self.exiting == False:

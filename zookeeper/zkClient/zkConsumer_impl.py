@@ -1,5 +1,6 @@
 import os
 import re
+import psutil
 import datetime
 import zookeeper
 from PySide import QtCore, QtGui
@@ -36,10 +37,13 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
 
     offset = 0
 
+    backgroundColor = '#e6e6e6'
+
     # project
     labelWidget = QtGui.QLabel('project', topWidget)
     self.__widgets['project'] = QtGui.QLineEdit(topWidget)
     self.__widgets['project'].setReadOnly(True)
+    self.setLineEditColor('project', backgroundColor)
     topLayout.addWidget(labelWidget, 0, offset)
     topLayout.addWidget(self.__widgets['project'], 1, offset)
     offset = offset + 1
@@ -48,6 +52,7 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
     labelWidget = QtGui.QLabel('job', topWidget)
     self.__widgets['job'] = QtGui.QLineEdit(topWidget)
     self.__widgets['job'].setReadOnly(True)
+    self.setLineEditColor('job', backgroundColor)
     topLayout.addWidget(labelWidget, 0, offset)
     topLayout.addWidget(self.__widgets['job'], 1, offset)
     offset = offset + 1
@@ -57,6 +62,7 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
     self.__widgets['frame'] = QtGui.QLineEdit(topWidget)
     self.__widgets['frame'].setReadOnly(True)
     self.__widgets['frame'].setMaximumWidth(50)
+    self.setLineEditColor('frame', backgroundColor)
     topLayout.addWidget(labelWidget, 0, offset)
     topLayout.addWidget(self.__widgets['frame'], 1, offset)
     offset = offset + 1
@@ -64,17 +70,23 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
     # progress
     labelWidget = QtGui.QLabel('progress', topWidget)
     self.__widgets['progress'] = QtGui.QProgressBar(topWidget)
-    self.setProgressBarColor('progress', 'green')
     self.__widgets['progress'].setMinimumWidth(200)
+    self.setProgressBarColor('progress', 'green')
     topLayout.addWidget(labelWidget, 0, offset)
     topLayout.addWidget(self.__widgets['progress'], 1, offset)
     offset = offset + 1
 
     # status
     labelWidget = QtGui.QLabel('status', topWidget)
-    self.__widgets['status'] = QtGui.QLineEdit(topWidget)
+    self.__widgets['status'] = QtGui.QLineEdit('idle', topWidget)
     self.__widgets['status'].setReadOnly(True)
     self.__widgets['status'].setMaximumWidth(75)
+    self.__widgets['status'].setAlignment(QtCore.Qt.AlignHCenter)
+    if self.__machine.priority == 'OFF':
+      self.__widgets['status'].setText('off')
+      self.setLineEditColor('status', 'red')
+    else:
+      self.setLineEditColor('status', 'yellow')
     topLayout.addWidget(labelWidget, 0, offset)
     topLayout.addWidget(self.__widgets['status'], 1, offset)
     offset = offset + 1
@@ -112,16 +124,19 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
 
     self.show()
 
-  def setProgressBarColor(self, name, color):
+  def setLineEditColor(self, name, background):
+    style = "QLineEdit { background-color: %s }" % (background)
+    self.__widgets[name].setStyleSheet(style)
 
+  def setProgressBarColor(self, name, color):
     style = """
     QProgressBar{
-        text-align: center
+        text-align: center;
     }
     QProgressBar::chunk {
         background-color: %s;
     }
-    """ % color
+    """ % (color)
     self.__widgets[name].setStyleSheet(style)
 
   def closeEvent(self, event):
@@ -156,11 +171,25 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
 
   def poll(self):
     self.__machine.updatePhysicalState()
+    self.__machine.read()
+    priority = self.__machine.priority
 
     self.__widgets['cpu'].setValue(self.__machine.cpuusage)
-    self.__widgets['ram'].setValue(100.0 * float(self.__machine.ramusedmb) / float(self.__machine.ramgb * 1024))
+    self.__widgets['ram'].setValue(int(100.0 * float(self.__machine.ramusedmb) / float(self.__machine.ramgb * 1024) + 0.5))
 
     if self.__workThread:
+
+      # if we are running, but priority is off now
+      if priority == 'OFF':
+        self.__workThread.stop()
+        self.__workThread = None
+        self.__widgets['status'].setText('off')
+        self.setLineEditColor('status', 'red')
+        self.__widgets['project'].setText('')
+        self.__widgets['job'].setText('')
+        self.__widgets['frame'].setText('')
+        self.__widgets['progress'].setValue(0)
+        return
 
       frame = self.__workThread.frame
       job = frame.job
@@ -173,6 +202,8 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
       if not self.__workThread.isRunning():
         self.storeLog(self.__workThread.frame)
         self.__workThread = None
+        self.__widgets['status'].setText('idle')
+        self.setLineEditColor('status', 'yellow')
         return
 
       currentCondition = 'frame_machineid = %d AND frame_status = \'PROCESSING\'' % self.__machine.id
@@ -189,6 +220,16 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
       self.__widgets['job'].setText("")
       self.__widgets['frame'].setText("")
 
+    # only look for work if we have some priority
+    if priority == 'OFF':
+      self.__widgets['status'].setText('off')
+      self.setLineEditColor('status', 'red')
+      self.__widgets['project'].setText('')
+      self.__widgets['job'].setText('')
+      self.__widgets['frame'].setText('')
+      self.__widgets['progress'].setValue(0)
+      return
+
     work = self.__conn.call('look_for_work', [self.__machine.id, 1])
     if len(work) == 0:
       return
@@ -202,5 +243,7 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
     # create the right thread
     self.__workThread = zookeeper.zkClient.zkWorkThread.create(self.__conn, frame, self)
     if self.__workThread:
+      self.__widgets['status'].setText(priority.lower())
+      self.setLineEditColor('status', 'lightgreen')
       self.__workThread.logged.connect(self.onLogged)
       self.__workThread.start()

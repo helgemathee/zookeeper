@@ -116,8 +116,8 @@ class zkEntity(object):
 
   def write(self, throw = True):
     if len(self.__fieldsChanged.keys()) == 0:
-      if throw:
-        print '%s: Nothing to write. Please set some fields first.' % self.__class__.__name__
+      # if throw:
+      #   print '%s: Nothing to write. Please set some fields first.' % self.__class__.__name__
       return
 
     fieldNames = []

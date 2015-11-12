@@ -68,6 +68,7 @@ def munch():
 
       # render
       try:
+        Application.SetValue("PlayControl.Current", frame.time)
         Application.RenderPasses("Passes." + passName, frame.time, frame.time, 1)
       except:
         setFrameAsFailed(connection, frame, 'Error when launching render')
@@ -90,6 +91,10 @@ def munch():
     if not nextInput.path == input.path:
       log('Stopping working, next frame uses another input.')
       break
+
+    # when switching jobs, rewind time
+    if not nextJob.id == job.id:
+      Application.SetValue("PlayControl.Current", Application.GetValue("PlayControl.GlobalIn"))
 
     nextFrame.machineid = machine.id
     nextFrame.started = 'NOW()'
