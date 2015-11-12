@@ -2,6 +2,7 @@ import sys
 import zookeeper
 from PySide import QtCore, QtGui
 from zkSubmitter_impl import zkSubmitter
+from zkUtils_impl import zk_uncFromDrivePath
 
 class STDOutHook(object):
   __app = None
@@ -86,7 +87,7 @@ class zkSoftimageSubmitter(zkSubmitter):
   def getJobDefaultName(self):
     sceneName = str(self.__app.ActiveProject.ActiveScene.Name)
     passName = str(self.__app.ActiveProject.ActiveScene.ActivePass.Name)
-    return '%s_%s' % (sceneName, passName)
+    return '%s|%s' % (sceneName, passName)
 
   def getExtraFields(self):
     fields = []
@@ -119,8 +120,8 @@ class zkSoftimageSubmitter(zkSubmitter):
     fields += [{'name': 'frameend', 'value': frameend, 'type': 'int', 'tooltip': 'The last frame of the sequence'}]
     fields += [{'name': 'framestep', 'value': framestep, 'type': 'int', 'tooltip': 'The stepping across the sequence'}]
     fields += [{'name': 'packagesize', 'value': 20, 'type': 'int', 'tooltip': 'The number of frames which are processed as a batch.'}]
-    fields += [{'name': 'capturejob', 'value': True, 'type': 'bool', 'tooltip': 'Enabling this also creates a capture movie.'}]
     fields += [{'name': 'highprio_firstlast', 'value': True, 'type': 'bool', 'tooltip': 'Use higher priority for the first and last frame.'}]
+    fields += [{'name': 'capturejob', 'value': False, 'type': 'bool', 'tooltip': 'Enabling this also creates a capture movie.'}]
     return fields
 
   def validatePath(self, path, shouldExist = True):
@@ -170,7 +171,7 @@ class zkSoftimageSubmitter(zkSubmitter):
       output = zookeeper.zkDB.zkOutput.createNew(self.connection)
       output.frame = frame
       output.name = mainBuffer.Name
-      output.path = capturePath
+      output.path = zk_uncFromDrivePath(capturePath)
       bracket.push(output)
 
     job = zookeeper.zkDB.zkJob.createNew(self.connection)
@@ -198,6 +199,7 @@ class zkSoftimageSubmitter(zkSubmitter):
       if highprio_firstlast:
         if f == framestart or f == frameend:
           frame.priority = 75
+          frame.package = 1
       bracket.push(frame)
 
       for i in range(frameBuffers.Count):
@@ -205,5 +207,5 @@ class zkSoftimageSubmitter(zkSubmitter):
         output = zookeeper.zkDB.zkOutput.createNew(self.connection)
         output.frame = frame
         output.name = fb.Name
-        output.path = fb.GetResolvedPath(f)
+        output.path = zk_uncFromDrivePath(fb.GetResolvedPath(f))
         bracket.push(output)

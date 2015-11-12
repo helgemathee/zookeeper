@@ -73,7 +73,7 @@ class zkMachine(zkEntity):
 
   def _updateHangingFrames(self, bracket):
     if not self.id is None:
-      cond = 'frame_machineid = %d and (frame_status = \'PROCESSING\' or frame_status = \'COMPLETED\')' % self.id
+      cond = 'frame_machineid = %d and (frame_status = \'PROCESSING\')' % self.id
       frames = zookeeper.zkDB.zkFrame.getAll(self.connection, condition = cond)
       for frame in frames:
         frame.status = 'WAITING'

@@ -156,7 +156,7 @@ class zkSubmitter(object):
           break
 
     fields += [{'name': 'projectid', 'value': projectid, 'type': 'combo', 'comboitems': pairs, 'tooltip': "The name of the project"}]
-    fields += [{'name': 'jobname', 'value': self.getJobDefaultName(), 'type': 'str', 'tooltip': "The name of the job"}]
+    fields += [{'name': 'jobname', 'value': self.getJobDefaultName(), 'type': 'str', 'tooltip': "The name of the job", 'readonly': True}]
     fields += [{'name': 'jobpriority', 'value': 50, 'type': 'int', 'tooltip': "The priority of the job"}]
     fields += [{'name': 'mincores', 'value': 4, 'type': 'int', 'tooltip': "The minimum of CPU cores a client machine requires."}]
     fields += [{'name': 'minramgb', 'value': 8, 'type': 'int', 'tooltip': "The minimum of RAM (GB) a client machine requires."}]

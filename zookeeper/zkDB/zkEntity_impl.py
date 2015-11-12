@@ -129,7 +129,7 @@ class zkEntity(object):
         fieldValue = self.__fields[fieldName]
         if fieldValue is None:
           continue
-        if (isinstance(fieldValue, str) or isinstance(fieldValue, unicode)) and not fieldValue.endswith('()'):
+        if (isinstance(fieldValue, str) or isinstance(fieldValue, unicode)) and fieldValue.find('()') == -1:
           fieldValue = repr(str(fieldValue))
         fieldNames += [fieldName]
         fieldValues += [str(fieldValue)]
@@ -190,13 +190,19 @@ class zkEntity(object):
     return result
 
   @classmethod
-  def getByName(cls, conn, name):
+  def getByCondition(cls, conn, condition):
     table = cls.getTableName()
-    sql = 'SELECT %s_id FROM %s WHERE %s_name = "%s";' % (table, table, table, name)
+    sql = 'SELECT %s_id FROM %s WHERE %s;' % (table, table, condition)
     ids = conn.execute(sql, errorPrefix=table)
     for id in ids:
       return cls(conn, id=id[0])
     return None
+
+  @classmethod
+  def getByName(cls, conn, name):
+    table = cls.getTableName()
+    condition = '%s_name = \'%s\'' % (table, name)
+    return cls.getByCondition(conn, condition)
 
   @classmethod
   def getById(cls, conn, id):

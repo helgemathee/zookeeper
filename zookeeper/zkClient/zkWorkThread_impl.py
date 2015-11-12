@@ -14,6 +14,8 @@ class zkWorkThread(QtCore.QThread):
   __process = None
   __log = None
 
+  logged = QtCore.Signal(str)
+
   def __init__(self, connection, frame, parent = None):
     super(zkWorkThread, self).__init__(parent)
     self.__conn = connection
@@ -43,9 +45,12 @@ class zkWorkThread(QtCore.QThread):
 
     # also include all of the zookeeper settings
     env['ZK_IP'] = self.connection.ip
+    env['ZK_PORT'] = self.connection.port
+    env['ZK_DATABASE'] = self.connection.database
     env['ZK_MACHINE'] = self.machine.id
+    env['ZK_PROJECT'] = self.frame.projectid
+    env['ZK_JOB'] = self.frame.jobid
     env['ZK_FRAME'] = self.frame.id
-    env['ZK_JOB'] = self.frame.job.id
 
     for key in env:
       env[key] = str(env[key])
@@ -55,13 +60,18 @@ class zkWorkThread(QtCore.QThread):
     self.__process = subprocess.Popen(cmdargs, env = env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
   def waitForSubProcess(self):
-    while self.exiting==False:
-      time.sleep(1)
-      out, err = self.__process.communicate()
-      out = out.replace('\r', '')
-      self.__log += out.split('\n')
+    while self.exiting == False:
+      for line in iter(self.__process.stdout.readline, b''):
+        l = line.replace('\n', '')
+        self.log(l)
+        break
       if self.processReturnCode >= 0:
         self.exiting = True
+
+    if self.__process.returncode is None:
+      self.log('Killing process...')
+      while self.__process.returncode is None:
+        self.__process.kill()
 
   @property
   def processReturnCode(self):
@@ -78,6 +88,9 @@ class zkWorkThread(QtCore.QThread):
   def frame(self):
     return self.__frame
 
+  def setFrame(self, frame):
+    self.__frame = frame
+
   @property
   def machine(self):
     return self.__machine
@@ -86,9 +99,14 @@ class zkWorkThread(QtCore.QThread):
   def process(self):
     self.__process
 
-  @property
-  def log(self):
-    return self.__log
+  def log(self, message):
+    self.__log.append(message)
+    self.logged.emit(message)
+
+  def clearLog(self):
+    log = self.__log
+    self.__log = []
+    return log
 
   @classmethod
   def create(self, connection, frame, parent = None):
