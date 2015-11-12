@@ -121,7 +121,8 @@ class zkSubmitter(object):
         brokenFiles += [f]
 
     if len(brokenFiles) > 0:
-      text = "Some paths are not accessible by other machines on the network: \n"
+      text = "Some paths are not accessible by other machines on the network.\n"
+      text += "Submitting a job is not possible until this is fixed\n."
       for brokenFile in brokenFiles:
         text += '\n%s: %s' % (brokenFile.get('group', 'file'), brokenFile['path'])
       text += "\n\nThis info has been copied to the clipboard."
