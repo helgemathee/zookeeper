@@ -56,12 +56,19 @@ class zkSoftimageWorkThread(zkWorkThread):
       '_ADSK_LicServers': env['ADSKFLEX_LICENSE_FILE'],
     })
 
-    for key in env:
-      env[key] = str(env[key])
-
     zookeeperPath = os.path.split(os.path.split(zookeeper.__file__)[0])[0]
+    dccPath = os.path.join(zookeeperPath, 'dccs', 'Softimage')
+
+    # create a settings template
+    prefsFolder = os.path.join(env['XSI_USERHOME'], 'Data', 'Preferences')
+    if not os.path.exists(prefsFolder):
+      os.makedirs(prefsFolder)
+    template = open(os.path.join(dccPath, 'default.xsipref'), 'rb').read()
+    template = template.replace('%VERSION%', job.dccversion)
+    open(os.path.join(prefsFolder, 'default.xsipref'), 'wb').write(template)
+
     args = ['-script']
-    args += [os.path.join(zookeeperPath, 'dccs', 'Softimage', 'munch.py')]
+    args += [os.path.join(dccPath, 'munch.py')]
 
     self.launchSubProcess(bin, args = args, env = env)
     self.waitForSubProcess()

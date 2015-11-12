@@ -42,10 +42,13 @@ class zkWorkThread(QtCore.QThread):
     env['PYTHONPATH'] = env.get('PYTHONPATH') + os.pathsep + zookeeperPath
 
     # also include all of the zookeeper settings
-    env['ZK_IP'] = str(self.connection.ip)
-    env['ZK_MACHINE'] = str(self.machine.id)
-    env['ZK_FRAME'] = str(self.frame.id)
-    env['ZK_JOB'] = str(self.frame.job.id)
+    env['ZK_IP'] = self.connection.ip
+    env['ZK_MACHINE'] = self.machine.id
+    env['ZK_FRAME'] = self.frame.id
+    env['ZK_JOB'] = self.frame.job.id
+
+    for key in env:
+      env[key] = str(env[key])
 
     cmdargs = [cmd] + args
     self.__log = []
