@@ -10,7 +10,6 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
   __cfg = None
   __widgets = None
   __timers = None
-  __jobQuery = None
 
   def __init__(self, connection):
 
@@ -30,11 +29,10 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
 
     # machines
     labels = ['id', 'name', 'status', 'prio', 'cpu', 'ram']
-    query = "SELECT machine_id, machine_name, machine_status, machine_priority, machine_cpuusage, ROUND(100.0 * (machine_ramusedmb / (machine_ramgb * 1024))) FROM machine WHERE machine_id > 1 ORDER BY machine_name ASC";
     self.__widgets['machines'] = zookeeper.zkUI.zkDbTable(
       self.__conn,
       zookeeper.zkDB.zkMachine,
-      query = query,
+      procedure = 'get_machines_for_manager',
       labels = labels,
       fillItemCallback = self.onMachineFillItem
       )
@@ -42,11 +40,10 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
 
     # jobs
     labels = ['id', 'name', 'user', 'frames', 'prio', 'status', 'progress']
-    query = "SELECT job_id, job_name, job_user, (SELECT COUNT(frame_id) FROM frame WHERE frame_jobid = job_id), job_priority, (SELECT COUNT(frame_id) FROM frame WHERE frame_jobid = job_id AND frame_status = 'PROCESSING'), ROUND(100.0 * (SELECT COUNT(frame_id) FROM frame WHERE frame_jobid = job_id AND (frame_status = 'COMPLETED' or frame_status = 'DELIVERED')) / (SELECT COUNT(frame_id) FROM frame WHERE frame_jobid = job_id)) FROM job ORDER BY job_id ASC";
     self.__widgets['jobs'] = zookeeper.zkUI.zkDbTable(
       self.__conn,
       zookeeper.zkDB.zkMachine,
-      query = query,
+      procedure = 'get_jobs_for_manager',
       labels = labels,
       fillItemCallback = self.onJobFillItem
       )
@@ -54,11 +51,11 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
 
     # frames
     labels = ['id', 'job', 'time', 'status', 'duration', 'machine', 'prio', 'package']
-    self.__jobQuery = "SELECT frame_id, job_name, frame_time, frame_status, frame_duration, machine_name, frame_priority, frame_package FROM frame, job, machine WHERE job_id = %d AND frame_jobid = job_id AND frame_machineid = machine_id ORDER BY frame_time ASC;"
     self.__widgets['frames'] = zookeeper.zkUI.zkDbTable(
       self.__conn,
       zookeeper.zkDB.zkMachine,
-      query = self.__jobQuery % 0,
+      procedure = 'get_frames_for_manager',
+      procedureArgs = [0],
       labels = labels,
       fillItemCallback = self.onFrameFillItem
       )
@@ -168,10 +165,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     def setupPrioAction(menu, prio):
 
       def onTriggered():
-
-        machine = zookeeper.zkDB.zkMachine.getById(self.__conn, id)
-        machine.priority = prio
-        machine.write()
+        self.__conn.call('set_machine_priority', [id, prio])
         self.poll()
 
       menu.addAction('set %s' % prio).triggered.connect(onTriggered)
@@ -187,7 +181,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     menu = QtGui.QMenu()
 
     def onShowFrames():
-      self.__widgets['frames'].setQuery(self.__jobQuery % id)
+      self.__widgets['frames'].setProcedureArgs([id])
       self.__widgets['tabs'].setCurrentWidget(self.__widgets['frames'])
 
     menu.addAction('frames').triggered.connect(onShowFrames)
@@ -210,17 +204,17 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     menu.addSeparator()
 
     def onResubmit():
-      self.__conn.execute("UPDATE frame SET frame_status='WAITING', frame_machineid = 1 WHERE frame_jobid = %d AND frame_status != 'PROCESSING'" % id)
+      self.__conn.call('resubmit_job', [id])
       self.poll()
     menu.addAction('resubmit').triggered.connect(onResubmit)
 
     def onStop():
-      self.__conn.execute("UPDATE frame SET frame_status='STOPPED' WHERE frame_jobid = %d AND frame_status = 'WAITING'" % id)
+      self.__conn.call("stop_job", [id])
       self.poll()
     menu.addAction('stop').triggered.connect(onStop)
 
     def onResume():
-      self.__conn.execute("UPDATE frame SET frame_status='WAITING' WHERE frame_jobid = %d AND frame_status = 'STOPPED'" % id)
+      self.__conn.execute("resume_job", [id])
       self.poll()
     menu.addAction('resume').triggered.connect(onResume)
 
@@ -247,17 +241,17 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     menu.addSeparator()
 
     def onResubmit():
-      self.__conn.execute("UPDATE frame SET frame_status='WAITING', frame_machineid = 1 WHERE frame_id = %d AND frame_status != 'PROCESSING'" % id)
+      self.__conn.call("resubmit_frame", [id])
       self.poll()
     menu.addAction('resubmit').triggered.connect(onResubmit)
 
     def onStop():
-      self.__conn.execute("UPDATE frame SET frame_status='STOPPED' WHERE frame_id = %d AND frame_status = 'WAITING'" % id)
+      self.__conn.call("stop_frame", [id])
       self.poll()
     menu.addAction('stop').triggered.connect(onStop)
 
     def onResume():
-      self.__conn.execute("UPDATE frame SET frame_status='WAITING' WHERE frame_id = %d AND frame_status = 'STOPPED'" % id)
+      self.__conn.call("resume_frame", [id])
       self.poll()
     menu.addAction('resume').triggered.connect(onResume)
 

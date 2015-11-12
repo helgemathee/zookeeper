@@ -26,10 +26,8 @@ class zkWorkThread(QtCore.QThread):
     self.setTerminationEnabled(True)
 
   def __del__(self):
-    print 'wooowooohoooo'
     if self.__process:
       while self.__process.returncode is None:
-        print 'trying to kill it... killing it...'
         self.__process.kill()
 
   def run(self):
@@ -82,7 +80,6 @@ class zkWorkThread(QtCore.QThread):
         self.exiting = True
 
     if self.__process.returncode is None:
-      print 'killing..... yes'
       self.log('Killing process...')
       while self.__process.returncode is None:
         self.__process.kill()

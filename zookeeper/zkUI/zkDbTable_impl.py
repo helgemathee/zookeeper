@@ -5,48 +5,54 @@ class zkDbTable(QtGui.QTableWidget):
 
   __conn = None
   __itemCls = None
-  __query = None
+  __procedure = None
+  __procedureArgs = None
   __labels = None
   __createItemCallback = None
   __fillItemCallback = None
 
   contextMenuRequested = QtCore.Signal(int, str)
 
-  def __init__(self, conn, itemCls, query = None, labels = None, createItemCallback = None, fillItemCallback = None, parent = None):
+  def __init__(self, conn, itemCls, procedure = None, procedureArgs = None, labels = None, createItemCallback = None, fillItemCallback = None, parent = None):
 
     self.__conn = conn
     self.__itemCls = itemCls
-    self.__query = query
     self.__labels = labels
     self.__createItemCallback = createItemCallback
     self.__fillItemCallback = fillItemCallback    
 
     super(zkDbTable, self).__init__(parent)
 
-    self.setStyleSheet("QTableWidget::item { padding: 0px }");
+    self.setStyleSheet("QTableWidget::item { padding: 0px }")
+    self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
 
     self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
 
     self.verticalHeader().hide()
-    self.poll()
 
     self.connect(self, QtCore.SIGNAL('customContextMenuRequested(QPoint)'), self.onContextMenuRequested);
+    self.setProcedure(procedure, procedureArgs) # also polls
 
-  def setQuery(self, query):
-    self.__query = query
+  def setProcedure(self, procedure, procedureArgs = None):
+    self.__procedure = procedure
+    if procedureArgs:
+      self.__procedureArgs = procedureArgs
+    else:
+      self.__procedureArgs = []
+    self.poll()
+
+  def setProcedureArgs(self, procedureArgs):
+    if procedureArgs:
+      self.__procedureArgs = procedureArgs
+    else:
+      self.__procedureArgs = []
     self.poll()
 
   def poll(self):
-    if self.__query:
-      self.fillFromQuery()
-    else:
-      self.fillFromItemCls()
+    if not self.__procedure:
+      return
 
-  def fillFromQuery(self, query = None, labels = None):
-    if query:
-      self.__query = query
-
-    data = self.__conn.execute(self.__query)
+    data = self.__conn.call(self.__procedure, self.__procedureArgs)
 
     vHeader = self.verticalHeader()
     vHeader.setResizeMode(QtGui.QHeaderView.ResizeToContents)
@@ -88,13 +94,6 @@ class zkDbTable(QtGui.QTableWidget):
           if self.__fillItemCallback(self, item, data[i][0], caption, data[i][j]):
             continue
         item.setText(str(data[i][j]))
-
-  def fillFromItemCls(self):
-    table = self.__itemCls.getTableName()
-    fields = self.__itemCls.getUIFields(self.__conn)
-    orderField = self.__itemCls.getMainOrderField()
-    query = 'SELECT %s FROM %s ORDER BY %s ASC' % (','.join(fields), table, orderField)
-    self.fillFromQuery(query, fields)
 
   def onContextMenuRequested(self, point):
     item = self.itemAt(point)

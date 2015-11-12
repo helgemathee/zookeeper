@@ -1,8 +1,8 @@
  ✔ clear consumer window after each log @done (15-11-12 14:20)
  ✔ softimage submitter should use package 1 for all high prio frames @done (15-11-12 14:26)
  ✔ status widget in the top @done (15-11-12 15:49)
- ☐ manager app to show jobs etc
+ ✔ manager app to show jobs etc @done (15-11-12 20:21)
  ☐ stored procedures for remaining_frames_count, complete_frame, failed_frame, stop_job, delete_job etc etc...
- ☐ consumer to do an hourly clear of the scratch disc for all projects no longer valid
- ☐ scratch manager for localizing files etc
  ☐ log files to be moved to network
+ ☐ scratch manager for localizing files etc
+ ☐ consumer to do an hourly clear of the scratch disc for all projects no longer valid
