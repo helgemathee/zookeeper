@@ -1,8 +1,8 @@
 -- MySQL dump 10.13  Distrib 5.7.9, for Win64 (x86_64)
 --
--- Host: 192.168.1.18    Database: zookeeper
+-- Host: 192.168.1.10    Database: zookeeper
 -- ------------------------------------------------------
--- Server version	5.6.27
+-- Server version	5.7.9-log
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -31,6 +31,15 @@ CREATE TABLE `externalfile` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `externalfile`
+--
+
+LOCK TABLES `externalfile` WRITE;
+/*!40000 ALTER TABLE `externalfile` DISABLE KEYS */;
+/*!40000 ALTER TABLE `externalfile` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `frame`
 --
 
@@ -57,6 +66,15 @@ CREATE TABLE `frame` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `frame`
+--
+
+LOCK TABLES `frame` WRITE;
+/*!40000 ALTER TABLE `frame` DISABLE KEYS */;
+/*!40000 ALTER TABLE `frame` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `input`
 --
 
@@ -69,6 +87,15 @@ CREATE TABLE `input` (
   PRIMARY KEY (`input_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `input`
+--
+
+LOCK TABLES `input` WRITE;
+/*!40000 ALTER TABLE `input` DISABLE KEYS */;
+/*!40000 ALTER TABLE `input` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `job`
@@ -98,6 +125,15 @@ CREATE TABLE `job` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `job`
+--
+
+LOCK TABLES `job` WRITE;
+/*!40000 ALTER TABLE `job` DISABLE KEYS */;
+/*!40000 ALTER TABLE `job` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `machine`
 --
 
@@ -122,8 +158,18 @@ CREATE TABLE `machine` (
   PRIMARY KEY (`machine_id`),
   UNIQUE KEY `machine_name_UNIQUE` (`machine_name`),
   UNIQUE KEY `machine_id_UNIQUE` (`machine_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `machine`
+--
+
+LOCK TABLES `machine` WRITE;
+/*!40000 ALTER TABLE `machine` DISABLE KEYS */;
+INSERT INTO `machine` VALUES (3,'none',1,' ',' ',NULL,'OFFLINE','MED',0,0,0,0,0,0);
+/*!40000 ALTER TABLE `machine` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `notification`
@@ -144,6 +190,15 @@ CREATE TABLE `notification` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `notification`
+--
+
+LOCK TABLES `notification` WRITE;
+/*!40000 ALTER TABLE `notification` DISABLE KEYS */;
+/*!40000 ALTER TABLE `notification` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `output`
 --
 
@@ -162,6 +217,15 @@ CREATE TABLE `output` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `output`
+--
+
+LOCK TABLES `output` WRITE;
+/*!40000 ALTER TABLE `output` DISABLE KEYS */;
+/*!40000 ALTER TABLE `output` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `project`
 --
 
@@ -174,6 +238,40 @@ CREATE TABLE `project` (
   PRIMARY KEY (`project_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `project`
+--
+
+LOCK TABLES `project` WRITE;
+/*!40000 ALTER TABLE `project` DISABLE KEYS */;
+/*!40000 ALTER TABLE `project` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `setting`
+--
+
+DROP TABLE IF EXISTS `setting`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `setting` (
+  `setting_id` int(11) NOT NULL AUTO_INCREMENT,
+  `setting_name` varchar(45) NOT NULL,
+  `setting_value` varchar(1024) NOT NULL,
+  PRIMARY KEY (`setting_id`),
+  UNIQUE KEY `setting_name_UNIQUE` (`setting_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `setting`
+--
+
+LOCK TABLES `setting` WRITE;
+/*!40000 ALTER TABLE `setting` DISABLE KEYS */;
+/*!40000 ALTER TABLE `setting` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `uncmap`
@@ -193,6 +291,15 @@ CREATE TABLE `uncmap` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `uncmap`
+--
+
+LOCK TABLES `uncmap` WRITE;
+/*!40000 ALTER TABLE `uncmap` DISABLE KEYS */;
+/*!40000 ALTER TABLE `uncmap` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `validunc`
 --
 
@@ -203,8 +310,18 @@ CREATE TABLE `validunc` (
   `validunc_id` int(11) NOT NULL AUTO_INCREMENT,
   `validunc_path` varchar(96) NOT NULL,
   PRIMARY KEY (`validunc_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `validunc`
+--
+
+LOCK TABLES `validunc` WRITE;
+/*!40000 ALTER TABLE `validunc` DISABLE KEYS */;
+INSERT INTO `validunc` VALUES (3,'\\\\domain\\public'),(4,'\\\\domain\\tomsporer');
+/*!40000 ALTER TABLE `validunc` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Dumping routines for database 'zookeeper'
@@ -562,4 +679,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2015-11-12 22:30:36
+-- Dump completed on 2015-11-12 22:43:53

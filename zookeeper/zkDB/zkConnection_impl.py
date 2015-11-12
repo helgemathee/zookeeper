@@ -11,7 +11,7 @@ class zkConnection(object):
   __debug = None
   __lastQuery = None
 
-  def __init__(self, ip = '192.168.1.18', port = 3306, user = 'mysql', password = 'mysql', database = 'zookeeper', debug = False):
+  def __init__(self, ip = '192.168.1.10', port = 3306, user = 'mysql', password = 'mysql', database = 'zookeeper', debug = False):
     self.__ip = str(ip)
     self.__port = port
     self.__database = str(database)
