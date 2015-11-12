@@ -23,10 +23,13 @@ class zkWorkThread(QtCore.QThread):
     self.__frame = frame
     self.__machine = frame.machine
     self.exiting = False
+    self.setTerminationEnabled(True)
 
   def __del__(self):
+    print 'wooowooohoooo'
     if self.__process:
       while self.__process.returncode is None:
+        print 'trying to kill it... killing it...'
         self.__process.kill()
 
   def run(self):
@@ -58,7 +61,7 @@ class zkWorkThread(QtCore.QThread):
 
     cmdargs = [cmd] + args
     self.__log = []
-    self.__process = subprocess.Popen(cmdargs, env = env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    self.__process = subprocess.Popen(cmdargs, env = env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell = False)
 
     p = psutil.Process(self.__process.pid)
     if self.__machine.priority == 'LOW':
@@ -79,6 +82,7 @@ class zkWorkThread(QtCore.QThread):
         self.exiting = True
 
     if self.__process.returncode is None:
+      print 'killing..... yes'
       self.log('Killing process...')
       while self.__process.returncode is None:
         self.__process.kill()

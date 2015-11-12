@@ -65,7 +65,11 @@ class zkMachine(zkEntity):
       bracket = zookeeper.zkDB.zkBracket(self.connection)
 
       self.status = 'OFFLINE'
-      self.updatePhysicalState(write = False)
+      self.cpuusage = 0
+      self.ramavailablemb = 0
+      self.ramusedmb = 0
+      self.lastseen = 'NOW()'
+
       self._updateHangingFrames(bracket)
 
       bracket.push(self)

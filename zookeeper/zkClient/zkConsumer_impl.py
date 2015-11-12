@@ -181,7 +181,7 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
 
       # if we are running, but priority is off now
       if priority == 'OFF':
-        self.__workThread.stop()
+        self.__workThread.exiting = True
         self.__workThread = None
         self.__widgets['status'].setText('off')
         self.setLineEditColor('status', 'red')
@@ -189,6 +189,7 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
         self.__widgets['job'].setText('')
         self.__widgets['frame'].setText('')
         self.__widgets['progress'].setValue(0)
+        # self.__widgets['log'].clear()
         return
 
       frame = self.__workThread.frame
@@ -197,7 +198,6 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
       self.__widgets['project'].setText(project.name)
       self.__widgets['job'].setText(job.name)
       self.__widgets['frame'].setText(str(frame.time))
-      self.__widgets['progress'].setValue(0)
 
       if not self.__workThread.isRunning():
         self.storeLog(self.__workThread.frame)
@@ -232,6 +232,8 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
 
     work = self.__conn.call('look_for_work', [self.__machine.id, 1])
     if len(work) == 0:
+      self.__widgets['status'].setText('idle')
+      self.setLineEditColor('status', 'yellow')
       return
 
     self.__widgets['progress'].setValue(0)

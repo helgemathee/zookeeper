@@ -17,12 +17,7 @@ class zkEntity(object):
     self.__id = id
     self.__fieldsChanged = {}
 
-    if not table in zkEntity.__tableFields:
-      cols = self.__conn.execute('DESCRIBE %s;' % table)
-      fields = []
-      for col in cols:
-        fields += [str(col[0])]
-      zkEntity.__tableFields[table] = fields
+    self.ensureTableFieldsExists(table, self.__conn)
 
     self.__fields = {}
     for field in zkEntity.__tableFields[table]:
@@ -31,6 +26,15 @@ class zkEntity(object):
     self.__initiallyRead = True
     if not self.__id is None:
       self.__initiallyRead = False
+
+  @staticmethod
+  def ensureTableFieldsExists(table, conn):
+    if not table in zkEntity.__tableFields:
+      cols = conn.execute('DESCRIBE %s;' % table)
+      fields = []
+      for col in cols:
+        fields += [str(col[0])]
+      zkEntity.__tableFields[table] = fields
 
   def __getattribute__(self, name):
     try:
@@ -70,6 +74,19 @@ class zkEntity(object):
     for field in zkEntity.__tableFields[self.__table]:
       result += [field[len(self.table)+1:]]
     return result
+
+  # may be overloaded
+  @classmethod
+  def getUIFields(cls, conn):
+    table = cls.getTableName()
+    cls.ensureTableFieldsExists(table, conn)
+    return zkEntity.__tableFields[table]
+
+  # may be overloaded
+  @classmethod
+  def getMainOrderField(cls):
+    table = cls.getTableName()
+    return table + '_id'
 
   @property
   def connection(self):

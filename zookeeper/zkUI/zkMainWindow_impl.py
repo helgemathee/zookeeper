@@ -5,7 +5,7 @@ class zkMainWindow(QtGui.QMainWindow):
 
   __centralWidget = None
 
-  def __init__(self, title, parent = None):
+  def __init__(self, title, createLogo = True, parent = None):
     super(zkMainWindow, self).__init__(parent)
 
     self.setWindowTitle('ZooKeeper '+title)
@@ -21,11 +21,12 @@ class zkMainWindow(QtGui.QMainWindow):
     layout = QtGui.QVBoxLayout()
     self.__centralWidget.setLayout(layout)
 
-    logoPath = os.path.join(os.path.split(__file__)[0], 'logo_dialog.png')
-    logoPixmap = QtGui.QPixmap(logoPath)
-    logoLable = QtGui.QLabel(self.__centralWidget)
-    logoLable.setPixmap(logoPixmap)
-    layout.addWidget(logoLable, 0, QtCore.Qt.AlignTop | QtCore.Qt.AlignHCenter)
+    if createLogo:
+      logoPath = os.path.join(os.path.split(__file__)[0], 'logo_dialog.png')
+      logoPixmap = QtGui.QPixmap(logoPath)
+      logoLable = QtGui.QLabel(self.__centralWidget)
+      logoLable.setPixmap(logoPixmap)
+      layout.addWidget(logoLable, 0, QtCore.Qt.AlignTop | QtCore.Qt.AlignHCenter)
 
   def addWidgetToCentral(self, widget, stretch = 0, align = 0):
     layout = self.__centralWidget.layout()

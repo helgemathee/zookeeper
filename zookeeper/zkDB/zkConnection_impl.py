@@ -9,6 +9,7 @@ class zkConnection(object):
   __connected = None
   __lastId = None
   __debug = None
+  __lastQuery = None
 
   def __init__(self, ip = '192.168.1.18', port = 3306, user = 'mysql', password = 'mysql', database = 'zookeeper', debug = False):
     self.__ip = str(ip)
@@ -16,8 +17,10 @@ class zkConnection(object):
     self.__database = str(database)
     self.__debug = debug
     self.__connected = False
+    self.__lastQuery = None
+
     try:
-      self.__connector = mysql.connector.connect(user=user, password=password, host=ip, port=port, database=database)
+      self.__connector = mysql.connector.connect(user=user, password=password, host=ip, port=port, database=database, buffered=True)
       print 'Connection successful to %s.' % self.__ip
     except mysql.connector.Error as err:
       print("Connection problem: {}".format(err))
@@ -59,14 +62,19 @@ class zkConnection(object):
       cursor = self.__connector.cursor()
       if self.__debug:
         print sql
-      cursor.execute(sql, multi = (sql.count(';') > 1 or sql.startswith('CALL')))
       result = []
+      multi = sql.count(';') > 1 or sql.startswith('CALL')
+      cursor.execute(sql, multi=multi)
       for r in cursor:
         result += [r]
+      iterator = cursor.stored_results()
+      for i in iterator:
+        result += i.fetchall()
       if sql.startswith('INSERT'):
         self.__lastId = cursor.lastrowid
-      if sql.find('INSERT') > -1 or sql.find('UPDATE') > -1 or sql.find('DELETE') > -1:
+      if sql.find('INSERT') > -1 or sql.find('UPDATE') > -1 or sql.find('DELETE') > -1 or sql == self.__lastQuery:
         self.__connector.commit()
+      self.__lastQuery = sql
       return result
     except mysql.connector.Error as err:
       print 'Error when executing: << %s >>' % sql
