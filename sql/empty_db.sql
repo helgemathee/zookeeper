@@ -167,7 +167,7 @@ CREATE TABLE `machine` (
 
 LOCK TABLES `machine` WRITE;
 /*!40000 ALTER TABLE `machine` DISABLE KEYS */;
-INSERT INTO `machine` VALUES (3,'none',1,' ',' ',NULL,'OFFLINE','MED',0,0,0,0,0,0);
+INSERT INTO `machine` VALUES (1,'none',1,' ',' ',NULL,'OFFLINE','MED',0,0,0,0,0,0);
 /*!40000 ALTER TABLE `machine` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -319,7 +319,7 @@ CREATE TABLE `validunc` (
 
 LOCK TABLES `validunc` WRITE;
 /*!40000 ALTER TABLE `validunc` DISABLE KEYS */;
-INSERT INTO `validunc` VALUES (3,'\\\\domain\\public'),(4,'\\\\domain\\tomsporer');
+INSERT INTO `validunc` VALUES (1,'\\\\domain\\public'),(2,'\\\\domain\\tomsporer');
 /*!40000 ALTER TABLE `validunc` ENABLE KEYS */;
 UNLOCK TABLES;
 

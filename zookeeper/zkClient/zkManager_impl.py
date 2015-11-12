@@ -214,7 +214,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     menu.addAction('stop').triggered.connect(onStop)
 
     def onResume():
-      self.__conn.execute("resume_job", [id])
+      self.__conn.call("resume_job", [id])
       self.poll()
     menu.addAction('resume').triggered.connect(onResume)
 
