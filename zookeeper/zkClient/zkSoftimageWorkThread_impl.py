@@ -1,5 +1,6 @@
 import os
 import sys
+import glob
 import time
 import zookeeper
 from PySide import QtCore, QtGui
@@ -45,7 +46,7 @@ class zkSoftimageWorkThread(zkWorkThread):
       'XSISDK_ROOT': env['SI_HOME'] + '\\XSISDK',
       'CROSSWALKSDK_ROOT': env['SI_HOME'] + '\\XSISDK',
       'XSI_CPU_OPT': env['XSI_CPU'],
-      'XSI_USERHOME': env['XSI_USERROOT'] + '\\Autodesk\\Softimage_%s' % job.dccversion.replace(' ', '_'),
+      'XSI_USERHOME': env['XSI_USERROOT'] + '\\%s' % job.dccversion.replace(' ', '_'),
       'MI_ROOT': env['SI_HOME'] + '\\Application\\rsrc',
       'MI_RAY3_SERVICE': 'mi-raysatsi2014_3_11_1_1',
       'MI_RAY_HOSTSFILE': env['XSI_USERROOT'] + '\\.ray3hosts',
@@ -65,6 +66,24 @@ class zkSoftimageWorkThread(zkWorkThread):
       os.makedirs(prefsFolder)
     template = open(os.path.join(dccPath, 'default.xsipref'), 'rb').read()
     template = template.replace('%VERSION%', job.dccversion)
+
+    workgroups = []
+
+    workGroupRoot = cfg.get('softimage_workgroup_root', '')
+    workGroupAll = os.path.join(workGroupRoot, 'all')
+    if not os.path.exists(workGroupAll):
+      os.makedirs(workGroupAll)
+    for f in glob.glob(os.path.join(workGroupAll, '*')):
+      if f.startswith('.'):
+        continue
+      workgroups += [f]
+    workGroupRender = os.path.join(workGroupRoot, job.renderer, job.rendererversion)
+    if os.path.exists(workGroupRender):
+      workgroups += [workGroupRender]
+
+    # todo: localize workgroups...!
+
+    template = template.replace('%WORKGROUPS%', ';'.join(workgroups))
     open(os.path.join(prefsFolder, 'default.xsipref'), 'wb').write(template)
 
     args = ['-script']

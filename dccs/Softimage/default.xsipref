@@ -6,11 +6,9 @@ General
 General.netviewautolaunch	= False
 
 data_management
-data_management.last_sequence_dir	= C:\Program Files\Autodesk\Softimage %VERSION%\Data\XSI_SAMPLES
+data_management.last_sequence_dir
 data_management.last_sequence_name
-
-netview
-netview.homepage	= C:\Program Files\Autodesk\Softimage %VERSION%\Data\NetView_Database\default.htm
+data_management.workgroup_appl_path = %WORKGROUPS%
 
 scripting
 scripting.sipython = False
@@ -20,8 +18,3 @@ xsiprivate.3D_TRANSFO_EDITED_AXIS_CHANGED	= 7
 xsiprivate.3D_TRANSFO_REFERENTIAL_CHANGED	= 4
 xsiprivate.SI3D_CONSTRAINT_COMPENSATION_MODE_CONT	= 1
 xsiprivate.UI_LAYOUT_DEFAULT	= Default
-
-xsiprivate_unclassified
-xsiprivate_unclassified.DSTLShellSyncPort	= #STRI#Default Sync Port
-xsiprivate_unclassified.Project Audio Sample Rate	= #INTE#22050
-xsiprivate_unclassified.ViewManagerLastActiveRoom	= #STRI#{00000000-0000-0000-0000-000000000000}
