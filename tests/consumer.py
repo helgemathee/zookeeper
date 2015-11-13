@@ -1,6 +1,6 @@
 import zookeeper
 
-conn = zookeeper.zkDB.zkConnection()
+conn = zookeeper.zkDB.zkConnection(debug = False)
 # conn.setDebug(True)
 
 app = zookeeper.zkUI.zkApp()

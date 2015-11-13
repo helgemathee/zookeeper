@@ -40,17 +40,33 @@ def munch():
   job = zookeeper.zkDB.zkJob.getById(connection, int(os.environ['ZK_JOB']))
   input = job.input
   frame = zookeeper.zkDB.zkFrame.getById(connection, int(os.environ['ZK_FRAME']))
+  scenePath = input.path
+
+  uncMap = zookeeper.zkDB.zkUncMap.getUncMapForMachine(connection, machine.id)
+
+  # localize scene
+  if scratchdisc_enabled:
+    extFile = zookeeper.zkDB.zkExternalFile.getOrCreateByProjectAndPath(connection, project.id, input.path, type = 'softimage\\Scene')
+    scratchPath = extFile.getScratchDiskPath(cfg)
+    projectFolder = os.path.split(os.path.split(scratchPath)[0])[0]
+    Application.ActiveProject2 = Application.CreateProject2(projectFolder)
+    scenePath = extFile.synchronize(cfg, uncMap)
 
   # open scene
-  Application.OpenScene(input.path, False, False)
+  Application.OpenScene(scenePath, False, False)
   scene = Application.ActiveProject.ActiveScene
 
   # vebosity levels
   # try all of them, add redshift, arnold etc
   try:
-    Application.SetValue("Passes.mentalray.VerbosityLevel", 44)
+    # Application.SetValue("Passes.mentalray.VerbosityLevel", 44)
+    pass
   except:
     pass
+
+  externalFiles = scene.externalFiles
+  for i in range(externalFiles.Count):
+    externalFile = externalFiles(i)
 
   # todo: localize all external files
 
@@ -131,7 +147,7 @@ def munch():
           frameNormal = str(frame.time)
           framePadded = frameNormal.rjust(5, '0')
           tokens = {
-            'Project_Path': input.path.replace('/', '\\').partition('\\Scenes\\')[0],
+            'Project Path': input.path.replace('/', '\\').partition('\\Scenes\\')[0],
             'Pass': currentPass.Name,
             'FrameBuffer': fb.Name,
             'Padding': framePadded[:5-len(frameNormal)]
@@ -140,7 +156,15 @@ def munch():
           tokenStr = Application.GetValue("Passes.RenderOptions.OutputDir")
           tokenStr += "\\" + fb.FileName.Value + ".[Frame]." + fb.Format.Value
           tokenStr = tokenStr.replace('[Frame]', '[Padding][Frame]')
-          output.path = XSIUtils.ResolveTokenString(tokenStr, frame.time, True, tokens.keys(), tokens.values())
+
+          projectPath = XSIUtils.ResolveTokenString('[Project Path]', frame.time, True, tokens.keys(), tokens.values())
+          tokenStr = XSIUtils.ResolveTokenString(tokenStr, frame.time, True, tokens.keys(), tokens.values())
+
+          if tokenStr.lower().startswith(projectPath.lower()):
+            tokenStr = tokens['Project Path'] + tokenStr[len(projectPath):]
+
+          output.path = tokenStr
+
           frame.pushOutputForSubmit(output)
 
       frame.write()

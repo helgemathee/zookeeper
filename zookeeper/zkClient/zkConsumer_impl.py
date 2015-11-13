@@ -120,7 +120,7 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
     self.__timers['poll'].setSingleShot(False)
 
     self.__timers['delivery'] = QtCore.QTimer(self)
-    self.__timers['delivery'].setInterval(2300) # todo: 5 seconds
+    self.__timers['delivery'].setInterval(5107) # todo: 5 seconds
     self.__timers['delivery'].setSingleShot(False)
 
     self.connect(self.__timers['poll'], QtCore.SIGNAL("timeout()"), self.poll)
@@ -162,10 +162,12 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
     if match:
       self.__widgets['progress'].setValue(float(match.group(1)[:-1]))
     self.__widgets['log'].appendPlainText(message)
+    print message
 
   def log(self, message):
     prefix = datetime.datetime.now().strftime("%Y-%m-%d %H::%M::%S: ")
     self.__widgets['log'].appendPlainText(prefix+message)
+    print message
 
   def storeLog(self, frame):
     log = self.__workThread.clearLog()
@@ -284,7 +286,7 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
         if not os.path.exists(networkFolder):
           os.makedirs(networkFolder)
 
-        self.log('Delivering frame '+networkPath)
+        self.log('Delivering frame '+scratchPath+' to '+networkPath)
         shutil.copyfile(scratchPath, networkPath)
         os.remove(scratchPath)
         frame_ids[str(output.frameid)] = True

@@ -1,3 +1,5 @@
+import os
+import shutil
 from zkEntity_impl import zkEntity
 from zkProject_impl import zkProject
 
@@ -27,3 +29,60 @@ class zkExternalFile(zkEntity):
       
     super(zkExternalFile, self).write()
 
+  @classmethod
+  def getOrCreateByProjectAndPath(cls, conn, projectid, path, type = 'otherfile'):
+    table = cls.getTableName()
+    sql = 'SELECT %s_id FROM %s WHERE %s_projectid = %d AND %s_path = %s;' % (table, table, table, projectid, table, repr(str(path)))
+    ids = conn.execute(sql, errorPrefix=table)
+    for id in ids:
+      return cls(conn, id=id[0])
+    extFile = cls(conn)
+    extFile.projectid = projectid
+    extFile.path = path
+    extFile.type = type
+    extFile.write()
+    return extFile
+
+  def getScratchDiskPath(self, cfg):
+    networkPath = self.path
+    networkFile = os.path.split(networkPath)[1]
+    networkParts = networkFile.rpartition('.')
+    scratchDisc = self.project.getScratchFolder(cfg)
+    scratchFolder = os.path.join(scratchDisc, self.type+'s')
+    scratchPath = os.path.join(scratchFolder, networkParts[0]+'_id'+str(self.id)+'.'+networkParts[2])
+    return scratchPath
+
+  def synchronize(self, cfg, uncMap = None):
+    networkPath = self.path
+
+    # correct unc paths
+    if uncMap:
+      for u in uncMap:
+        if networkPath.lower().startswith(u.lower()):
+          networkPath = uncMap[u] + networkPath[len(u):]
+          break
+
+    networkFile = os.path.split(networkPath)[1]
+    networkParts = networkFile.rpartition('.')
+
+    scratchDisc = self.project.getScratchFolder(cfg)
+    scratchFolder = os.path.join(scratchDisc, self.type+'s')
+    scratchPath = os.path.join(scratchFolder, networkParts[0]+'_id'+str(self.id)+'.'+networkParts[2])
+
+    if not os.path.exists(scratchFolder):
+      os.makedirs(scratchFolder)
+    needsToCopy = False
+    if os.path.exists(scratchPath):
+      networkStat = os.stat(networkPath)
+      scratchStat = os.stat(scratchPath)
+      if not networkStat.st_size == scratchStat.st_size:
+        needsToCopy = True
+      if not networkStat.st_mtime == scratchStat.st_mtime:
+       needsToCopy = True
+    else:
+      needsToCopy = True
+    if needsToCopy:
+      print 'ZooKeeper: updating cache for '+networkPath
+      shutil.copyfile(networkPath, scratchPath)
+      shutil.copystat(networkPath, scratchPath)
+    return scratchPath
