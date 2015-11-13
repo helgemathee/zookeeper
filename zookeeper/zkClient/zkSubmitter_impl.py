@@ -113,7 +113,7 @@ class zkSubmitter(object):
     brokenFiles = []
     inputpath = self.getInputPath()
     if not self.validatePath(inputpath, shouldExist=True):
-      brokenFiles += [{'group': inputpath}]
+      brokenFiles += [{'path': inputpath, 'group': 'Scenes'}]
 
     externalfiles = self.getExternalFilePaths()
     for f in externalfiles:
@@ -123,6 +123,7 @@ class zkSubmitter(object):
     if len(brokenFiles) > 0:
       text = "Some paths are not accessible by other machines on the network.\n"
       text += "Submitting a job is not possible until this is fixed\n."
+      print brokenFiles
       for brokenFile in brokenFiles:
         text += '\n%s: %s' % (brokenFile.get('group', 'file'), brokenFile['path'])
       text += "\n\nThis info has been copied to the clipboard."
