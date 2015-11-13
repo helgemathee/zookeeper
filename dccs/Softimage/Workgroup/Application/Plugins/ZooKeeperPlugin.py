@@ -2,10 +2,6 @@ import zookeeper
 import win32com.client
 from win32com.client import constants
 
-null = None
-false = 0
-true = 1
-
 def XSILoadPlugin( in_reg ):
   in_reg.Author = "Helge Mathee"
   in_reg.Name = "ZooKeeperPlugin"
@@ -13,30 +9,45 @@ def XSILoadPlugin( in_reg ):
   in_reg.Minor = 0
 
   in_reg.RegisterCommand("zkSubmit","zkSubmit")
-  in_reg.RegisterMenu(constants.siMenuMainTopLevelID,"ZooKeeper",false,false)
+  in_reg.RegisterCommand("zkShowManager","zkShowManager")
+  in_reg.RegisterMenu(constants.siMenuMainTopLevelID,"ZooKeeper",False,False)
 
-  return true
+  return True
 
 def XSIUnloadPlugin( in_reg ):
   strPluginName = in_reg.Name
   Application.LogMessage(str(strPluginName) + str(" has been unloaded."),constants.siVerbose)
-  return true
+  return True
 
 def zkSubmit_Init( in_ctxt ):
   oCmd = in_ctxt.Source
   oCmd.Description = ""
-  oCmd.ReturnValue = true
-  return true
+  oCmd.ReturnValue = True
+  return True
 
 def zkSubmit_Execute(  ):
   conn = zookeeper.zkDB.zkConnection()
   submitter = zookeeper.zkClient.zkSoftimageSubmitter(conn, Application, constants)
   submitter.submitWithDialog()
-  return true
+  return True
+
+def zkShowManager_Init( in_ctxt ):
+  oCmd = in_ctxt.Source
+  oCmd.Description = ""
+  oCmd.ReturnValue = True
+  return True
+
+def zkShowManager_Execute(  ):
+  conn = zookeeper.zkDB.zkConnection()
+  app = zookeeper.zkUI.zkApp()
+  consumer = zookeeper.zkClient.zkManager(conn)
+  consumer.setModal(True)
+  app.exec_()
+  return True
 
 def ZooKeeper_Init( in_ctxt ):
   oMenu = in_ctxt.Source
-  # oMenu.AddSeparatorItem()
   oMenu.AddCommandItem("ZooKeeper Submit","zkSubmit")
-  return true
-
+  oMenu.AddSeparatorItem()
+  oMenu.AddCommandItem("ZooKeeper Manager","zkShowManager")
+  return True

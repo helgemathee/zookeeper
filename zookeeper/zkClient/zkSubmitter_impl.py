@@ -106,8 +106,7 @@ class zkSubmitter(object):
   # the main submit process
   def submitWithDialog(self):
 
-    if zkSubmitter.__app is None:
-      zkSubmitter.__app = zookeeper.zkUI.zkApp()
+    zkSubmitter.__app = zookeeper.zkUI.zkApp()
 
     # check input and external file paths
     brokenFiles = []
