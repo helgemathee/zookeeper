@@ -25,6 +25,7 @@ DROP TABLE IF EXISTS `externalfile`;
 CREATE TABLE `externalfile` (
   `externalfile_id` int(11) NOT NULL AUTO_INCREMENT,
   `externalfile_projectid` int(11) NOT NULL,
+  `externalfile_type` varchar(45) NOT NULL,
   `externalfile_path` varchar(1024) NOT NULL,
   PRIMARY KEY (`externalfile_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -158,7 +159,7 @@ CREATE TABLE `machine` (
   PRIMARY KEY (`machine_id`),
   UNIQUE KEY `machine_name_UNIQUE` (`machine_name`),
   UNIQUE KEY `machine_id_UNIQUE` (`machine_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -595,6 +596,32 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `look_for_outputs_to_deliver` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`mysql`@`%` PROCEDURE `look_for_outputs_to_deliver`(in target INT(11))
+BEGIN
+	SELECT 
+		output_id
+	FROM
+		frame, output
+	WHERE
+		frame_machineid = target AND
+        frame_status = 'COMPLETED' AND
+        output_frameid = frame_id;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `look_for_work` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -833,4 +860,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2015-11-13  1:18:51
+-- Dump completed on 2015-11-13  4:13:42

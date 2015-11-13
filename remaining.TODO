@@ -5,7 +5,7 @@
  ✔ stored procedures for remaining_frames_count, complete_frame, failed_frame, stop_job, delete_job etc etc... @done (15-11-13 00:59)
  ✔ log files to be moved to network @done (15-11-13 01:19)
  ✔ deliver localized outputs @done (15-11-13 02:43)
- ☐ scratch manager for localizing scene files and external files etc
+ ☐ scratch manager for localizing external files etc
  ☐ test with redshift - renderer version in softimage submitter!
  ☐ workgroup logic for softimage workthread
  ☐ localizing workgroups with bazaar (optionally)
