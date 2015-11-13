@@ -1,3 +1,4 @@
 *.pyc
 installer
 *.json
+*.lnk
