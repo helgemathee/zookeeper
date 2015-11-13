@@ -168,7 +168,7 @@ class zkEntity(object):
   def getTableName(cls):
     return cls.__name__[2:].lower()
 
-  def delete(cls):
+  def delete(self):
     if self.id is None:
       return
     sql = 'DELETE FROM %s WHERE %s_id = %d;' % (self.table, self.table, self.id)
@@ -177,7 +177,7 @@ class zkEntity(object):
     self.__id = None
     self.__initiallyRead = False
     self.__fields = {}
-    for field in zkEntity.__tableFields[table]:
+    for field in zkEntity.__tableFields[self.table]:
       self.__fields[field] = None
     self.__fieldsChanged = {}
 

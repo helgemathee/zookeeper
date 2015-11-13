@@ -162,8 +162,10 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     if caption == 'status':
       if data == 'PROCESSING':
         item.setBackground(QtCore.Qt.yellow)
-      elif data == 'COMPLETED' or data == 'DELIVERED':
+      elif data == 'COMPLETED':
         item.setBackground(QtCore.Qt.green)
+      elif data == 'DELIVERED':
+        item.setBackground(QtCore.Qt.darkGreen)
       elif data == 'STOPPED' or data == 'FAILED':
         item.setBackground(QtCore.Qt.red)
       else:

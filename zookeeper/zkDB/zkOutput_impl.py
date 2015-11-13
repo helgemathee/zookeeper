@@ -63,13 +63,13 @@ class zkOutput(zkEntity):
 
     super(zkOutput, self).write()
 
-  def getScratchKey(self):
+  def getScratchKey(self, frameToken=None):
     time = str(self.frame.time).rjust(5, '0')
-    return self.name+'_'+time+'_'+str(self.id)+'.'+self.ext
+    return self.name+'_'+(frameToken if frameToken else time)+'.'+self.ext
 
-  def getScratchFile(self, config):
+  def getScratchFile(self, config, frameToken=None):
     folder = self.frame.getScratchFolder(config)
     enabled = config.get('scratchdisc_enabled', False)
     if not enabled:
       return None
-    return os.path.join(folder, self.name, self.getScratchKey())  
+    return os.path.join(folder, self.name, self.getScratchKey(frameToken=frameToken))  

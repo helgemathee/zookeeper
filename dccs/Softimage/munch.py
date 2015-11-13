@@ -3,6 +3,10 @@ import datetime
 import time
 import zookeeper
 
+cfg = zookeeper.zkConfig()
+scratchdisc_enabled = cfg.get('scratchdisc_enabled', False)
+scratchdisc_folder = cfg.get('scratchdisc_folder', '')
+
 def log(message):
   prefix = datetime.datetime.now().strftime("%Y-%m-%d %H::%M::%S: ")
   Application.LogMessage(prefix+message)
@@ -39,6 +43,7 @@ def munch():
 
   # open scene
   Application.OpenScene(input.path, False, False)
+  scene = Application.ActiveProject.ActiveScene
 
   # vebosity levels
   # try all of them, add redshift, arnold etc
@@ -54,6 +59,8 @@ def munch():
     log('Working on %s - %s, frame %d' % (project.name, job.name, frame.time))
     log('Using input "%s"' % input.path)
 
+    frameBuffersToReset = []
+
     if job.type == 'CAPTURE':
       setFrameAsFailed(connection, frame, 'Job type not supported.')
       pass
@@ -68,7 +75,24 @@ def munch():
         setFrameAsFailed(connection, frame, 'Cannot find pass "%s"' % passName)
         break
 
-      # todo: localize all output files
+      # if we are using a scratch disc, please render locally
+      if scratchdisc_enabled:
+        log('Scratch Disk is enabled, retargeting outputs....')
+        Application.SetValue("Passes.RenderOptions.FramePadding", 5) # we always use 5
+        currentPass = scene.ActivePass
+        frameBuffers = currentPass.FrameBuffers
+        for i in range(frameBuffers.Count):
+          fb = frameBuffers(i)
+          if not fb.Parameters.GetItem('Enabled').Value:
+            continue
+          output = zookeeper.zkDB.zkOutput.createNew(connection)
+          output.frame = frame
+          output.name = fb.Name
+          output.path = zookeeper.zkClient.zk_uncFromDrivePath(fb.GetResolvedPath(frame.time))
+          scratchedPath = output.getScratchFile(cfg, frameToken='[frame]')
+          log('Retargeted output from '+fb.FileName.Value+' to '+scratchedPath)
+          frameBuffersToReset += [[fb, fb.FileName.Value]]
+          fb.FileName.Value = scratchedPath
 
       # render
       try:
@@ -79,23 +103,45 @@ def munch():
 
     # mark the frame as completed
     if not frame.status == 'FAILED':
-      frame.status = 'COMPLETED'
+      if scratchdisc_enabled:
+        frame.status = 'COMPLETED'
+      else:
+        frame.status = 'DELIVERED'
       frame.ended = 'NOW()'
       frame.duration = '(TIMESTAMPDIFF(SECOND, frame_started, NOW()))'
 
       # add all outputs
-      scene = Application.ActiveProject.ActiveScene
-      currentPass = scene.ActivePass
-      frameBuffers = currentPass.FrameBuffers
-      for i in range(frameBuffers.Count):
-        fb = frameBuffers(i)
-        if not fb.Parameters.GetItem('Enabled').Value:
-          continue
-        output = zookeeper.zkDB.zkOutput.createNew(connection)
-        output.frame = frame
-        output.name = fb.Name
-        output.path = zookeeper.zkClient.zk_uncFromDrivePath(fb.GetResolvedPath(frame.time))
-        frame.pushOutputForSubmit(output)
+      # so that the consumer can move them
+      if scratchdisc_enabled:
+
+        # reset so we get the proper resolved paths
+        for fb in frameBuffersToReset:
+          fb[0].FileName.Value = fb[1]
+
+        currentPass = scene.ActivePass
+        frameBuffers = currentPass.FrameBuffers
+        for i in range(frameBuffers.Count):
+          fb = frameBuffers(i)
+          if not fb.Parameters.GetItem('Enabled').Value:
+            continue
+          output = zookeeper.zkDB.zkOutput.createNew(connection)
+          output.frame = frame
+          output.name = fb.Name
+
+          frameNormal = str(frame.time)
+          framePadded = frameNormal.rjust(5, '0')
+          tokens = {
+            'Project_Path': input.path.replace('/', '\\').partition('\\Scenes\\')[0],
+            'Pass': currentPass.Name,
+            'FrameBuffer': fb.Name,
+            'Padding': framePadded[:5-len(frameNormal)]
+          }
+
+          tokenStr = Application.GetValue("Passes.RenderOptions.OutputDir")
+          tokenStr += "\\" + fb.FileName.Value + ".[Frame]." + fb.Format.Value
+          tokenStr = tokenStr.replace('[Frame]', '[Padding][Frame]')
+          output.path = XSIUtils.ResolveTokenString(tokenStr, frame.time, True, tokens.keys(), tokens.values())
+          frame.pushOutputForSubmit(output)
 
       frame.write()
 

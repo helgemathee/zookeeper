@@ -1,12 +1,14 @@
 import os
 import re
 import psutil
+import shutil
 import datetime
 import zookeeper
 from PySide import QtCore, QtGui
 
 class zkConsumer(zookeeper.zkUI.zkMainWindow):
   __conn = None
+  __cfg = None
   __machine = None
   __widgets = None
   __timers = None
@@ -21,7 +23,7 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
 
     super(zkConsumer, self).__init__('Munch - %s' % self.__machine.name)
 
-    cfg = zookeeper.zkConfig()
+    self.__cfg = zookeeper.zkConfig()
 
     self.__widgets = {}
     self.__timers = {}
@@ -117,7 +119,12 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
     self.__timers['poll'].setInterval(500)
     self.__timers['poll'].setSingleShot(False)
 
+    self.__timers['delivery'] = QtCore.QTimer(self)
+    self.__timers['delivery'].setInterval(2300) # todo: 5 seconds
+    self.__timers['delivery'].setSingleShot(False)
+
     self.connect(self.__timers['poll'], QtCore.SIGNAL("timeout()"), self.poll)
+    self.connect(self.__timers['delivery'], QtCore.SIGNAL("timeout()"), self.delivery)
 
     for key in self.__timers:
       self.__timers[key].start()
@@ -249,3 +256,41 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
       self.setLineEditColor('status', 'lightgreen')
       self.__workThread.logged.connect(self.onLogged)
       self.__workThread.start()
+
+  def delivery(self):
+
+    output_ids = self.__conn.call('look_for_outputs_to_deliver', [self.__machine.id])
+    if len(output_ids) == 0:
+      return
+
+    uncmap = zookeeper.zkDB.zkUncMap.getUncMapForMachine(self.__conn, self.__machine.id)
+
+    frame_ids = {}
+
+    for output_id in output_ids:
+      output = zookeeper.zkDB.zkOutput.getById(self.__conn, output_id[0])
+      scratchPath = output.getScratchFile(self.__cfg)
+      networkPath = output.path
+      for drive in uncmap:
+        if networkPath.lower().startswith(drive.lower()):
+          networkPath = uncmap[drive] + networkPath[len(drive):]
+
+      if not os.path.exists(scratchPath):
+        continue
+
+      networkFolder = os.path.split(networkPath)[0]
+
+      try:
+        if not os.path.exists(networkFolder):
+          os.makedirs(networkFolder)
+
+        self.log('Delivering frame '+networkPath)
+        shutil.copyfile(scratchPath, networkPath)
+        os.remove(scratchPath)
+        frame_ids[str(output.frameid)] = True
+        output.delete()
+      except:
+        pass
+
+    if len(frame_ids.keys()) > 0:
+      self.__conn.execute('UPDATE frame SET frame_status = \'DELIVERED\' WHERE frame_id in (%s);' % ','.join(frame_ids.keys()))

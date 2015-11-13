@@ -7,3 +7,11 @@ class zkUncMap(zkEntity):
 
     if drive and machineid:
       self.read(condition = 'uncmap_machineid = %d and uncmap_drive = \'%s\'' % (machineid, drive.lower()), throw = False)
+
+  @classmethod
+  def getUncMapForMachine(cls, connection, machineid):
+    result = {}
+    maps = cls.getAll(connection, condition = 'uncmap_machineid = '+str(machineid))
+    for m in maps:
+      result[m.drive] = m.uncpath
+    return result

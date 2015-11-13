@@ -1,4 +1,5 @@
 import os
+import re
 import zookeeper
 from zkEntity_impl import zkEntity
 from zkProject_impl import zkProject
@@ -94,7 +95,8 @@ class zkJob(zkEntity):
     return zookeeper.zkDB.zkFrame.getAll(self.connection, condition = 'frame_jobid=%d AND frame_status=\"%s\";' % (self.id, 'FAILED'))
 
   def getScratchKey(self):
-    return '%s_%d' % (self.name, self.id)
+    name = re.sub('[^0-9a-zA-Z]+', '_', self.name)
+    return '%s_%d' % (name, self.id)
 
   def getScratchFolder(self, config):
     projectFolder =self.project.getScratchFolder(config)
