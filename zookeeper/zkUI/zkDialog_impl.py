@@ -38,7 +38,7 @@ class zkDialog(QtGui.QDialog):
     logoPixmap = QtGui.QPixmap(logoPath)
     logoLable = QtGui.QLabel(self)
     logoLable.setPixmap(logoPixmap)
-    layout.addWidget(logoLable)
+    layout.addWidget(logoLable, 0, QtCore.Qt.AlignTop | QtCore.Qt.AlignHCenter)
 
     gridWidget = QtGui.QWidget(self)
     layout.addWidget(gridWidget)
