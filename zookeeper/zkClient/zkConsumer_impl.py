@@ -116,20 +116,26 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
     self.addWidgetToCentral(self.__widgets['log'])
 
     self.__timers['poll'] = QtCore.QTimer(self)
-    self.__timers['poll'].setInterval(500)
+    self.__timers['poll'].setInterval(2003) # every 2 seconds
     self.__timers['poll'].setSingleShot(False)
 
+    self.__timers['garbagecollect'] = QtCore.QTimer(self)
+    self.__timers['garbagecollect'].setInterval(15 * 60 * 1000) # every 15 minutes
+    self.__timers['garbagecollect'].setSingleShot(False)
+
     self.__timers['delivery'] = QtCore.QTimer(self)
-    self.__timers['delivery'].setInterval(5107) # todo: 5 seconds
+    self.__timers['delivery'].setInterval(5107) # every 5 seconds, not quite so we don't overlap
     self.__timers['delivery'].setSingleShot(False)
 
     self.connect(self.__timers['poll'], QtCore.SIGNAL("timeout()"), self.poll)
     self.connect(self.__timers['delivery'], QtCore.SIGNAL("timeout()"), self.delivery)
+    self.connect(self.__timers['garbagecollect'], QtCore.SIGNAL("timeout()"), self.garbagecollect)
 
     for key in self.__timers:
       self.__timers[key].start()
 
     self.show()
+    self.garbagecollect()
 
   def setLineEditColor(self, name, background):
     style = "QLineEdit { background-color: %s }" % (background)
@@ -296,3 +302,38 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
 
     if len(frame_ids.keys()) > 0:
       self.__conn.execute('UPDATE frame SET frame_status = \'DELIVERED\' WHERE frame_id in (%s);' % ','.join(frame_ids.keys()))
+
+  def garbagecollect(self):
+    if not self.__cfg.get('scratchdisc_enabled', False):
+      return
+
+    log_root = None
+    log_root_setting = zookeeper.zkDB.zkSetting.getByName(self.__conn, 'log_root')
+    if log_root_setting:
+      log_root = log_root_setting.value
+
+    job_ids = self.__conn.call('get_jobs_to_cleanup', [])
+    for job_id in job_ids:
+      job = zookeeper.zkDB.zkJob(self.__conn, id = job_id[0])
+      scratchFolder = job.getScratchFolder(self.__cfg)
+      if os.path.exists(scratchFolder):
+        self.log('Garbage collecting job folder %s' % scratchFolder)
+        shutil.rmtree(scratchFolder, ignore_errors=True)
+    if log_root:
+      logFolder = os.path.join(log_root, str(job.projectid), str(job.id))
+      if os.path.exists(logFolder):
+        self.log('Garbage collecting job logs %s' % logFolder)
+        shutil.rmtree(logFolder, ignore_errors=True)
+
+    project_ids = self.__conn.call('get_projects_to_cleanup', [])
+    for project_id in project_ids:
+      project = zookeeper.zkDB.zkProject(self.__conn, id = project_id[0])
+      scratchFolder = project.getScratchFolder(self.__cfg)
+      if os.path.exists(scratchFolder):
+        self.log('Garbage collecting project folder %s' % scratchFolder)
+        shutil.rmtree(scratchFolder, ignore_errors=True)
+    if log_root:
+      logFolder = os.path.join(log_root, str(project.id))
+      if os.path.exists(logFolder):
+        self.log('Garbage collecting project logs %s' % logFolder)
+        shutil.rmtree(logFolder, ignore_errors=True)

@@ -1,7 +1,13 @@
 import os
+import sys
 import datetime
 import time
 import zookeeper
+
+# redirect output
+hook = zookeeper.zkClient.zkSoftimageLogHook(Application)
+sys.stdout = hook
+sys.stderr = hook
 
 cfg = zookeeper.zkConfig()
 scratchdisc_enabled = cfg.get('scratchdisc_enabled', False)
@@ -46,7 +52,7 @@ def munch():
 
   # localize scene
   if scratchdisc_enabled:
-    extFile = zookeeper.zkDB.zkExternalFile.getOrCreateByProjectAndPath(connection, project.id, input.path, type = 'softimage\\Scene')
+    extFile = zookeeper.zkDB.zkExternalFile.getOrCreateByProjectAndPath(connection, project.id, input.path, type = 'Softimage\\Scenes')
     scratchPath = extFile.getScratchDiskPath(cfg)
     projectFolder = os.path.split(os.path.split(scratchPath)[0])[0]
     Application.ActiveProject2 = Application.CreateProject2(projectFolder)
@@ -65,10 +71,18 @@ def munch():
     pass
 
   externalFiles = scene.externalFiles
+  extFileCompleted = {}
   for i in range(externalFiles.Count):
-    externalFile = externalFiles(i)
-
-  # todo: localize all external files
+    xsiFile = externalFiles(i)
+    resolvedPath = xsiFile.ResolvedPath
+    if extFileCompleted.has_key(resolvedPath):
+      xsiFile.Path = extFileCompleted[resolvedPath]
+      continue
+    extFile = zookeeper.zkDB.zkExternalFile.getOrCreateByProjectAndPath(connection, project.id, resolvedPath, type = xsiFile.FileType)
+    scratchPath = extFile.getScratchDiskPath(cfg)
+    synchronizedPath = extFile.synchronize(cfg, uncMap)
+    extFileCompleted[resolvedPath] = synchronizedPath
+    xsiFile.Path = synchronizedPath
 
   while(True):
 

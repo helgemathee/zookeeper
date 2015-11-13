@@ -4,7 +4,7 @@ from PySide import QtCore, QtGui
 from zkSubmitter_impl import zkSubmitter
 from zkUtils_impl import zk_uncFromDrivePath
 
-class STDOutHook(object):
+class zkSoftimageLogHook(object):
   __app = None
   def __init__(self, app):
     self.__app = app
@@ -30,7 +30,7 @@ class zkSoftimageSubmitter(zkSubmitter):
     self.__c = constants
 
     if zkSoftimageSubmitter.__stdOutHook is None:
-      self.__stdOutHook = STDOutHook(self.__app)
+      self.__stdOutHook = zkSoftimageLogHook(self.__app)
       sys.stdout = self.__stdOutHook
       sys.stderr = self.__stdOutHook
 
@@ -62,7 +62,7 @@ class zkSoftimageSubmitter(zkSubmitter):
     extFiles = scene.ExternalFiles
     for i in range(extFiles.Count):
       extFile = extFiles(i)
-      result += [{'path': extFile.path, 'exist': True, 'group': 'external file'}]
+      result += [{'path': extFile.ResolvedPath, 'exist': True, 'group': 'external file'}]
 
     # also add the outputs for validation
     frameBuffers = currentPass.FrameBuffers
@@ -140,7 +140,8 @@ class zkSoftimageSubmitter(zkSubmitter):
     return fields
 
   def validatePath(self, path, shouldExist = True):
-    if path.lower().startswith('$xsi_'):
+    instPath = self.__app.GetInstallationPath2(self.__c.siFactoryPath).lower().replace('\\', '/')
+    if path.lower().replace('\\', '/').startswith(instPath):
       return True
     return super(zkSoftimageSubmitter, self).validatePath(path, shouldExist=shouldExist)
 

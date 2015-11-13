@@ -51,7 +51,8 @@ class zkMachine(zkEntity):
 
       self.ramgb = memoryGB
       self.gpuramgb = zkConfig().get('gpuramgb', 1)
-      self.status = 'ONLINE'
+      if self.__asClient:
+        self.status = 'ONLINE'
       self.updatePhysicalState(write = False)
       self._updateHangingFrames(bracket)
 

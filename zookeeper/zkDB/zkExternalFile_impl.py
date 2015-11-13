@@ -48,7 +48,7 @@ class zkExternalFile(zkEntity):
     networkFile = os.path.split(networkPath)[1]
     networkParts = networkFile.rpartition('.')
     scratchDisc = self.project.getScratchFolder(cfg)
-    scratchFolder = os.path.join(scratchDisc, self.type+'s')
+    scratchFolder = os.path.join(scratchDisc, self.type)
     scratchPath = os.path.join(scratchFolder, networkParts[0]+'_id'+str(self.id)+'.'+networkParts[2])
     return scratchPath
 
@@ -66,23 +66,26 @@ class zkExternalFile(zkEntity):
     networkParts = networkFile.rpartition('.')
 
     scratchDisc = self.project.getScratchFolder(cfg)
-    scratchFolder = os.path.join(scratchDisc, self.type+'s')
+    scratchFolder = os.path.join(scratchDisc, self.type)
     scratchPath = os.path.join(scratchFolder, networkParts[0]+'_id'+str(self.id)+'.'+networkParts[2])
 
     if not os.path.exists(scratchFolder):
       os.makedirs(scratchFolder)
-    needsToCopy = False
+    reasonForCopy = None
     if os.path.exists(scratchPath):
       networkStat = os.stat(networkPath)
       scratchStat = os.stat(scratchPath)
-      if not networkStat.st_size == scratchStat.st_size:
+      if not str(networkStat.st_size) == str(scratchStat.st_size):
         needsToCopy = True
-      if not networkStat.st_mtime == scratchStat.st_mtime:
-       needsToCopy = True
+        reasonForCopy = 'file sizes differ.'
+      if not str(networkStat.st_mtime) == str(scratchStat.st_mtime):
+        needsToCopy = True
+        reasonForCopy = 'file modified times differ.'
     else:
       needsToCopy = True
-    if needsToCopy:
-      print 'ZooKeeper: updating cache for '+networkPath
+      reasonForCopy = 'file did not exist.'
+    if reasonForCopy:
+      print 'ZooKeeper: updating cache for '+networkPath+' because '+reasonForCopy
       shutil.copyfile(networkPath, scratchPath)
       shutil.copystat(networkPath, scratchPath)
     return scratchPath

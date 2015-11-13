@@ -2,7 +2,7 @@ from zkSubmitter_impl import zkSubmitter
 from zkConsumer_impl import zkConsumer
 from zkManager_impl import zkManager
 from zkWorkThread_impl import zkWorkThread
-from zkSoftimageSubmitter_impl import zkSoftimageSubmitter
+from zkSoftimageSubmitter_impl import zkSoftimageLogHook, zkSoftimageSubmitter
 from zkSoftimageWorkThread_impl import zkSoftimageWorkThread
 
 from zkUtils_impl import zk_resolveEnvVarsInPath, zk_uncFromDrivePath, zk_validateFilePath, zk_validateNetworkFilePath
