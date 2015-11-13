@@ -121,6 +121,7 @@ CREATE TABLE `job` (
   `job_mincores` int(11) DEFAULT '0',
   `job_minramgb` int(11) DEFAULT '0',
   `job_mingpuramgb` int(11) DEFAULT '0',
+  `job_overwriteoutputs` int(11) DEFAULT '0',
   PRIMARY KEY (`job_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -238,7 +239,8 @@ CREATE TABLE `project` (
   `project_id` int(11) NOT NULL AUTO_INCREMENT,
   `project_name` varchar(45) NOT NULL,
   `project_type` enum('DELETED','NORMAL') NOT NULL DEFAULT 'NORMAL',
-  PRIMARY KEY (`project_id`)
+  PRIMARY KEY (`project_id`),
+  UNIQUE KEY `project_name_UNIQUE` (`project_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1014,4 +1016,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2015-11-13 15:08:29
+-- Dump completed on 2015-11-13 19:02:42

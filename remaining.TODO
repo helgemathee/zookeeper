@@ -8,6 +8,12 @@
  ✔ scratch manager for localizing external files etc @done (15-11-13 12:06)
  ✔ outputs need to stay alive so that you can @done (15-11-13 15:08)
  ✔ build softimage plugin for submitter... @done (15-11-13 15:26)
+ ✔ new option for job to overwrite outputs @done (15-11-13 18:23)
+ ✔ if input already exists, warn @done (15-11-13 18:23)
+ ✔ if files on disc exist during submit, warn @done (15-11-13 18:37)
+ ✔ during delivery, if files are encountered , put them into a job based subfolder @done (15-11-13 19:02)
+    for example //domain/public/target/render/test.0001.jpg
+        becomes //domain/public/target/render/test_render_03/test.0001.jpg (name_of_job and job_i)
  ☐ test with redshift - renderer version in softimage submitter!
  ☐ workgroup logic for softimage workthread
  ☐ localizing workgroups with bazaar (optionally)

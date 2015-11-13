@@ -286,9 +286,19 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
       if not os.path.exists(scratchPath):
         continue
 
+      # check if we should overwrite or not
+      job = output.job
+      if job.overwriteoutputs == 0:
+        if os.path.exists(networkPath):
+          # redirect the output
+          parts = os.path.split(networkPath)
+          networkPath = os.path.join(parts[0], job.getScratchKey(), parts[1])
+          output.path = networkPath
+
       networkFolder = os.path.split(networkPath)[0]
 
       try:
+
         if not os.path.exists(networkFolder):
           os.makedirs(networkFolder)
 

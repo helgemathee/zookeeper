@@ -207,9 +207,12 @@ class zkEntity(object):
     return result
 
   @classmethod
-  def getByCondition(cls, conn, condition):
+  def getByCondition(cls, conn, condition, additionalTables = None):
     table = cls.getTableName()
-    sql = 'SELECT %s_id FROM %s WHERE %s LIMIT 1;' % (table, table, condition)
+    tables = [table]
+    if additionalTables:
+      tables += additionalTables
+    sql = 'SELECT %s_id FROM %s WHERE %s LIMIT 1;' % (table, ','.join(tables), condition)
     ids = conn.execute(sql, errorPrefix=table)
     for id in ids:
       return cls(conn, id=id[0])

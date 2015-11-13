@@ -1,5 +1,6 @@
 import os
 import shutil
+import zookeeper
 from zkEntity_impl import zkEntity
 from zkProject_impl import zkProject
 
@@ -69,23 +70,8 @@ class zkExternalFile(zkEntity):
     scratchFolder = os.path.join(scratchDisc, self.type)
     scratchPath = os.path.join(scratchFolder, networkParts[0]+'_id'+str(self.id)+'.'+networkParts[2])
 
-    if not os.path.exists(scratchFolder):
-      os.makedirs(scratchFolder)
-    reasonForCopy = None
-    if os.path.exists(scratchPath):
-      networkStat = os.stat(networkPath)
-      scratchStat = os.stat(scratchPath)
-      if not str(networkStat.st_size) == str(scratchStat.st_size):
-        needsToCopy = True
-        reasonForCopy = 'file sizes differ.'
-      if not str(networkStat.st_mtime) == str(scratchStat.st_mtime):
-        needsToCopy = True
-        reasonForCopy = 'file modified times differ.'
-    else:
-      needsToCopy = True
-      reasonForCopy = 'file did not exist.'
+    (resultPath, reasonForCopy) = zookeeper.zkClient.zk_synchronizeFile(networkPath, scratchPath)
     if reasonForCopy:
       print 'ZooKeeper: updating cache for '+networkPath+' because '+reasonForCopy
-      shutil.copyfile(networkPath, scratchPath)
-      shutil.copystat(networkPath, scratchPath)
+
     return scratchPath

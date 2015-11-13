@@ -1,7 +1,7 @@
 import os
 import zookeeper
 from PySide import QtCore, QtGui
-from zkUtils_impl import zk_validateNetworkFilePath, zk_uncFromDrivePath
+from zkFileUtils_impl import zk_validateNetworkFilePath, zk_uncFromDrivePath
 
 class zkSubmitter(object):
   __name = None
@@ -50,6 +50,10 @@ class zkSubmitter(object):
     raise Exception("To be implemented in specialized class")
 
   # virtual: to be implemented
+  def performPostDialogChecks(self, fields):
+    return True
+
+  # virtual: to be implemented
   def getExternalFilePaths(self):
     raise Exception("To be implemented in specialized class")
 
@@ -92,6 +96,7 @@ class zkSubmitter(object):
     job.mincores = results['mincores']
     job.minramgb = results['minramgb']
     job.mingpuramgb = results['mingpuramgb']
+    job.overwriteoutputs = results['overwrite']
 
   def createNewProjectWithDialog(self):
 
@@ -111,8 +116,26 @@ class zkSubmitter(object):
     # check input and external file paths
     brokenFiles = []
     inputpath = self.getInputPath()
+    networkInputPath = zk_uncFromDrivePath(inputpath)
     if not self.validatePath(inputpath, shouldExist=True):
       brokenFiles += [{'path': inputpath, 'group': 'Scenes'}]
+    else:
+      # check if there is already a job logged for this
+      jobName = self.getJobDefaultName()
+      existingJob = zookeeper.zkDB.zkJob.getByCondition(
+        self.__conn,
+        condition = 'job_inputid = input_id AND job_name = %s AND input_path = %s AND job_type != \'DELETED\'' % (repr(str(jobName)), repr(str(networkInputPath))),
+        additionalTables = ['input']
+        )
+      if existingJob:
+        msgBox = QtGui.QMessageBox()
+        msgBox.setText("Are you sure?")
+        msgBox.setInformativeText("There's already a job (%s, %d) on the queue with this input path!" % (existingJob.name, existingJob.id))
+        msgBox.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
+        msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
+        ret = msgBox.exec_()
+        if ret == QtGui.QMessageBox.Cancel:
+          return
 
     externalfiles = self.getExternalFilePaths()
     for f in externalfiles:
@@ -122,7 +145,6 @@ class zkSubmitter(object):
     if len(brokenFiles) > 0:
       text = "Some paths are not accessible by other machines on the network.\n"
       text += "Submitting a job is not possible until this is fixed\n."
-      print brokenFiles
       for brokenFile in brokenFiles:
         text += '\n%s: %s' % (brokenFile.get('group', 'file'), brokenFile['path'])
       text += "\n\nThis info has been copied to the clipboard."
@@ -143,7 +165,7 @@ class zkSubmitter(object):
     pairs = zookeeper.zkDB.zkProject.getNameComboPairs(self.__conn, condition = 'project_type != \'DELETED\'')
     if len(pairs) == 0:
       self.createNewProjectWithDialog()
-      pairs = zookeeper.zkDB.zkProject.getNameComboPairs(self.__conn)
+      pairs = zookeeper.zkDB.zkProject.getNameComboPairs(self.__conn, condition = 'project_type != \'DELETED\'')
       if len(pairs) == 0:
         return
 
@@ -161,9 +183,14 @@ class zkSubmitter(object):
     fields += [{'name': 'mincores', 'value': 4, 'type': 'int', 'tooltip': "The minimum of CPU cores a client machine requires."}]
     fields += [{'name': 'minramgb', 'value': 8, 'type': 'int', 'tooltip': "The minimum of RAM (GB) a client machine requires."}]
     fields += [{'name': 'mingpuramgb', 'value': 2, 'type': 'int', 'tooltip': "The minimum of GPU RAM (GB) a client machine requires."}]
+    fields += [{'name': 'overwrite', 'value': False, 'type': 'bool', 'tooltip': "If checked the delivery will overwrite existing frames without checking."}]
     fields += self.getExtraFields()
 
     def onAccepted(fields):
+
+      if not self.performPostDialogChecks(fields):
+        return
+
       results = {}
       for field in fields:
         results[field['name']] = field['value']
@@ -172,7 +199,7 @@ class zkSubmitter(object):
       p = zookeeper.zkDB.zkProject.getById(self.__conn, results['projectid'])
 
       i = zookeeper.zkDB.zkInput.createNew(self.__conn)
-      i.path = zk_uncFromDrivePath(inputpath)
+      i.path = networkInputPath
       b.push(i)
       
       self.createJobFramesAndOutput(fields, self.__conn, b, p, i)

@@ -5,4 +5,11 @@ from zkWorkThread_impl import zkWorkThread
 from zkSoftimageSubmitter_impl import zkSoftimageLogHook, zkSoftimageSubmitter
 from zkSoftimageWorkThread_impl import zkSoftimageWorkThread, getSoftimageEnv
 
-from zkUtils_impl import zk_resolveEnvVarsInPath, zk_uncFromDrivePath, zk_validateFilePath, zk_validateNetworkFilePath
+from zkFileUtils_impl import zk_resolveEnvVarsInPath
+from zkFileUtils_impl import zk_uncFromDrivePath
+from zkFileUtils_impl import zk_validateFilePath
+from zkFileUtils_impl import zk_validateNetworkFilePath
+from zkFileUtils_impl import zk_findFiles
+from zkFileUtils_impl import zk_synchronizeFile
+from zkFileUtils_impl import zk_synchronizeFolder
+from zkFileUtils_impl import zk_createSynchronizeTargetPath

@@ -1,8 +1,9 @@
+import os
 import sys
 import zookeeper
 from PySide import QtCore, QtGui
 from zkSubmitter_impl import zkSubmitter
-from zkUtils_impl import zk_uncFromDrivePath
+from zkFileUtils_impl import zk_uncFromDrivePath
 
 class zkSoftimageLogHook(object):
   __app = None
@@ -53,6 +54,53 @@ class zkSoftimageSubmitter(zkSubmitter):
 
   def getInputPath(self):
     return str(self.__app.ActiveProject.ActiveScene.Parameters.GetItem('filename').Value)
+
+  def performPostDialogChecks(self, fields):
+    # check all outputs, and if there are some files on disc already exist
+    results = {}
+    for field in fields:
+      results[field['name']] = field['value']
+
+    print 'performPostDialogChecks'
+
+    if results.get('overwrite', False):
+      return True
+
+    print 'we are not overwrite... ok'
+
+    scene = self.__app.ActiveProject.ActiveScene
+    currentPass = scene.ActivePass
+    frameBuffers = currentPass.FrameBuffers
+
+    # we need 5 padding...
+    self.__app.SetValue("Passes.RenderOptions.FramePadding", 5)
+
+    existingFiles = []
+    for i in range(frameBuffers.Count):
+      fb = frameBuffers(i)
+      if not fb.Parameters.GetItem('Enabled').Value:
+        continue
+
+      # for now let's check last and first frame
+      times = [results['framestart'], results['frameend']]
+      for t in times:
+        path = fb.GetResolvedPath(t)
+        path = zk_uncFromDrivePath(path)
+        if os.path.exists(path):
+          existingFiles += [path]
+    if len(existingFiles) > 0:
+      msgBox = QtGui.QMessageBox()
+      msgBox.setText("Are you sure?")
+      text = "There are already files on disc which will be\noverwritten if you submit this job!\n\n%s\n\nThis info has been copied to the clipboard." % '\n'.join(existingFiles)
+      clipboard = QtGui.QApplication.clipboard()
+      clipboard.setText(text)
+      msgBox.setInformativeText(text)
+      msgBox.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
+      msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
+      ret = msgBox.exec_()
+      return ret == QtGui.QMessageBox.Ok
+
+    return True
 
   def getExternalFilePaths(self):
     scene = self.__app.ActiveProject.ActiveScene
@@ -122,7 +170,7 @@ class zkSoftimageSubmitter(zkSubmitter):
     fields += [{'name': 'frameend', 'value': frameend, 'type': 'int', 'tooltip': 'The last frame of the sequence'}]
     fields += [{'name': 'framestep', 'value': framestep, 'type': 'int', 'tooltip': 'The stepping across the sequence'}]
     fields += [{'name': 'packagesize', 'value': 20, 'type': 'int', 'tooltip': 'The number of frames which are processed as a batch.'}]
-    fields += [{'name': 'highprio_firstlast', 'value': True, 'type': 'bool', 'tooltip': 'Use higher priority for the first and last frame.'}]
+    fields += [{'name': 'highprio_firstlast', 'value': False, 'type': 'bool', 'tooltip': 'Use higher priority for the first and last frame.'}]
     fields += [{'name': 'capturejob', 'value': False, 'type': 'bool', 'tooltip': 'Enabling this also creates a capture movie.'}]
 
     prop = self.__app.ActiveSceneRoot.Properties.GetItem('zookeeper')
