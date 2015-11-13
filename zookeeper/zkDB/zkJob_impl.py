@@ -8,11 +8,13 @@ class zkJob(zkEntity):
 
   __tmpProject = None
   __tmpInput = None
+  __tmpFrames = None
 
   def __init__(self, connection, id = None):
     super(zkJob, self).__init__(connection, table = 'job', id = id)
     self.__tmpProject = None
     self.__tmpInput = None
+    self.__tmpFrames = []
 
   def __getProject(self):
     if self.id is None:
@@ -33,6 +35,13 @@ class zkJob(zkEntity):
   project = property(__getProject, __setProject)
   input = property(__getInput, __setInput)
 
+  def pushFrameForSubmit(self, frame):
+    self.__tmpFrames += [frame]
+
+  @property
+  def framesForSubmit(self):
+    return self.__tmpFrames
+
   def write(self):
 
     if not self.__tmpProject is None:
@@ -44,11 +53,36 @@ class zkJob(zkEntity):
 
     super(zkJob, self).write()
 
+    if len(self.__tmpFrames) > 0:
+
+      frames = []
+      for i in range(len(self.__tmpFrames)):
+        f = self.__tmpFrames[i]
+        frames += [[
+          str(self.projectid),
+          str(self.id),
+          str(f.priority if f.priority else 50),
+          str(f.package if f.package else 1),
+          str(f.time if f.time else 0),
+          str(f.timeend if f.timeend else 0)
+        ]]
+
+      sql = "INSERT into frame (frame_projectid, frame_jobid, frame_priority, frame_package, frame_time, frame_timeend) VALUES "
+
+      for i in range(len(frames)):
+        if i > 0:
+          sql += ','
+        sql += '(' + ','.join(frames[i]) + ')'
+      sql += ';'
+      self.connection.execute(sql)
+
+      self.__tmpFrames = []      
+
   def getAllFrames(self):
     return zookeeper.zkDB.zkFrame.getAll(self.connection, condition = 'frame_jobid=%d' % self.id)
 
   def getWaitingFrames(self):
-    return zookeeper.zkDB.zkFrame.getAll(self.connection, condition = 'frame_jobid=%d AND frame_status=\"%s\";' % (self.id, 'WAITING'))
+    return zookeeper.zkDB.zkFrame.getAll(self.connection, condition = 'frame_jobid=%d AND frame_status=\"%s\";' % (self.id,'WAITING'))
 
   def getCompletedFrames(self):
     return zookeeper.zkDB.zkFrame.getAll(self.connection, condition = 'frame_jobid=%d AND frame_status=\"%s\";' % (self.id, 'COMPLETED'))

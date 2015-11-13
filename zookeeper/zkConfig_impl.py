@@ -16,14 +16,12 @@ class zkConfig(object):
     
     # here you should define all fields
     # types supported are 'folder', 'str', 'int', 'bool'
-    self.set('softimage_root_folder', 'C:/Program Files/Autodesk', type = 'folder', tooltip = 'Normally the Autodesk main folder.', onlyIfNotExists = True)
-    self.set('softimage_user_root', 'c:\\temp\\zookeeper\\Softimage\\user', type = 'folder', tooltip = 'The softimage render user folder.', onlyIfNotExists = True)
-    self.set('softimage_workgroup_root', 'c:\\temp\\zookeeper\\Softimage\\workgroups', type = 'folder', tooltip = 'The softimage workgroup root folder.', onlyIfNotExists = True)
     self.set('gpuramgb', 1, type='int', tooltip = 'The number of GBs of RAM on the largest GPU.', onlyIfNotExists = True)
     self.set('scratchdisc_enabled', False, type='bool', tooltip = 'Checking this enables a local scratch disc.', onlyIfNotExists = True)
     self.set('scratchdisc_folder', 'c:/temp/scratch', type='folder', tooltip = 'The location of the local scratch disc.', onlyIfNotExists = True)
     self.set('scratchdisc_sizegb', 100, type='int', tooltip = 'The size in GB for the local scratch disc.', onlyIfNotExists = True)
-    self.set('clientinterval', 5, type='int', tooltip = 'The interval in seconds in which the client checks for work.', onlyIfNotExists = True)
+    self.set('softimage_root_folder', 'C:/Program Files/Autodesk', type = 'folder', tooltip = 'Normally the Autodesk main folder.', onlyIfNotExists = True)
+    self.set('softimage_user_root', 'c:\\temp\\zookeeper\\Softimage\\user', type = 'folder', tooltip = 'The softimage render user folder.', onlyIfNotExists = True)
 
   def _read(self):
     if os.path.exists(self.__path):

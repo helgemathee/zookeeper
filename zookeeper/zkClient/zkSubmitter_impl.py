@@ -140,7 +140,7 @@ class zkSubmitter(object):
     fields += [{'name': 'rendererversion', 'value': self.getRendererVersion(), 'type': 'str', 'readonly': True, 'tooltip': 'The version of the renderer'}]
 
     # ensure that we have one project at least!
-    pairs = zookeeper.zkDB.zkProject.getNameComboPairs(self.__conn)
+    pairs = zookeeper.zkDB.zkProject.getNameComboPairs(self.__conn, condition = 'project_type != \'DELETED\'')
     if len(pairs) == 0:
       self.createNewProjectWithDialog()
       pairs = zookeeper.zkDB.zkProject.getNameComboPairs(self.__conn)
@@ -152,7 +152,7 @@ class zkSubmitter(object):
     if projectname:
       for pair in pairs:
         if pair[1] == projectname:
-          projectid = pairs[0]
+          projectid = pair[0]
           break
 
     fields += [{'name': 'projectid', 'value': projectid, 'type': 'combo', 'comboitems': pairs, 'tooltip': "The name of the project"}]

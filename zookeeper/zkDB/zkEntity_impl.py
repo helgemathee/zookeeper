@@ -230,9 +230,9 @@ class zkEntity(object):
     return cls(conn)
 
   @classmethod
-  def getFieldList(cls, conn, field):
+  def getFieldList(cls, conn, field, condition=None):
     table = cls.getTableName()
-    sql = 'SELECT %s_id, %s_%s FROM %s ORDER BY %s_%s ASC;' % (table, table, field, table, table, field)
+    sql = 'SELECT %s_id, %s_%s FROM %s %s ORDER BY %s_%s ASC;' % (table, table, field, table, 'WHERE '+condition if condition else '', table, field)
     results = conn.execute(sql, errorPrefix=table)
     pairs = []
     for r in results:
@@ -240,8 +240,8 @@ class zkEntity(object):
     return pairs
 
   @classmethod
-  def getNameComboPairs(cls, conn):
-    return cls.getFieldList(conn, 'name')
+  def getNameComboPairs(cls, conn, condition = None):
+    return cls.getFieldList(conn, 'name', condition=condition)
 
   @classmethod
   def getEnumComboPairs(cls, conn, field):

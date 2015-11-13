@@ -9,12 +9,14 @@ class zkFrame(zkEntity):
   __tmpProject = None
   __tmpJob = None
   __tmpMachine = None
+  __tmpOutputs = None
 
   def __init__(self, connection, id = None):
     super(zkFrame, self).__init__(connection, table = 'frame', id = id)
     self.__tmpProject = None
     self.__tmpJob = None
     self.__tmpMachine = None
+    self.__tmpOutputs = []
 
   def __getProject(self):
     if self.id is None:
@@ -45,6 +47,13 @@ class zkFrame(zkEntity):
   job = property(__getJob, __setJob)
   machine = property(__getMachine, __setMachine)
 
+  def pushOutputForSubmit(self, output):
+    self.__tmpOutputs += [output]
+
+  @property
+  def outputsForSubmit(self):
+    return self.__tmpOutputs
+
   def write(self):
 
     if not self.__tmpProject is None:
@@ -59,6 +68,30 @@ class zkFrame(zkEntity):
 
     super(zkFrame, self).write()
 
+    if len(self.__tmpOutputs) > 0:
+
+      outputs = []
+      for i in range(len(self.__tmpOutputs)):
+        o = self.__tmpOutputs[i]
+        outputs += [[
+          str(self.projectid),
+          str(self.jobid),
+          str(self.id),
+          repr(str(o.name)),
+          repr(str(o.path)),
+        ]]
+
+      sql = "INSERT into output (output_projectid, output_jobid, output_frameid, output_name, output_path) VALUES "
+
+      for i in range(len(outputs)):
+        if i > 0:
+          sql += ','
+        sql += '(' + ','.join(outputs[i]) + ')'
+      sql += ';'
+      self.connection.execute(sql)
+
+      self.__tmpOutputs = []   
+
   def getAllOutputs(self):
     return zookeeper.zkDB.zkOutput.getAll(self.connection, condition = 'output_frameid=%d' % self.id)
 
@@ -67,3 +100,16 @@ class zkFrame(zkEntity):
 
   def getScratchFolder(self, config):
     return self.job.getScratchFolder(config)
+
+  def getLogFilePath(self):
+    setting = zookeeper.zkDB.zkSetting.getByName(self.connection, 'log_root')
+    if setting:
+      folder = os.path.join(setting.value, str(self.projectid), str(self.jobid))
+      if not os.path.exists(folder):
+        try:
+          os.makedirs(folder)
+        except:
+          return None
+      path = os.path.join(folder, str(self.id)+'.log')
+      return path
+    return None

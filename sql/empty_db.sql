@@ -62,7 +62,7 @@ CREATE TABLE `frame` (
   `frame_duration` int(11) DEFAULT NULL,
   `frame_log` varchar(1024) DEFAULT NULL,
   PRIMARY KEY (`frame_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=151 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -85,7 +85,7 @@ CREATE TABLE `input` (
   `input_id` int(11) NOT NULL AUTO_INCREMENT,
   `input_path` varchar(1024) NOT NULL,
   PRIMARY KEY (`input_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -110,9 +110,9 @@ CREATE TABLE `job` (
   `job_inputid` int(11) NOT NULL,
   `job_user` varchar(45) NOT NULL,
   `job_machine` int(11) NOT NULL,
-  `job_type` enum('CAPTURE','FIRSTLAST','ALL') NOT NULL DEFAULT 'ALL',
+  `job_type` enum('DELETED','CAPTURE','FIRSTLAST','ALL') NOT NULL DEFAULT 'ALL',
   `job_name` varchar(45) NOT NULL,
-  `job_priority` int(11) DEFAULT NULL,
+  `job_priority` int(11) DEFAULT '50',
   `job_dcc` varchar(45) NOT NULL,
   `job_dccversion` varchar(45) NOT NULL,
   `job_renderer` varchar(45) NOT NULL,
@@ -121,7 +121,7 @@ CREATE TABLE `job` (
   `job_minramgb` int(11) DEFAULT '0',
   `job_mingpuramgb` int(11) DEFAULT '0',
   PRIMARY KEY (`job_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -158,7 +158,7 @@ CREATE TABLE `machine` (
   PRIMARY KEY (`machine_id`),
   UNIQUE KEY `machine_name_UNIQUE` (`machine_name`),
   UNIQUE KEY `machine_id_UNIQUE` (`machine_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -213,7 +213,7 @@ CREATE TABLE `output` (
   `output_name` varchar(45) NOT NULL,
   `output_path` varchar(1024) NOT NULL,
   PRIMARY KEY (`output_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=151 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -235,8 +235,9 @@ DROP TABLE IF EXISTS `project`;
 CREATE TABLE `project` (
   `project_id` int(11) NOT NULL AUTO_INCREMENT,
   `project_name` varchar(45) NOT NULL,
+  `project_type` enum('DELETED','NORMAL') NOT NULL DEFAULT 'NORMAL',
   PRIMARY KEY (`project_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -261,7 +262,7 @@ CREATE TABLE `setting` (
   `setting_value` varchar(1024) NOT NULL,
   PRIMARY KEY (`setting_id`),
   UNIQUE KEY `setting_name_UNIQUE` (`setting_name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -270,6 +271,7 @@ CREATE TABLE `setting` (
 
 LOCK TABLES `setting` WRITE;
 /*!40000 ALTER TABLE `setting` DISABLE KEYS */;
+INSERT INTO `setting` VALUES (1,'log_root','\\\\domain\\public\\zookeeper\\logs');
 /*!40000 ALTER TABLE `setting` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -287,7 +289,7 @@ CREATE TABLE `uncmap` (
   `uncmap_uncpath` varchar(96) NOT NULL,
   `uncmap_created` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`uncmap_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -326,6 +328,97 @@ UNLOCK TABLES;
 --
 -- Dumping routines for database 'zookeeper'
 --
+/*!50003 DROP PROCEDURE IF EXISTS `delete_job` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`mysql`@`%` PROCEDURE `delete_job`(in target INT(11))
+BEGIN
+	DELETE FROM 
+		output
+	WHERE
+		output_jobid = target;
+        
+	DELETE FROM
+		frame
+	WHERE
+		frame_jobid = target;
+        
+	DELETE FROM
+		input
+	USING 
+		input, job
+	WHERE
+		job_id = target AND
+		input_id = job_inputid;
+        
+	UPDATE
+		job
+	SET
+		job_type = 'DELETED'
+	WHERE
+		job_id = target;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `delete_project` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`mysql`@`%` PROCEDURE `delete_project`(in target INT(11))
+BEGIN
+	DELETE FROM 
+		output
+	WHERE
+		output_projectid = target;
+        
+	DELETE FROM
+		frame
+	WHERE
+		frame_projectid = target;
+        
+	DELETE FROM
+		input
+	USING 
+		input, job
+	WHERE
+		job_projectid = target AND
+		input_id = job_inputid;
+        
+	UPDATE
+		job
+	SET
+		job_type = 'DELETED'
+	WHERE
+		job_projectid = target;
+
+	UPDATE
+		project
+	SET
+		project_type = 'DELETED'
+	WHERE
+		project_id = target;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `get_frames_for_manager` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -370,12 +463,13 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `get_jobs_for_manager`()
 BEGIN
 	SELECT 
 		job_id, 
+        project_name,
         job_name, 
         job_user, 
         (
@@ -420,8 +514,13 @@ BEGIN
 			)
 		) 
 	FROM 
-		job 
-	ORDER BY job_id ASC;
+		job,
+        project
+	WHERE
+		job_type != 'DELETED' AND
+        job_projectid = project_id
+	ORDER BY 
+		job_id ASC;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -453,6 +552,43 @@ BEGIN
 		machine_id > 1 
 	ORDER BY 
 		machine_name ASC;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `get_projects_for_manager` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`mysql`@`%` PROCEDURE `get_projects_for_manager`()
+BEGIN
+	SELECT
+		project_id,
+        project_name,
+        (
+			SELECT 
+				COUNT(job_id) 
+			FROM 
+				job
+			WHERE 
+				job_projectid = project_id AND
+                job_type != 'DELETED'
+		)
+	FROM
+		project
+	WHERE
+		project_type != 'DELETED'
+	ORDER BY
+		project_name ASC;
+		
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -501,10 +637,18 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `resubmit_frame`(in target INT(11))
 BEGIN
+	DELETE FROM 
+		output
+	USING
+		output, frame
+	WHERE
+		output_frameid = target AND
+        output_frameid = frame_id AND
+        frame_status != 'PROCESSING';
 	UPDATE 
 		frame 
 	SET 
@@ -513,6 +657,7 @@ BEGIN
 	WHERE 
 		frame_id = target AND 
         frame_status != 'PROCESSING';
+	COMMIT;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -527,10 +672,18 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `resubmit_job`(in target INT(11))
 BEGIN
+	DELETE FROM
+		output
+	USING
+		output, frame
+	WHERE
+		output_jobid = frame_jobid AND
+        output_jobid = target AND
+        frame_status != "PROCESSING";
 	UPDATE 
 		frame 
 	SET 
@@ -539,6 +692,7 @@ BEGIN
 	WHERE 
 		frame_jobid = target AND
         frame_status != 'PROCESSING';
+	COMMIT;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -679,4 +833,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2015-11-12 22:43:53
+-- Dump completed on 2015-11-13  1:18:51

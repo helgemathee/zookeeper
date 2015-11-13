@@ -10,13 +10,14 @@ def zk_resolveEnvVarsInPath(path):
 
 def zk_uncFromDrivePath(path):
   drive = os.path.splitdrive(path)[0]
-  if drive[1] == ':':
-    table = get_current_net_use_table()
-    for row in table.rows:
-      if drive.lower() == row['local'].get_drive().lower():
-        unc = row['remote'].get_path()
-        uncpath = os.path.normpath(unc + '\\' + path[2:])
-        return uncpath
+  if drive:
+    if drive[1] == ':':
+      table = get_current_net_use_table()
+      for row in table.rows:
+        if drive.lower() == row['local'].get_drive().lower():
+          unc = row['remote'].get_path()
+          uncpath = os.path.normpath(unc + '\\' + path[2:])
+          return uncpath
   return path
 
 def zk_validateFilePath(path, shouldExist=True):

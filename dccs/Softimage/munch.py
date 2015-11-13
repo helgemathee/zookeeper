@@ -9,8 +9,12 @@ def log(message):
 
 def setFrameAsFailed(connection, frame, reason):
   # set to waiting + increase tries
-  frame.status = 'FAILED'
-  frame.ended = 'NOW()'
+  if frame.tries < 3:
+    frame.tries = frame.tries + 1
+    frame.status = 'WAITING'
+  else:
+    frame.status = 'FAILED'
+    frame.ended = 'NOW()'
   frame.write()
   log('Frame %d failed: %s' % (frame.time, reason))
 
@@ -78,6 +82,21 @@ def munch():
       frame.status = 'COMPLETED'
       frame.ended = 'NOW()'
       frame.duration = '(TIMESTAMPDIFF(SECOND, frame_started, NOW()))'
+
+      # add all outputs
+      scene = Application.ActiveProject.ActiveScene
+      currentPass = scene.ActivePass
+      frameBuffers = currentPass.FrameBuffers
+      for i in range(frameBuffers.Count):
+        fb = frameBuffers(i)
+        if not fb.Parameters.GetItem('Enabled').Value:
+          continue
+        output = zookeeper.zkDB.zkOutput.createNew(connection)
+        output.frame = frame
+        output.name = fb.Name
+        output.path = zookeeper.zkClient.zk_uncFromDrivePath(fb.GetResolvedPath(frame.time))
+        frame.pushOutputForSubmit(output)
+
       frame.write()
 
     # look for more work

@@ -114,7 +114,7 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
     self.addWidgetToCentral(self.__widgets['log'])
 
     self.__timers['poll'] = QtCore.QTimer(self)
-    self.__timers['poll'].setInterval(cfg.get('clientinterval', 1) * 500)
+    self.__timers['poll'].setInterval(500)
     self.__timers['poll'].setSingleShot(False)
 
     self.connect(self.__timers['poll'], QtCore.SIGNAL("timeout()"), self.poll)
@@ -162,11 +162,11 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
 
   def storeLog(self, frame):
     log = self.__workThread.clearLog()
-    # todo:
-    path = 'c:\\temp\\frame_%d.log' % frame.id
-    open(path, "wb").write('\n'.join(log))
-    frame.log = path
-    frame.write()
+    path = frame.getLogFilePath()
+    if path:
+      open(path, "wb").write('\n'.join(log))
+      frame.log = path
+      frame.write()
     self.__widgets['log'].clear()
 
   def poll(self):

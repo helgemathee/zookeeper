@@ -2,7 +2,7 @@ from zookeeper import *
 
 cfg = zkConfig()
 conn = zkConnection()
-# conn.setDebug(True)
+conn.setDebug(True)
 
 bracket = zkBracket(conn)
 
@@ -10,33 +10,28 @@ p2 = zkProject.createNew(conn)
 p2.name = 'TestProject'
 bracket.push(p2)
 
-i1 = zkInput.createNew(conn)
-i1.path = 'c:/temp/test.png'
-bracket.push(i1)
+i = zkInput.createNew(conn)
+i.path = 'c:/temp/test.png'
+bracket.push(i)
 
-j1 = zkJob.createNew(conn)
-j1.project = p2
-j1.input = i1
-j1.user = 'helge'
-j1.name = 'testrender'
-j1.type = 'ALL'
-j1.dcc = 'softimage'
-j1.dccversion = '2014SP2'
-j1.renderer = 'redshift'
-j1.rendererversion = '2.0.1'
-bracket.push(j1)
+j = zkJob.createNew(conn)
+j.project = p2
+j.input = i
+j.user = 'helge'
+j.name = 'testrender'
+j.machine = 1
+j.type = 'ALL'
+j.dcc = 'softimage'
+j.dccversion = '2014SP2'
+j.renderer = 'redshift'
+j.rendererversion = '2.0.1'
+bracket.push(j)
 
 for i in range(1, 10):
   f = zkFrame.createNew(conn)
-  f.job = j1
+  f.job = j
   f.time = i
-  bracket.push(f)
-
-  o = zkOutput.createNew(conn)
-  o.frame = f
-  o.name = 'diffuse'
-  o.path = "//domain/test/test/%d.png" % i
-  bracket.push(o)
+  j.pushFrameForSubmit(f)
 
 bracket.write()
 

@@ -5,3 +5,4 @@ from zkWorkThread_impl import zkWorkThread
 from zkSoftimageSubmitter_impl import zkSoftimageSubmitter
 from zkSoftimageWorkThread_impl import zkSoftimageWorkThread
 
+from zkUtils_impl import zk_resolveEnvVarsInPath, zk_uncFromDrivePath, zk_validateFilePath, zk_validateNetworkFilePath

@@ -96,6 +96,7 @@ class zkConnection(object):
       result = []
       for i in iterator:
         result += i.fetchall()
+      self.__connector.commit()
       return result
     except mysql.connector.Error as err:
       print 'Error when calling: << %s >>' % procedure

@@ -79,9 +79,11 @@ class zkSoftimageSubmitter(zkSubmitter):
   def getProjectDefaultName(self):
     prop = self.__app.ActiveSceneRoot.Properties.GetItem('zookeeper')
     if prop:
-      param = prop.Parameters.GetItem('project')
+      param = prop.Parameters.GetItem('projectid')
       if param:
-        return str(param.Value)
+        proj = zookeeper.zkDB.zkProject.getById(self.connection, id = int(param.Value))
+        if proj:
+          return proj.name
     return None
 
   def getJobDefaultName(self):
@@ -122,6 +124,19 @@ class zkSoftimageSubmitter(zkSubmitter):
     fields += [{'name': 'packagesize', 'value': 20, 'type': 'int', 'tooltip': 'The number of frames which are processed as a batch.'}]
     fields += [{'name': 'highprio_firstlast', 'value': True, 'type': 'bool', 'tooltip': 'Use higher priority for the first and last frame.'}]
     fields += [{'name': 'capturejob', 'value': False, 'type': 'bool', 'tooltip': 'Enabling this also creates a capture movie.'}]
+
+    prop = self.__app.ActiveSceneRoot.Properties.GetItem('zookeeper')
+    if prop:
+      for f in fields:
+        param = prop.Parameters.GetItem(f['name'])
+        if param:
+          if isinstance(f['value'], int):
+            f['value'] = int(param.Value)
+          elif isinstance(f['value'], bool):
+            f['value'] = bool(param.Value)
+          elif isinstance(f['value'], str):
+            f['value'] = str(param.Value)
+
     return fields
 
   def validatePath(self, path, shouldExist = True):
@@ -130,6 +145,24 @@ class zkSoftimageSubmitter(zkSubmitter):
     return super(zkSoftimageSubmitter, self).validatePath(path, shouldExist=shouldExist)
 
   def createJobFramesAndOutput(self, fields, connection, bracket, project, input):
+
+    #persist all standard changes in scene....
+    prop = self.__app.ActiveSceneRoot.Properties.GetItem('zookeeper')
+    if not prop:
+      self.__app.AddProp("Custom_parameter_list", "Scene_Root", "", "zookeeper", "")
+      self.__app.SIAddCustomParameter("Scene_Root.zookeeper", "projectid", "siString", "", 0, 1, "", 4, 0, 1, "", "")
+      self.__app.SIAddCustomParameter("Scene_Root.zookeeper", "mincores", "siString", "", 0, 1, "", 4, 0, 1, "", "")
+      self.__app.SIAddCustomParameter("Scene_Root.zookeeper", "minramgb", "siString", "", 0, 1, "", 4, 0, 1, "", "")
+      self.__app.SIAddCustomParameter("Scene_Root.zookeeper", "mingpuramgb", "siString", "", 0, 1, "", 4, 0, 1, "", "")
+      self.__app.SIAddCustomParameter("Scene_Root.zookeeper", "packagesize", "siString", "", 0, 1, "", 4, 0, 1, "", "")
+      prop = self.__app.ActiveSceneRoot.Properties.GetItem('zookeeper')
+
+    if prop:
+      for f in fields:
+        param = prop.Parameters.GetItem(f['name'])
+        if param:
+          param.Value = f['value']
+
     results = {}
     for field in fields:
       results[field['name']] = field['value']
@@ -161,7 +194,7 @@ class zkSoftimageSubmitter(zkSubmitter):
       frame.time = framestart
       frame.timeend = frameend
       frame.priority = 100
-      bracket.push(frame)
+      job.pushFrameForSubmit(frame)
 
       # create a single output for the movie
       mainBuffer = frameBuffers(0)
@@ -172,7 +205,7 @@ class zkSoftimageSubmitter(zkSubmitter):
       output.frame = frame
       output.name = mainBuffer.Name
       output.path = zk_uncFromDrivePath(capturePath)
-      bracket.push(output)
+      frame.pushOutputForSubmit(output)
 
     job = zookeeper.zkDB.zkJob.createNew(self.connection)
     job.project = project
@@ -200,12 +233,5 @@ class zkSoftimageSubmitter(zkSubmitter):
         if f == framestart or f == frameend:
           frame.priority = 75
           frame.package = 1
-      bracket.push(frame)
+      job.pushFrameForSubmit(frame)
 
-      for i in range(frameBuffers.Count):
-        fb = frameBuffers(i)
-        output = zookeeper.zkDB.zkOutput.createNew(self.connection)
-        output.frame = frame
-        output.name = fb.Name
-        output.path = zk_uncFromDrivePath(fb.GetResolvedPath(f))
-        bracket.push(output)
