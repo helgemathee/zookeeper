@@ -62,7 +62,7 @@ def zk_validateNetworkFilePath(path, validUncPaths = None, shouldExist=True):
 
   return True
 
-def zk_findFiles(directory, pattern = None):
+def zk_findFilesGenerator(directory, pattern = None):
     for root, dirs, files in os.walk(directory):
         for basename in files:
             if pattern:
@@ -71,7 +71,16 @@ def zk_findFiles(directory, pattern = None):
             filename = os.path.join(root, basename)
             yield filename
 
+def zk_findFiles(directory, pattern = None):
+  result = []
+  for f in zk_findFilesGenerator(directory, pattern):
+    result += [f]
+  return result
+
 def zk_synchronizeFile(source, target, folderCache = None):
+  if not os.path.exists(source):
+    return (None, None)
+
   targetFolder = os.path.split(target)[0]
 
   # ensure to only check if a folder exists if we didn't see it yet
@@ -112,15 +121,15 @@ def zk_synchronizeFolder(source, target, pattern = None):
   folderCache = {}
 
   files = zk_findFiles(source, pattern)
+  result = []
   for f in files:
     relPath = os.path.relpath(f, source)
     absPath = os.path.join(target, relPath)
     (resultPath, reason) = zk_synchronizeFile(f, absPath, folderCache)
     if reason:
       print "Synchronized %s because %s." % (f, reason)
-
-def zk_synchronizeFilesBetweenFolders(files, source, target):
-  pass
+    result += [resultPath]
+  return result
 
 def zk_createSynchronizeTargetPath(sourceFolder, targetFolder, path):
   try:
@@ -135,3 +144,13 @@ def zk_createSynchronizeTargetPath(sourceFolder, targetFolder, path):
     p = 'unc/'+p[2:]
   return os.path.normpath(os.path.join(targetFolder, p))
  
+def zk_synchronizeFilesBetweenFolders(files, sourceFolder, targetFolder):
+  result = []
+  for f in files:
+    f2 = zk_createSynchronizeTargetPath(sourceFolder, targetFolder, f)
+    (f3, reason) = zk_synchronizeFile(f, f2)
+    if reason:
+      print "Synchronized %s because %s." % (f, reason)
+    result += [f3]
+  return result
+

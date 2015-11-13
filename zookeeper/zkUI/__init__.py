@@ -3,4 +3,5 @@ from zkMainWindow_impl import zkMainWindow
 from zkConfigDialog_impl import zkConfigDialog
 from zkSubmitDialog_impl import zkSubmitDialog
 from zkNewProjectDialog_impl import zkNewProjectDialog
+from zkFieldsDialog_impl import zkFieldsDialog
 from zkDbTable_impl import zkDbTable

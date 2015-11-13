@@ -13,3 +13,4 @@ from zkFileUtils_impl import zk_findFiles
 from zkFileUtils_impl import zk_synchronizeFile
 from zkFileUtils_impl import zk_synchronizeFolder
 from zkFileUtils_impl import zk_createSynchronizeTargetPath
+from zkFileUtils_impl import zk_synchronizeFilesBetweenFolders
