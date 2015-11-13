@@ -74,9 +74,10 @@ def zkSynchSceneToNetwork_Execute(  ):
 
   def onAccepted(fields):
     scene = Application.ActiveProject.ActiveScene
+    scenePathName = str(scene.FileName.Value)
     externalFiles = scene.ExternalFiles
     pathsToSynch = []
-    externalFilesToAdapt = []
+    pathsToAdapt = []
     pathsHit = {}
     for i in range(externalFiles.Count):
       externalFile = externalFiles(i)
@@ -85,7 +86,7 @@ def zkSynchSceneToNetwork_Execute(  ):
         continue
       pathsHit[resolvedPath] = len(pathsToSynch)
       pathsToSynch += [resolvedPath]
-      externalFilesToAdapt += [externalFile]
+      pathsToAdapt += [{'obj': externalFile, 'type': 'ExternalFile'}]
 
     sourceProject = fields[0]['value']
     targetProject = fields[1]['value']
@@ -106,12 +107,14 @@ def zkSynchSceneToNetwork_Execute(  ):
       Application.ActiveProject2 = Application.CreateProject2(targetProject)
 
     synchedPaths = zookeeper.zkClient.zk_synchronizeFilesBetweenFolders(pathsToSynch, sourceFolder, targetFolder)
-    for i in range(len(externalFilesToAdapt)):
+    for i in range(len(pathsToAdapt)):
       if synchedPaths[i] is None:
         continue
-      externalFilesToAdapt[i].Path = synchedPaths[i]
+      if pathsToAdapt[i]['type'] == 'ExternalFile':
+        pathsToAdapt[i]['obj'].Path = synchedPaths[i]
 
-    Application.SaveSceneAs(os.path.join(targetProject, scene.Name + '.scn'))
+    relScenePath = os.path.relpath(scenePathName, sourceProject)
+    Application.SaveSceneAs(os.path.join(targetProject, relScenePath))
 
   dialog = zookeeper.zkUI.zkFieldsDialog(fields, onAcceptedCallback = onAccepted, onRejectedCallback = None)
   dialog.setMinimumWidth(600)
