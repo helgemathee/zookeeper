@@ -319,11 +319,11 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
       if os.path.exists(scratchFolder):
         self.log('Garbage collecting job folder %s' % scratchFolder)
         shutil.rmtree(scratchFolder, ignore_errors=True)
-    if log_root:
-      logFolder = os.path.join(log_root, str(job.projectid), str(job.id))
-      if os.path.exists(logFolder):
-        self.log('Garbage collecting job logs %s' % logFolder)
-        shutil.rmtree(logFolder, ignore_errors=True)
+      if log_root:
+        logFolder = os.path.join(log_root, str(job.projectid), str(job.id))
+        if os.path.exists(logFolder):
+          self.log('Garbage collecting job logs %s' % logFolder)
+          shutil.rmtree(logFolder, ignore_errors=True)
 
     project_ids = self.__conn.call('get_projects_to_cleanup', [])
     for project_id in project_ids:
@@ -332,8 +332,8 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
       if os.path.exists(scratchFolder):
         self.log('Garbage collecting project folder %s' % scratchFolder)
         shutil.rmtree(scratchFolder, ignore_errors=True)
-    if log_root:
-      logFolder = os.path.join(log_root, str(project.id))
-      if os.path.exists(logFolder):
-        self.log('Garbage collecting project logs %s' % logFolder)
-        shutil.rmtree(logFolder, ignore_errors=True)
+      if log_root:
+        logFolder = os.path.join(log_root, str(project.id))
+        if os.path.exists(logFolder):
+          self.log('Garbage collecting project logs %s' % logFolder)
+          shutil.rmtree(logFolder, ignore_errors=True)

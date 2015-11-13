@@ -6,6 +6,10 @@
  ✔ log files to be moved to network @done (15-11-13 01:19)
  ✔ deliver localized outputs @done (15-11-13 02:43)
  ✔ scratch manager for localizing external files etc @done (15-11-13 12:06)
+ ☐ outputs need to stay alive so that you can
+     inspect file on disc (for each output)
+     open flipbook / rv etc
+ ☐ build softimage plugin for submitter...
  ☐ test with redshift - renderer version in softimage submitter!
  ☐ workgroup logic for softimage workthread
  ☐ localizing workgroups with bazaar (optionally)

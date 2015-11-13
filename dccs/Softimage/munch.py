@@ -65,8 +65,7 @@ def munch():
   # vebosity levels
   # try all of them, add redshift, arnold etc
   try:
-    # Application.SetValue("Passes.mentalray.VerbosityLevel", 44)
-    pass
+    Application.SetValue("Passes.mentalray.VerbosityLevel", 44)
   except:
     pass
 
