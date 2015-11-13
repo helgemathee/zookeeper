@@ -296,7 +296,8 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
         shutil.copyfile(scratchPath, networkPath)
         os.remove(scratchPath)
         frame_ids[str(output.frameid)] = True
-        output.delete()
+        output.status = 'DELIVERED'
+        output.write()
       except:
         pass
 

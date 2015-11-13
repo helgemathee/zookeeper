@@ -3,6 +3,7 @@ import re
 import psutil
 import datetime
 import zookeeper
+import subprocess
 from PySide import QtCore, QtGui
 
 class zkManager(zookeeper.zkUI.zkMainWindow):
@@ -233,18 +234,74 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     pos = QtGui.QCursor().pos()
     menu.exec_(pos)
 
+  def _setupFlipbookAction(self, menu, job_id, output_name):
+
+    def onTriggered():
+      frame_range = self.__conn.call('get_frame_range_for_job', [job_id])
+      output = zookeeper.zkDB.zkOutput.getByCondition(self.__conn, 'output_jobid = %s AND output_name = %s' % (job_id, repr(str(output_name))))
+
+      mainParts = os.path.split(output.path)
+      fileParts = mainParts[1].split('.')
+      file_ext = fileParts[-1]
+      frame_no = fileParts[-2]
+
+      path = mainParts[0]
+      for i in range(len(fileParts)-2):
+        path = os.path.join(path, fileParts[i])
+      path += '.'+file_ext
+
+      softimage_root_folder = self.__cfg.get('softimage_root_folder', '')
+      dccVersion = self.__cfg.get('softimage_flipbook_version', '2014 SP2')
+
+      env = zookeeper.zkClient.getSoftimageEnv(self.__cfg, '2014 SP2')
+      for key in env:
+        env[key] = str(env[key])
+
+      bin = os.path.join(softimage_root_folder, 'Softimage '+dccVersion, 'Application', 'bin', 'flip.exe')
+      padding = '(fn).%s(ext)' % ''.ljust(len(frame_no), '#')
+      cmdArgs = [bin, path, frame_range[0][0], frame_range[0][1], 1, 30, '-p', padding, '-m']
+
+      for i in range(len(cmdArgs)):
+        cmdArgs[i] = str(cmdArgs[i])
+      subprocess.Popen(cmdArgs, env = env)
+
+    menu.addAction('open %s in flipbook' % output_name).triggered.connect(onTriggered)
+
   def onJobContextMenu(self, id, col):
 
     menu = QtGui.QMenu()
+
+    def setupRevealAction(menu, job_id, output_name):
+
+      def onTriggered():
+        output = zookeeper.zkDB.zkOutput.getByCondition(self.__conn, 'output_jobid = %s AND output_name = %s' % (job_id, repr(str(output_name))))
+        filePath = output.path
+        filePath = os.path.split(filePath)[0]
+        url = QtCore.QUrl()
+        if filePath.startswith("\\\\") or filePath.startswith("//"):
+          url.setUrl(QtCore.QDir.toNativeSeparators(filePath))
+        else:
+          url = QtCore.QUrl.fromLocalFile(filePath);
+        QtGui.QDesktopServices.openUrl(url)
+
+      menu.addAction('open %s folder' % output_name).triggered.connect(onTriggered)
+
+    outputs = self.__conn.call('get_outputs_per_job', [id])
+    if len(outputs) > 0:
+      for output in outputs:
+        setupRevealAction(menu, id, output[0])
+      menu.addSeparator()
+      for output in outputs:
+        self._setupFlipbookAction(menu, id, output[0])
+      menu.addSeparator()
 
     def onShowFrames():
       self.__widgets['frames'].setProcedureArgs([id])
       self.__widgets['tabs'].setCurrentWidget(self.__widgets['frames'])
 
-    menu.addAction('show frames').triggered.connect(onShowFrames)
+    menu.addAction('show frames in manager').triggered.connect(onShowFrames)
 
     menu.addSeparator()
-
     def setupPrioAction(menu, prio):
 
       def onTriggered():
@@ -295,6 +352,35 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
   def onFrameContextMenu(self, id, col):
 
     menu = QtGui.QMenu()
+
+    def setupRevealAction(menu, output_id, output_name, asFolder = False):
+
+      def onTriggered():
+        output = zookeeper.zkDB.zkOutput.getById(self.__conn, output_id)
+        filePath = output.path
+        if asFolder:
+          filePath = os.path.split(filePath)[0]
+        url = QtCore.QUrl()
+        if filePath.startswith("\\\\") or filePath.startswith("//"):
+          url.setUrl(QtCore.QDir.toNativeSeparators(filePath))
+        else:
+          url = QtCore.QUrl.fromLocalFile(filePath);
+        QtGui.QDesktopServices.openUrl(url)
+
+      menu.addAction('open %s%s' % (output_name, (' folder' if asFolder else ''))).triggered.connect(onTriggered)
+
+    outputs = self.__conn.call('get_outputs_per_frame', [id])
+    if len(outputs) > 0:
+      for output in outputs:
+        setupRevealAction(menu, output[0], output[1])
+      menu.addSeparator()
+      for output in outputs:
+        setupRevealAction(menu, output[0], output[1], True)
+      menu.addSeparator()
+      frame = zookeeper.zkDB.zkFrame.getById(self.__conn, id)
+      for output in outputs:
+        self._setupFlipbookAction(menu, frame.jobid, output[1])
+      menu.addSeparator()
 
     setting = zookeeper.zkDB.zkSetting.getByName(self.__conn, 'log_root')
     if setting:

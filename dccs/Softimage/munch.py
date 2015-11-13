@@ -147,16 +147,18 @@ def munch():
         for fb in frameBuffersToReset:
           fb[0].FileName.Value = fb[1]
 
-        currentPass = scene.ActivePass
-        frameBuffers = currentPass.FrameBuffers
-        for i in range(frameBuffers.Count):
-          fb = frameBuffers(i)
-          if not fb.Parameters.GetItem('Enabled').Value:
-            continue
-          output = zookeeper.zkDB.zkOutput.createNew(connection)
-          output.frame = frame
-          output.name = fb.Name
+      currentPass = scene.ActivePass
+      frameBuffers = currentPass.FrameBuffers
+      for i in range(frameBuffers.Count):
+        fb = frameBuffers(i)
+        if not fb.Parameters.GetItem('Enabled').Value:
+          continue
 
+        output = zookeeper.zkDB.zkOutput.createNew(connection)
+        output.frame = frame
+        output.name = fb.Name
+
+        if scratchdisc_enabled:
           frameNormal = str(frame.time)
           framePadded = frameNormal.rjust(5, '0')
           tokens = {
@@ -177,8 +179,11 @@ def munch():
             tokenStr = tokens['Project Path'] + tokenStr[len(projectPath):]
 
           output.path = tokenStr
+        else:
+          output.path = fb.GetResolvedPath(frame.time)
+          output.status = 'DELIVERED'
 
-          frame.pushOutputForSubmit(output)
+        frame.pushOutputForSubmit(output)
 
       frame.write()
 
