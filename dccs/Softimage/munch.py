@@ -91,9 +91,11 @@ def munch():
     if extFile:
       log('Found external file for "%s"' % userPath)
       synchronizedPath = extFile.synchronize(cfg, uncMap)
-      log('Synchronized to "%s"' % synchronizedPath)
-      extFileCompleted[userPath] = synchronizedPath
-      xsiFile.Path = synchronizedPath
+      if not synchronizedPath:
+        log('ERROR: Could not synchronize file.')
+      else:
+        extFileCompleted[userPath] = synchronizedPath
+        xsiFile.Path = synchronizedPath
     else:
       log("ERROR: External file for \"%s\" not found in DB!" % userPath)
     connection.setDebug(False)
