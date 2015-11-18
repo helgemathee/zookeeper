@@ -18,9 +18,12 @@ A) Installer folder
 - Install 05_mysql...
 
 B) Within a command shell (cmd) type
-    pip install win_unc
-    pip install pyside
-    git clone https://github.com/helgemathee/zookeeper.git c:\zookeeper
+
+```
+pip install win_unc
+pip install pyside
+git clone https://github.com/helgemathee/zookeeper.git c:\zookeeper
+```
 
 C) Environment variables
 - PATH: Append "C:\Python27;C:\Python27\Scripts"
