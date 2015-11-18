@@ -45,6 +45,8 @@ class zkWorkThread(QtCore.QThread):
     zookeeperPath = os.path.split(os.path.split(zookeeper.__file__)[0])[0]
     env['PYTHONPATH'] = env.get('PYTHONPATH') + os.pathsep + zookeeperPath
 
+    job = self.frame.job
+
     # also include all of the zookeeper settings
     env['ZK_IP'] = self.connection.ip
     env['ZK_PORT'] = self.connection.port
@@ -53,6 +55,16 @@ class zkWorkThread(QtCore.QThread):
     env['ZK_PROJECT'] = self.frame.projectid
     env['ZK_JOB'] = self.frame.jobid
     env['ZK_FRAME'] = self.frame.id
+    env['ZK_DCC'] = job.dcc
+    env['ZK_DCC_VERSION'] = job.dccversion
+    env['ZK_RENDERER'] = job.renderer
+    env['ZK_RENDERER_VERSION'] = job.rendererversion
+
+    # fill in all config fields as env vars
+    cfg = zookeeper.zkConfig()
+    cfgFields = cfg.getFields()
+    for f in cfgFields:
+      env['ZK_' + f['name'].upper()] = f['value']
 
     for key in env:
       env[key] = str(env[key])

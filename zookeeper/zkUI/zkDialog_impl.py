@@ -97,6 +97,31 @@ class zkDialog(QtGui.QDialog):
 
         subLayout.addWidget(button)
         gridLayout.addWidget(subWidget, offset, 1)
+      elif field['type'] == 'file':
+        subWidget = QtGui.QWidget(gridWidget)
+        subWidget.setContentsMargins(0, 0, 0, 0);
+        subLayout = QtGui.QHBoxLayout()
+        subWidget.setLayout(subLayout)
+        subLayout.setContentsMargins(0, 0, 0, 0);
+
+        edit = QtGui.QLineEdit(gridWidget)
+        edit.setText(str(field['value']))
+        subLayout.addWidget(edit)
+
+        def setupButton(button, edit, name, fileFilter):
+          def buttonClicked():
+            result = QtGui.QFileDialog.getOpenFileName(self, 'Pick '+name, edit.text(), fileFilter)
+            if len(result) > 0:
+              if len(result[0]) > 0:
+                edit.setText(result[0])
+          button.clicked.connect(buttonClicked)
+
+        button = QtGui.QPushButton('...', subWidget)
+        button.setMaximumWidth(40)
+        setupButton(button, edit, field['name'], field.get('filter', '*.*'))
+
+        subLayout.addWidget(button)
+        gridLayout.addWidget(subWidget, offset, 1)
       elif field['type'] == 'combo':
         edit = QtGui.QComboBox(gridWidget)
         if not 'comboitems' in field:
@@ -141,6 +166,8 @@ class zkDialog(QtGui.QDialog):
         elif field['type'] == 'str':
           field['value'] = edit.text()
         elif field['type'] == 'folder':
+          field['value'] = edit.text()
+        elif field['type'] == 'file':
           field['value'] = edit.text()
         elif field['type'] == 'combo':
           field['value'] = edit.itemData(edit.currentIndex())
