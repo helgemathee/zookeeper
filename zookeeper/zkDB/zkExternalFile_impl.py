@@ -31,7 +31,7 @@ class zkExternalFile(zkEntity):
     super(zkExternalFile, self).write()
 
   @classmethod
-  def getOrCreateByProjectAndPaths(cls, conn, projectid, userPath, resolvedPath, type = 'otherfile'):
+  def getOrCreateByProjectAndPaths(cls, conn, projectid, userPath, resolvedPath, type = 'otherfile', resolution = -1):
     table = cls.getTableName()
     sql = 'SELECT %s_id FROM %s WHERE %s_projectid = %d AND %s_resolvedpath = %s;' % (table, table, table, projectid, table, repr(str(resolvedPath)))
     ids = conn.execute(sql, errorPrefix=table)
@@ -42,6 +42,7 @@ class zkExternalFile(zkEntity):
     extFile.userpath = userPath
     extFile.resolvedpath = resolvedPath
     extFile.type = type
+    extFile.resolution = resolution
     extFile.write()
     return extFile
 

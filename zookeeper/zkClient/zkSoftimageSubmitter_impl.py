@@ -230,7 +230,13 @@ class zkSoftimageSubmitter(zkSubmitter):
     xsiFiles = scene.ExternalFiles
     for i in range(xsiFiles.Count):
       xsiFile = xsiFiles(i)
-      zookeeper.zkDB.zkExternalFile.getOrCreateByProjectAndPaths(self.connection, project.id, xsiFile.Path, xsiFile.ResolvedPath, type = xsiFile.FileType)
+      resolution = -1
+      if xsiFile.FileType == 'Models':
+        param = xsiFile.Owners(0)
+        model = param.Parent
+        if param.Name == 'res'+str(model.active_resolution.value):
+          resolution = model.active_resolution.value
+      zookeeper.zkDB.zkExternalFile.getOrCreateByProjectAndPaths(self.connection, project.id, xsiFile.Path, xsiFile.ResolvedPath, type = xsiFile.FileType, resolution = resolution)
 
     if capturejob:
 

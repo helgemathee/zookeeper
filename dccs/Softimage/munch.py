@@ -101,16 +101,14 @@ def munch():
       log("ERROR: External file for \"%s\" not found in DB!" % userPath)
       continue
 
-    if xsiFile.FileType == 'Models':
+    if xsiFile.FileType == 'Models' and extFile.resolution > -1:
       owners = xsiFile.Owners
-      for j in range(owners.Count):
-        param = owners(j)
-        log(param.FullName)
-        model = param.Parent
-        log(model.FullName)
-        log(model.active_resolution.value)
-        if param.Name == 'res' + str(model.active_resolution.value):
-          Application.UpdateReferencedModel(model.FullName)
+      param = owners(0)
+      model = param.Parent
+      if model.active_resolution.value == extFile.resolution:
+        Application.UpdateReferencedModel(model.FullName)
+      else:
+        model.active_resolution.value = extFile.resolution
 
   while(True):
 
