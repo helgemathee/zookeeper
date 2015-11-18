@@ -18,8 +18,8 @@ A) Installer folder
 - Install 05_mysql...
 
 B) Environment variables
-- PATH: Append "C:\Python27;C:\Python27\Scripts"
-- PYTHONPATH: Append "C:\zookeeper"
+- PATH: C:\Python27;C:\Python27\Scripts
+- PYTHONPATH: C:\zookeeper
 
 C) Within a command shell (cmd) type
 
