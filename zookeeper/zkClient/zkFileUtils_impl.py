@@ -11,7 +11,10 @@ def zk_resolveEnvVarsInPath(path):
   return path
 
 def zk_uncFromDrivePath(path):
+  print 'zk_uncFromDrivePath'
+  print path
   drive = os.path.splitdrive(path)[0]
+  print drive
   if drive:
     if drive[1] == ':':
       table = get_current_net_use_table()
