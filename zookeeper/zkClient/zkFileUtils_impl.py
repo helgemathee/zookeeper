@@ -36,10 +36,10 @@ def zk_uncFromDrivePath(path):
   drive = os.path.splitdrive(path)[0]
   if drive:
     if drive[1] == ':':
-      table = get_current_net_use_table()
-      for row in table.rows:
-        if drive.lower() == row['local'].get_drive().lower():
-          unc = row['remote'].get_path()
+      mappedDrives = zk_getUncMap()
+      for mappedDrive in mappedDrives:
+        if mappedDrive.lower() == drive.lower():
+          unc = mappedDrives[mappedDrive]
           uncpath = os.path.normpath(unc + '\\' + path[2:])
           return uncpath
   return path
