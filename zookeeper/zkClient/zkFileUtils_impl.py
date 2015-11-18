@@ -18,6 +18,7 @@ def zk_uncFromDrivePath(path):
       for row in table.rows:
         if drive.lower() == row['local'].get_drive().lower():
           unc = row['remote'].get_path()
+          print unc
           uncpath = os.path.normpath(unc + '\\' + path[2:])
           return uncpath
   return path

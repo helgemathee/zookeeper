@@ -129,7 +129,7 @@ def munch():
           output.frame = frame
           output.name = fb.Name
           log('----> 03')
-          output.path = zookeeper.zkClient.zk_uncFromDrivePath(fb.GetResolvedPath(frame.time))
+          output.path = zookeeper.zkClient.zk_uncFromDrivePath(str(fb.GetResolvedPath(frame.time)))
           log('----> 04')
           scratchedPath = output.getScratchFile(cfg, frameToken='[frame]')
           log('----> 05')
@@ -195,7 +195,7 @@ def munch():
 
           output.path = tokenStr
         else:
-          output.path = fb.GetResolvedPath(frame.time)
+          output.path = str(fb.GetResolvedPath(frame.time))
           output.status = 'DELIVERED'
 
         frame.pushOutputForSubmit(output)
