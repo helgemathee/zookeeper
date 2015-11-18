@@ -44,11 +44,12 @@ def munch():
   machine = zookeeper.zkDB.zkMachine.getById(connection, int(os.environ['ZK_MACHINE']))
   project = zookeeper.zkDB.zkProject.getById(connection, int(os.environ['ZK_PROJECT']))
   job = zookeeper.zkDB.zkJob.getById(connection, int(os.environ['ZK_JOB']))
+  jobMachine = zookeeper.zkDB.zkMachine.getById(connection, job.machine)
   input = job.input
   frame = zookeeper.zkDB.zkFrame.getById(connection, int(os.environ['ZK_FRAME']))
   scenePath = input.path
 
-  uncMap = zookeeper.zkDB.zkUncMap.getUncMapForMachine(connection, job.machine.id)
+  uncMap = zookeeper.zkDB.zkUncMap.getUncMapForMachine(connection, jobMachine.id)
 
   # localize scene
   if scratchdisc_enabled:
