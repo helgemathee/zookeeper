@@ -93,11 +93,21 @@ def munch():
       synchronizedPath = extFile.synchronize(cfg, uncMap)
       if not synchronizedPath:
         log('ERROR: Could not synchronize file.')
+        continue
       else:
         extFileCompleted[userPath] = synchronizedPath
         xsiFile.Path = synchronizedPath
     else:
       log("ERROR: External file for \"%s\" not found in DB!" % userPath)
+      continue
+
+    if xsiFile.FileType == 'Models':
+      owners = xsiFile.Owners
+      for j in range(owners.Count):
+        param = owners(j)
+        model = param.Parent
+        if param.Name == 'res' + str(model.active_resolution.value):
+          Application.UpdateReferencedModel(model.FullName)
 
   while(True):
 
