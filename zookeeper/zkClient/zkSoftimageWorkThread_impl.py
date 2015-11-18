@@ -71,21 +71,26 @@ class zkSoftimageWorkThread(zkWorkThread):
     template = open(os.path.join(dccPath, 'default.xsipref'), 'rb').read()
     template = template.replace('%VERSION%', job.dccversion)
 
+    # localize workgroups
+    localPath = cfg.get('softimage_workgroup_root')
+    remotePath = zookeeper.zkDB.zkSetting.getByName(self.connection, 'softimage_workgroup_root').value
+
+    self.log('Synchronizing workgroups...')
+    zookeeper.zkClient.zk_synchronizeFolder(remotePath, localPath, logFunc = self.log)
+
     workgroups = []
 
     workGroupRoot = cfg.get('softimage_workgroup_root', '')
-    workGroupAll = os.path.join(workGroupRoot, 'all')
-    if not os.path.exists(workGroupAll):
-      os.makedirs(workGroupAll)
-    for f in glob.glob(os.path.join(workGroupAll, '*')):
+    workGroupGeneral = os.path.join(workGroupRoot, 'general')
+    if not os.path.exists(workGroupGeneral):
+      os.makedirs(workGroupGeneral)
+    for f in glob.glob(os.path.join(workGroupGeneral, '*')):
       if f.startswith('.'):
         continue
-      workgroups += [f]
-    workGroupRender = os.path.join(workGroupRoot, job.renderer, job.rendererversion)
+      workgroups += [os.path.normpath(f)]
+    workGroupRender = os.path.join(workGroupRoot, 'renderer', job.renderer, job.rendererversion, 'Softimage%s' % job.dccversion.replace(' ', ''))
     if os.path.exists(workGroupRender):
-      workgroups += [workGroupRender]
-
-    # todo: localize workgroups...! # WITH BAAZAARRRR!
+      workgroups += [os.path.normpath(workGroupRender)]
 
     template = template.replace('%WORKGROUPS%', ';'.join(workgroups))
     open(os.path.join(prefsFolder, 'default.xsipref'), 'wb').write(template)

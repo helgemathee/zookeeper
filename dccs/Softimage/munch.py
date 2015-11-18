@@ -64,10 +64,19 @@ def munch():
 
   # vebosity levels
   # try all of them, add redshift, arnold etc
-  try:
-    Application.SetValue("Passes.mentalray.VerbosityLevel", 44)
-  except:
-    pass
+  settings = [
+    ["Passes.mentalray.VerbosityLevel", 44],
+    ["Passes.Redshift_Options.LogLevel", 2],
+    # ["Passes.Redshift_Options.AbortOnLicenseFail", True]
+    ]
+  for setting in settings:
+    try:
+      Application.SetValue(setting[0], setting[1])
+      Application.LogMessage("Set '%s' to '%s'" % (setting[0], str(setting[1])))
+    except:
+      pass
+
+  "Passes.Redshift_Options.AbortOnLicenseFail"
 
   externalFiles = scene.externalFiles
   extFileCompleted = {}

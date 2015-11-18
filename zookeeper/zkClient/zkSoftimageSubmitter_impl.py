@@ -49,8 +49,7 @@ class zkSoftimageSubmitter(zkSubmitter):
     return str(self.__app.ActiveProject.ActiveScene.ActivePass.Renderer.Name)
 
   def getRendererVersion(self):
-    # todo
-    return '1.0.0'
+    return str(self.__app.ActiveProject.ActiveScene.ActivePass.Renderer.Version)
 
   def getInputPath(self):
     return str(self.__app.ActiveProject.ActiveScene.Parameters.GetItem('filename').Value)

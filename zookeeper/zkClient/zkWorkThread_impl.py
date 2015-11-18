@@ -24,6 +24,7 @@ class zkWorkThread(QtCore.QThread):
     self.__machine = frame.machine
     self.exiting = False
     self.setTerminationEnabled(True)
+    self.__log = []
 
   def __del__(self):
     if self.__process:
@@ -45,7 +46,9 @@ class zkWorkThread(QtCore.QThread):
     zookeeperPath = os.path.split(os.path.split(zookeeper.__file__)[0])[0]
     env['PYTHONPATH'] = env.get('PYTHONPATH') + os.pathsep + zookeeperPath
 
+    cfg = zookeeper.zkConfig()
     job = self.frame.job
+    project = self.frame.project
 
     # also include all of the zookeeper settings
     env['ZK_IP'] = self.connection.ip
@@ -53,7 +56,9 @@ class zkWorkThread(QtCore.QThread):
     env['ZK_DATABASE'] = self.connection.database
     env['ZK_MACHINE'] = self.machine.id
     env['ZK_PROJECT'] = self.frame.projectid
+    env['ZK_PROJECT_SCRATCH_FOLDER'] = project.getScratchFolder(cfg)
     env['ZK_JOB'] = self.frame.jobid
+    env['ZK_JOB_SCRATCH_FOLDER'] = job.getScratchFolder(cfg)
     env['ZK_FRAME'] = self.frame.id
     env['ZK_DCC'] = job.dcc
     env['ZK_DCC_VERSION'] = job.dccversion
@@ -61,16 +66,14 @@ class zkWorkThread(QtCore.QThread):
     env['ZK_RENDERER_VERSION'] = job.rendererversion
 
     # fill in all config fields as env vars
-    cfg = zookeeper.zkConfig()
     cfgFields = cfg.getFields()
     for f in cfgFields:
-      env['ZK_' + f['name'].upper()] = f['value']
+      env['ZK_' + str(f['name'].upper())] = str(f['value'])
 
     for key in env:
       env[key] = str(env[key])
 
     cmdargs = [cmd] + args
-    self.__log = []
     self.__process = subprocess.Popen(cmdargs, env = env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell = False)
 
     p = psutil.Process(self.__process.pid)

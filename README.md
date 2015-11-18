@@ -6,4 +6,7 @@ mysql-connector
 pip install pyside
 pip install win_unc
 win32s
-bazaar
+
+
+# bazaar install
+# bazaar clone repo \\domain\\public\\zookeeper\\workgroups (plain branch)

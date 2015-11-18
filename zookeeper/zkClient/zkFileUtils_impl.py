@@ -114,7 +114,7 @@ def zk_synchronizeFile(source, target, folderCache = None):
     shutil.copystat(source, target)
   return (target, reasonForCopy)
 
-def zk_synchronizeFolder(source, target, pattern = None):
+def zk_synchronizeFolder(source, target, pattern = None, logFunc = None):
   if target.startswith(source):
     raise Exception("target is a subset of source.")
 
@@ -127,7 +127,11 @@ def zk_synchronizeFolder(source, target, pattern = None):
     absPath = os.path.join(target, relPath)
     (resultPath, reason) = zk_synchronizeFile(f, absPath, folderCache)
     if reason:
-      print "Synchronized %s because %s." % (f, reason)
+      message = "Synchronized %s because %s." % (f, reason)
+      if logFunc:
+        logFunc(message)
+      else:
+        print message
     result += [resultPath]
   return result
 
@@ -144,13 +148,17 @@ def zk_createSynchronizeTargetPath(sourceFolder, targetFolder, path):
     p = 'unc/'+p[2:]
   return os.path.normpath(os.path.join(targetFolder, p))
  
-def zk_synchronizeFilesBetweenFolders(files, sourceFolder, targetFolder):
+def zk_synchronizeFilesBetweenFolders(files, sourceFolder, targetFolder, logFunc = None):
   result = []
   for f in files:
     f2 = zk_createSynchronizeTargetPath(sourceFolder, targetFolder, f)
     (f3, reason) = zk_synchronizeFile(f, f2)
     if reason:
-      print "Synchronized %s because %s." % (f, reason)
+      message = "Synchronized %s because %s." % (f, reason)
+      if logFunc:
+        logFunc(message)
+      else:
+        print message
     result += [f3]
   return result
 

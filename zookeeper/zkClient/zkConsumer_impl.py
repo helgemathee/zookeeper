@@ -178,7 +178,7 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
   def storeLog(self, frame):
     log = self.__workThread.clearLog()
     path = frame.getLogFilePath()
-    if path:
+    if path and log:
       open(path, "wb").write('\n'.join(log))
       frame.log = path
       frame.write()
