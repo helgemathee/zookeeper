@@ -78,10 +78,10 @@ def munch():
 
   "Passes.Redshift_Options.AbortOnLicenseFail"
 
-  externalFiles = scene.externalFiles
+  xsiFiles = scene.ExternalFiles
   extFileCompleted = {}
-  for i in range(externalFiles.Count):
-    xsiFile = externalFiles(i)
+  for i in range(xsiFiles.Count):
+    xsiFile = xsiFiles(i)
     userPath = xsiFile.Path
     if extFileCompleted.has_key(userPath):
       xsiFile.Path = extFileCompleted[userPath]
@@ -89,10 +89,13 @@ def munch():
     connection.setDebug(True)
     extFile = zookeeper.zkDB.zkExternalFile.getByProjectAndUserPath(connection, project.id, userPath)
     if extFile:
-      scratchPath = extFile.getScratchDiskPath(cfg)
+      log('Found external file for "%s"' % userPath)
       synchronizedPath = extFile.synchronize(cfg, uncMap)
+      log('Synchronized to "%s"' % synchronizedPath)
       extFileCompleted[userPath] = synchronizedPath
       xsiFile.Path = synchronizedPath
+    else:
+      log("ERROR: External file for \"%s\" not found in DB!" % userPath)
     connection.setDebug(False)
 
   while(True):
