@@ -17,17 +17,17 @@ A) Installer folder
 - Install 04_psutil...
 - Install 05_mysql...
 
-B) Within a command shell (cmd) type
+B) Environment variables
+- PATH: Append "C:\Python27;C:\Python27\Scripts"
+- PYTHONPATH: Append "C:\zookeeper"
+
+C) Within a command shell (cmd) type
 
 ```
 pip install win_unc
 pip install pyside
 git clone https://github.com/helgemathee/zookeeper.git c:\zookeeper
 ```
-
-C) Environment variables
-- PATH: Append "C:\Python27;C:\Python27\Scripts"
-- PYTHONPATH: Append "C:\zookeeper"
 
 D) Shortcuts ( you can use the icon found in "C:\zookeeper\launchers")
 - A shortcut on the desktop to "c:\zookeeper\launchers\ZooKeeperConfig.pyw" named "Config"
