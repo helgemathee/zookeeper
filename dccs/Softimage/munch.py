@@ -15,7 +15,7 @@ scratchdisc_folder = cfg.get('scratchdisc_folder', '')
 
 def log(message):
   prefix = datetime.datetime.now().strftime("%Y-%m-%d %H::%M::%S: ")
-  Application.LogMessage(prefix+message)
+  Application.LogMessage(prefix+str(message))
 
 def setFrameAsFailed(connection, frame, reason):
   # set to waiting + increase tries
