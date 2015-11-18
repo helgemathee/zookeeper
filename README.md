@@ -6,3 +6,4 @@ mysql-connector
 pip install pyside
 pip install win_unc
 win32s
+bazaar
