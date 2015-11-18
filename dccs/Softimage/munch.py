@@ -86,12 +86,14 @@ def munch():
     if extFileCompleted.has_key(userPath):
       xsiFile.Path = extFileCompleted[userPath]
       continue
+    connection.setDebug(True)
     extFile = zookeeper.zkDB.zkExternalFile.getByProjectAndUserPath(connection, project.id, userPath)
     if extFile:
       scratchPath = extFile.getScratchDiskPath(cfg)
       synchronizedPath = extFile.synchronize(cfg, uncMap)
       extFileCompleted[userPath] = synchronizedPath
       xsiFile.Path = synchronizedPath
+    connection.setDebug(False)
 
   while(True):
 
