@@ -4,6 +4,8 @@ class zkConnection(object):
 
   __ip = None
   __port = None
+  __user = None
+  __password = None
   __database = None
   __connector = None
   __connected = None
@@ -14,19 +16,15 @@ class zkConnection(object):
   def __init__(self, ip = '192.168.1.10', port = 3306, user = 'mysql', password = 'mysql', database = 'zookeeper', debug = False):
     self.__ip = str(ip)
     self.__port = port
+    self.__user = user
+    self.__password = password
     self.__database = str(database)
     self.__debug = debug
     self.__connected = False
     self.__lastQuery = None
+    self.__connector = None
 
-    try:
-      self.__connector = mysql.connector.connect(user=user, password=password, host=ip, port=port, database=database, buffered=True)
-      print 'Connection successful to %s.' % self.__ip
-    except mysql.connector.Error as err:
-      print("Connection problem: {}".format(err))
-      return
-    self.__connected = True
-    self.execute(('USE %s;' % database), 'Switching database')
+    self.ensureConnection()
 
   def __del__(self):
     self.__connector.close()
@@ -55,7 +53,27 @@ class zkConnection(object):
   def setDebug(self, state):
     self.__debug = state
 
+  def ensureConnection(self):
+    requiresNewConn = False
+    if self.__connector is None:
+      requiresNewConn = True
+    elif not self.__connector.is_connected():
+      requiresNewConn = True
+
+    if not requiresNewConn:
+      return
+
+    try:
+      self.__connector = mysql.connector.connect(user=self.__user, password=self.__password, host=self.__ip, port=self.__port, database=self.__database, buffered=True)
+      print 'Connection successful to %s.' % self.__ip
+    except mysql.connector.Error as err:
+      print("Connection problem: {}".format(err))
+      return
+    self.__connected = True
+    self.execute(('USE %s;' % self.__database), 'Switching database')
+
   def execute(self, sql, errorPrefix = "Database"):
+    self.ensureConnection()
     if not self.__connected:
       raise Exception("connection used while not connected.")
     try:
@@ -82,6 +100,7 @@ class zkConnection(object):
     return None
 
   def call(self, procedure, args, errorPrefix = "Database"):
+    self.ensureConnection()
     if not self.__connected:
       raise Exception("connection used while not connected.")
     try:
