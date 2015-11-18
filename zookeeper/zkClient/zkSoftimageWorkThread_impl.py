@@ -56,10 +56,20 @@ class zkSoftimageWorkThread(zkWorkThread):
     job = self.frame.job
 
     cfg = zookeeper.zkConfig()
-    folder = os.path.join(cfg.get('softimage_root_folder', ''), 'Softimage %s' % job.dccversion)
+    dccversion = job.dccversion
+    folder = os.path.join(cfg.get('softimage_root_folder', ''), 'Softimage %s' % dccversion)
+    if not os.path.exists(folder):
+      if dccversion == '2014':
+        dccversion = '2014 SP2'
+        folder = os.path.join(cfg.get('softimage_root_folder', ''), 'Softimage %s' % dccversion)
+        self.log('Using 2014 SP2 instead of 2014')
+
+    if not os.path.exists(folder):
+      return
+
     bin = os.path.join(folder, 'Application', 'bin', 'xsibatch.exe')
 
-    env = getSoftimageEnv(cfg, job.dccversion)
+    env = getSoftimageEnv(cfg, dccversion)
 
     zookeeperPath = os.path.split(os.path.split(zookeeper.__file__)[0])[0]
     dccPath = os.path.join(zookeeperPath, 'dccs', 'Softimage')
@@ -69,7 +79,7 @@ class zkSoftimageWorkThread(zkWorkThread):
     if not os.path.exists(prefsFolder):
       os.makedirs(prefsFolder)
     template = open(os.path.join(dccPath, 'default.xsipref'), 'rb').read()
-    template = template.replace('%VERSION%', job.dccversion)
+    template = template.replace('%VERSION%', dccversion)
 
     # localize workgroups
     localPath = cfg.get('softimage_workgroup_root')
@@ -88,7 +98,7 @@ class zkSoftimageWorkThread(zkWorkThread):
       if f.startswith('.'):
         continue
       workgroups += [os.path.normpath(f)]
-    workGroupRender = os.path.join(workGroupRoot, 'renderer', job.renderer, job.rendererversion, 'Softimage%s' % job.dccversion.replace(' ', ''))
+    workGroupRender = os.path.join(workGroupRoot, 'renderer', job.renderer, job.rendererversion, 'Softimage%s' % dccversion.replace(' ', ''))
     if os.path.exists(workGroupRender):
       workgroups += [os.path.normpath(workGroupRender)]
 
