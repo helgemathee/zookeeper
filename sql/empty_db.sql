@@ -26,7 +26,8 @@ CREATE TABLE `externalfile` (
   `externalfile_id` int(11) NOT NULL AUTO_INCREMENT,
   `externalfile_projectid` int(11) NOT NULL,
   `externalfile_type` varchar(45) NOT NULL,
-  `externalfile_path` varchar(1024) NOT NULL,
+  `externalfile_userpath` varchar(1024) NOT NULL,
+  `externalfile_resolvedpath` varchar(1024) NOT NULL,
   PRIMARY KEY (`externalfile_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -266,7 +267,7 @@ CREATE TABLE `setting` (
   `setting_value` varchar(1024) NOT NULL,
   PRIMARY KEY (`setting_id`),
   UNIQUE KEY `setting_name_UNIQUE` (`setting_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -275,7 +276,7 @@ CREATE TABLE `setting` (
 
 LOCK TABLES `setting` WRITE;
 /*!40000 ALTER TABLE `setting` DISABLE KEYS */;
-INSERT INTO `setting` VALUES (1,'log_root','\\\\domain\\public\\zookeeper\\logs');
+INSERT INTO `setting` VALUES (1,'log_root','\\\\domain\\public\\zookeeper\\logs'),(2,'softimage_workgroup_root','\\\\domain\\public\\zookeeper\\workgroups');
 /*!40000 ALTER TABLE `setting` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1016,4 +1017,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2015-11-13 19:02:42
+-- Dump completed on 2015-11-18 18:28:48

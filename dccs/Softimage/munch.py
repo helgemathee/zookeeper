@@ -52,7 +52,7 @@ def munch():
 
   # localize scene
   if scratchdisc_enabled:
-    extFile = zookeeper.zkDB.zkExternalFile.getOrCreateByProjectAndPath(connection, project.id, input.path, type = 'Softimage\\Scenes')
+    extFile = zookeeper.zkDB.zkExternalFile.getOrCreateByProjectAndPaths(connection, project.id, input.path, input.path, type = 'Softimage\\Scenes')
     scratchPath = extFile.getScratchDiskPath(cfg)
     projectFolder = os.path.split(os.path.split(scratchPath)[0])[0]
     Application.ActiveProject2 = Application.CreateProject2(projectFolder)
@@ -82,17 +82,16 @@ def munch():
   extFileCompleted = {}
   for i in range(externalFiles.Count):
     xsiFile = externalFiles(i)
-    log(xsiFile.Path)
-    log(xsiFile.ResolvedPath)
-    resolvedPath = xsiFile.ResolvedPath
-    if extFileCompleted.has_key(resolvedPath):
-      xsiFile.Path = extFileCompleted[resolvedPath]
+    userPath = xsiFile.Path
+    if extFileCompleted.has_key(userPath):
+      xsiFile.Path = extFileCompleted[userPath]
       continue
-    extFile = zookeeper.zkDB.zkExternalFile.getOrCreateByProjectAndPath(connection, project.id, resolvedPath, type = xsiFile.FileType)
-    scratchPath = extFile.getScratchDiskPath(cfg)
-    synchronizedPath = extFile.synchronize(cfg, uncMap)
-    extFileCompleted[resolvedPath] = synchronizedPath
-    xsiFile.Path = synchronizedPath
+    extFile = zookeeper.zkDB.zkExternalFile.getByProjectAndUserPath(connection, project.id, userPath)
+    if extFile:
+      scratchPath = extFile.getScratchDiskPath(cfg)
+      synchronizedPath = extFile.synchronize(cfg, uncMap)
+      extFileCompleted[userPath] = synchronizedPath
+      xsiFile.Path = synchronizedPath
 
   while(True):
 

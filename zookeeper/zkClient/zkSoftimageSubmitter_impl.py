@@ -226,6 +226,12 @@ class zkSoftimageSubmitter(zkSubmitter):
     capturejob = results['capturejob']
     highprio_firstlast = results['highprio_firstlast']
 
+    # submit all external files
+    xsiFiles = scene.ExternalFiles
+    for i in range(xsiFiles.Count):
+      xsiFile = xsiFiles(i)
+      zookeeper.zkDB.zkExternalFile.getOrCreateByProjectAndPaths(self.connection, project.id, xsiFile.Path, xsiFile.ResolvedPath, type = xsiFile.FileType)
+
     if capturejob:
 
       job = zookeeper.zkDB.zkJob.createNew(self.connection)

@@ -31,21 +31,31 @@ class zkExternalFile(zkEntity):
     super(zkExternalFile, self).write()
 
   @classmethod
-  def getOrCreateByProjectAndPath(cls, conn, projectid, path, type = 'otherfile'):
+  def getOrCreateByProjectAndPaths(cls, conn, projectid, userPath, resolvedPath, type = 'otherfile'):
     table = cls.getTableName()
-    sql = 'SELECT %s_id FROM %s WHERE %s_projectid = %d AND %s_path = %s;' % (table, table, table, projectid, table, repr(str(path)))
+    sql = 'SELECT %s_id FROM %s WHERE %s_projectid = %d AND %s_resolvedpath = %s;' % (table, table, table, projectid, table, repr(str(resolvedPath)))
     ids = conn.execute(sql, errorPrefix=table)
     for id in ids:
       return cls(conn, id=id[0])
     extFile = cls(conn)
     extFile.projectid = projectid
-    extFile.path = path
+    extFile.userpath = userPath
+    extFile.resolvedpath = resolvedPath
     extFile.type = type
     extFile.write()
     return extFile
 
+  @classmethod
+  def getByProjectAndUserPath(cls, conn, projectid, userPath):
+    table = cls.getTableName()
+    sql = 'SELECT %s_id FROM %s WHERE %s_projectid = %d AND %s_userpath = %s;' % (table, table, table, projectid, table, repr(str(userPath)))
+    ids = conn.execute(sql, errorPrefix=table)
+    for id in ids:
+      return cls(conn, id=id[0])
+    return None
+
   def getScratchDiskPath(self, cfg):
-    networkPath = self.path
+    networkPath = self.resolvedpath
     networkFile = os.path.split(networkPath)[1]
     networkParts = networkFile.rpartition('.')
     scratchDisc = self.project.getScratchFolder(cfg)
@@ -54,7 +64,7 @@ class zkExternalFile(zkEntity):
     return scratchPath
 
   def synchronize(self, cfg, uncMap = None):
-    networkPath = self.path
+    networkPath = self.resolvedpath
 
     # correct unc paths
     if uncMap:
