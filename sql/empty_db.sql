@@ -28,6 +28,7 @@ CREATE TABLE `externalfile` (
   `externalfile_type` varchar(45) NOT NULL,
   `externalfile_userpath` varchar(1024) NOT NULL,
   `externalfile_resolvedpath` varchar(1024) NOT NULL,
+  `externalfile_resolution` int(11) DEFAULT '-1',
   PRIMARY KEY (`externalfile_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1017,4 +1018,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2015-11-18 18:52:41
+-- Dump completed on 2015-11-18 19:24:50
