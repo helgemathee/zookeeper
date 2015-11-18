@@ -21,8 +21,8 @@ class zkConfig(object):
     self.set('scratchdisc_folder', 'c:/temp/scratch', type='folder', tooltip = 'The location of the local scratch disc.', onlyIfNotExists = True)
     self.set('scratchdisc_sizegb', 100, type='int', tooltip = 'The size in GB for the local scratch disc.', onlyIfNotExists = True)
     self.set('softimage_root_folder', 'C:/Program Files/Autodesk', type = 'folder', tooltip = 'Normally the Autodesk main folder.', onlyIfNotExists = True)
-    self.set('softimage_user_root', 'c:\\temp\\zookeeper\\Softimage\\user', type = 'folder', tooltip = 'The softimage render user folder.', onlyIfNotExists = True)
-    self.set('softimage_workgroup_root', 'F:/zookeeper/workgroups/trunk', type = 'folder', tooltip = 'The trunk folder of the bazaar workgroup.', onlyIfNotExists = True)
+    self.set('softimage_user_root', 'c:\\temp\\users', type = 'folder', tooltip = 'The softimage render user folder.', onlyIfNotExists = True)
+    self.set('softimage_workgroup_root', 'c:\\temp\\workgroups', type = 'folder', tooltip = 'The root folder for the softimage workgroup.', onlyIfNotExists = True)
     self.set('softimage_flipbook_version', '2014 SP2', type = 'str', tooltip = 'The softimage version to use for flipbook.', onlyIfNotExists = True)
 
   def _read(self):
