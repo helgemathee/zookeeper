@@ -297,19 +297,19 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
 
       networkFolder = os.path.split(networkPath)[0]
 
-      try:
+      # try:
 
-        if not os.path.exists(networkFolder):
-          os.makedirs(networkFolder)
+      if not os.path.exists(networkFolder):
+        os.makedirs(networkFolder)
 
-        self.log('Delivering frame '+scratchPath+' to '+networkPath)
-        shutil.copyfile(scratchPath, networkPath)
-        os.remove(scratchPath)
-        frame_ids[str(output.frameid)] = True
-        output.status = 'DELIVERED'
-        output.write()
-      except:
-        pass
+      self.log('Delivering frame '+scratchPath+' to '+networkPath)
+      shutil.copyfile(scratchPath, networkPath)
+      os.remove(scratchPath)
+      frame_ids[str(output.frameid)] = True
+      output.status = 'DELIVERED'
+      output.write()
+      # except:
+      #   pass
 
     if len(frame_ids.keys()) > 0:
       self.__conn.execute('UPDATE frame SET frame_status = \'DELIVERED\' WHERE frame_id in (%s);' % ','.join(frame_ids.keys()))
