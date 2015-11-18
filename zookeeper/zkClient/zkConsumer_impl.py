@@ -309,8 +309,8 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
         output.write()
       except IOError as e:
         self.log('Cannot deliver frame: %s' % e.strerror)
-      except:
-        pass
+      # except:
+      #   pass
 
     if len(frame_ids.keys()) > 0:
       self.__conn.execute('UPDATE frame SET frame_status = \'DELIVERED\' WHERE frame_id in (%s);' % ','.join(frame_ids.keys()))
