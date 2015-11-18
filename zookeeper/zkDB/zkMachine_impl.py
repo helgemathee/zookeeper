@@ -2,8 +2,8 @@ import platform
 import socket
 import multiprocessing
 import psutil
-from win_unc.internal.current_state import get_current_net_use_table
 
+import zookeeper
 import zookeeper.zkDB
 from zookeeper.zkConfig_impl import zkConfig
 from zkEntity_impl import zkEntity
@@ -97,10 +97,9 @@ class zkMachine(zkEntity):
 
     bracket = zookeeper.zkDB.zkBracket(self.connection)
 
-    table = get_current_net_use_table()
-    for row in table.rows:
-      drive = row['local'].get_drive().lower()
-      uncpath = row['remote'].get_path().lower()
+    mappedDrives = zookeeper.zkClient.zk_getUncMap()
+    for drive in mappedDrives:
+      uncpath = mappedDrives[drive]
       uncMap = zookeeper.zkDB.zkUncMap(self.connection, machineid = self.id, drive = drive)
       uncMap.machineid = self.id
       uncMap.drive = drive

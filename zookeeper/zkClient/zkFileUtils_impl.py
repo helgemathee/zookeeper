@@ -1,7 +1,7 @@
 import os
 import shutil
+import subprocess
 import fnmatch
-from win_unc.internal.current_state import get_current_net_use_table
 
 def zk_resolveEnvVarsInPath(path):
   if path.startswith('$'):
@@ -9,6 +9,28 @@ def zk_resolveEnvVarsInPath(path):
     if os.environ.has_key(parts[0][1:]):
       path = os.path.normpath(os.environ[parts[0][1:]] + parts[1] + parts[2])
   return path
+
+def zk_getUncMap():
+  cmdargs = ['net', 'use']
+  p = subprocess.Popen(cmdargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell = False)
+  p.wait()
+  (stdout, stderr) = p.communicate()
+  lines = stdout.replace('\r', '').split('\n')
+
+  result = {}
+  for line in lines:
+    if line.find(':') == -1:
+      continue
+    parts = line.split(':')
+    drive = parts[0][-1] + ":"
+    unc = parts[1].strip()
+    if unc.startswith('"'):
+      unc = unc.rpartition('"')[0][0:]
+    else:
+      unc = unc.partition(' ')[0]
+    result[drive] = unc
+
+  return result
 
 def zk_uncFromDrivePath(path):
   drive = os.path.splitdrive(path)[0]

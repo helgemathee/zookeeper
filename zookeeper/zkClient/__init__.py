@@ -6,6 +6,7 @@ from zkSoftimageSubmitter_impl import zkSoftimageLogHook, zkSoftimageSubmitter
 from zkSoftimageWorkThread_impl import zkSoftimageWorkThread, getSoftimageEnv
 
 from zkFileUtils_impl import zk_resolveEnvVarsInPath
+from zkFileUtils_impl import zk_getUncMap
 from zkFileUtils_impl import zk_uncFromDrivePath
 from zkFileUtils_impl import zk_validateFilePath
 from zkFileUtils_impl import zk_validateNetworkFilePath

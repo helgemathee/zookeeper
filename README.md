@@ -19,7 +19,6 @@ B) Environment variables
 C) Within a command shell (cmd) type
 
 ```
-pip install win_unc
 pip install pyside
 git clone https://github.com/helgemathee/zookeeper.git c:\zookeeper
 ```
