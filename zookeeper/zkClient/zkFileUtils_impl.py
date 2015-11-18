@@ -12,7 +12,7 @@ def zk_resolveEnvVarsInPath(path):
 
 def zk_getUncMap():
   cmdargs = ['net', 'use']
-  p = subprocess.Popen(cmdargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell = False)
+  p = subprocess.Popen(cmdargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell = True)
   p.wait()
   (stdout, stderr) = p.communicate()
   lines = stdout.replace('\r', '').split('\n')
