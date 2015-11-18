@@ -82,6 +82,8 @@ def munch():
   extFileCompleted = {}
   for i in range(externalFiles.Count):
     xsiFile = externalFiles(i)
+    log(xsiFile.Path)
+    log(xsiFile.ResolvedPath)
     resolvedPath = xsiFile.ResolvedPath
     if extFileCompleted.has_key(resolvedPath):
       xsiFile.Path = extFileCompleted[resolvedPath]
