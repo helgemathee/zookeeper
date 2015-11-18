@@ -105,7 +105,10 @@ def munch():
       owners = xsiFile.Owners
       for j in range(owners.Count):
         param = owners(j)
+        log(param.FullName)
         model = param.Parent
+        log(model.FullName)
+        log(model.active_resolution.value)
         if param.Name == 'res' + str(model.active_resolution.value):
           Application.UpdateReferencedModel(model.FullName)
 
