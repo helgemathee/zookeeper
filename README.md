@@ -34,3 +34,7 @@ D) Shortcuts ( you can use the icon found in "C:\zookeeper\launchers")
 - A shortcut on the desktop to "c:\zookeeper\launchers\ZooKeeperManager.pyw" named "Manager"
 - A shortcut on the desktop to "c:\zookeeper\launchers\ZooKeeperLauncher.pyw" named "Launcher"
 
+E) Launch the local config tool 
+- Double click on "C:\zookeeper\launchers\ZooKeeperConfig.pyw" or use your new shortcut.
+- Fill in all defaults correctly
+- It's highly recommended to configure a scratch disc!
