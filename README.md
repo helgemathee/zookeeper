@@ -1,11 +1,7 @@
-Requirements
-=====================
-python 2.7.9
-psutil
-mysql-connector
-pip install pyside
-pip install win_unc
-win32s
+Supported operating systems
+===============================
+- Windows: 7+, 8.0, 8.1, 10.0
+
 
 Client Installation
 ===========================
