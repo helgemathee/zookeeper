@@ -79,7 +79,7 @@ def zk_findFiles(directory, pattern = None):
 
 def zk_synchronizeFile(source, target, folderCache = None):
   if not os.path.exists(source):
-    return (None, None)
+    return (None, 'Source file does not exist.')
 
   targetFolder = os.path.split(target)[0]
 

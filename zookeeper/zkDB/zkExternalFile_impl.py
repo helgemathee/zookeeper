@@ -63,7 +63,7 @@ class zkExternalFile(zkEntity):
     scratchPath = os.path.join(scratchFolder, networkParts[0]+'_id'+str(self.id)+'.'+networkParts[2])
     return scratchPath
 
-  def synchronize(self, cfg, uncMap = None):
+  def synchronize(self, cfg, uncMap = None, logFunc = None):
     networkPath = self.resolvedpath
 
     # correct unc paths
@@ -82,6 +82,10 @@ class zkExternalFile(zkEntity):
 
     (resultPath, reasonForCopy) = zookeeper.zkClient.zk_synchronizeFile(networkPath, scratchPath)
     if reasonForCopy:
-      print 'ZooKeeper: updating cache for '+networkPath+' because '+reasonForCopy
+      message = 'ZooKeeper: updated cache for '+networkPath+' because '+reasonForCopy
+      if logFunc:
+        logFunc(message)
+      else:
+        print message
 
-    return scratchPath
+    return resultPath
