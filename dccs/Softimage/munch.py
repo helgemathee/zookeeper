@@ -117,24 +117,18 @@ def munch():
       if scratchdisc_enabled:
         log('Scratch Disk is enabled, retargeting outputs....')
         Application.SetValue("Passes.RenderOptions.FramePadding", 5) # we always use 5
-        log('----> 01')
         currentPass = scene.ActivePass
         frameBuffers = currentPass.FrameBuffers
         for i in range(frameBuffers.Count):
           fb = frameBuffers(i)
           if not fb.Parameters.GetItem('Enabled').Value:
             continue
-          log('----> 02')
           output = zookeeper.zkDB.zkOutput.createNew(connection)
           output.frame = frame
           output.name = fb.Name
-          log('----> 03')
-          output.path = zookeeper.zkClient.zk_uncFromDrivePath(str(fb.GetResolvedPath(frame.time)))
-          log('----> 04')
+          output.path = zookeeper.zkClient.zk_uncFromDrivePath(fb.GetResolvedPath(frame.time))
           scratchedPath = output.getScratchFile(cfg, frameToken='[frame]')
-          log('----> 05')
           log('Retargeted output from '+fb.FileName.Value+' to '+scratchedPath)
-          log('----> 06')
           frameBuffersToReset += [[fb, fb.FileName.Value]]
           fb.FileName.Value = scratchedPath
 
@@ -195,7 +189,7 @@ def munch():
 
           output.path = tokenStr
         else:
-          output.path = str(fb.GetResolvedPath(frame.time))
+          output.path = fb.GetResolvedPath(frame.time)
           output.status = 'DELIVERED'
 
         frame.pushOutputForSubmit(output)

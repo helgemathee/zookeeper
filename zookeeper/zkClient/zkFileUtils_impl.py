@@ -11,19 +11,13 @@ def zk_resolveEnvVarsInPath(path):
   return path
 
 def zk_uncFromDrivePath(path):
-  print 'zk_uncFromDrivePath'
-  print path
   drive = os.path.splitdrive(path)[0]
-  print drive
   if drive:
     if drive[1] == ':':
-      print 'trying....'
       table = get_current_net_use_table()
-      print 'got table...'
       for row in table.rows:
-        if drive.lower() == str(row['local'].get_drive()).lower():
-          unc = str(row['remote'].get_path())
-          print unc
+        if drive.lower() == row['local'].get_drive().lower():
+          unc = row['remote'].get_path()
           uncpath = os.path.normpath(unc + '\\' + path[2:])
           return uncpath
   return path
