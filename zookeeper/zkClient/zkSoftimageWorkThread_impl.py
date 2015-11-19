@@ -67,6 +67,8 @@ class zkSoftimageWorkThread(zkWorkThread):
     for suffix in ['SP2', 'SP1', '']:
       folder = os.path.join(cfg.get('softimage_root_folder', ''), 'Softimage %s %s' % (dccversion, suffix))
       if os.path.exists(folder):
+        if len(suffix) > 0:
+          dccversion = dccversion + ' ' + suffix
         break
 
     if not os.path.exists(folder):
@@ -110,7 +112,7 @@ class zkSoftimageWorkThread(zkWorkThread):
     template = template.replace('%WORKGROUPS%', ';'.join(workgroups))
     open(os.path.join(prefsFolder, 'default.xsipref'), 'wb').write(template)
 
-    args = ['-script']
+    args = ['-processing', '-script']
     args += [os.path.join(dccPath, 'munch.py')]
 
     self.launchSubProcess(bin, args = args, env = env)
