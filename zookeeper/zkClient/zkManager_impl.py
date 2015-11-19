@@ -50,6 +50,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
       getItemDataCallback = self.onJobGetData
       )
     self.__widgets['jobs'].contextMenuRequested.connect(self.onJobContextMenu)
+    self.__widgets['jobs'].doubleClicked.connect(self.onJobDoubleClicked)
 
     # projects
     labels = ['id', 'project', 'jobs']
@@ -105,8 +106,8 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
 
   def poll(self):
     widget = self.__widgets['tabs'].currentWidget()
-    if hasattr(widget, 'poll'):
-      widget.poll()
+    if hasattr(widget, 'pollOnModel'):
+      widget.pollOnModel()
 
   def onMachineGetData(self, table, caption, id, data, role):
     if data is None:
@@ -187,7 +188,6 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
       if role == QtCore.Qt.DisplayRole:
         return data.lower()
       elif role == QtCore.Qt.BackgroundRole:
-        print data
         if data == 'PROCESSING':
           return QtGui.QBrush(QtCore.Qt.yellow)
         elif data == 'COMPLETED':
@@ -371,6 +371,11 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
 
     pos = QtGui.QCursor().pos()
     menu.exec_(pos)
+
+  def onJobDoubleClicked(self, index):
+    id = self.__widgets['jobs'].model().getIdFromIndex(index)
+    self.__widgets['frames'].model().setProcedureArgs([id])
+    self.__widgets['tabs'].setCurrentWidget(self.__widgets['frames'])
 
   def onFrameContextMenu(self, id, col):
 

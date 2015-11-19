@@ -32,3 +32,6 @@ class zkDbTable(QtGui.QTableView):
     id = int(self.__model.getIdFromIndex(index))
     caption = self.__model.headerData(index.column(), QtCore.Qt.Orientation.Horizontal)
     self.contextMenuRequested.emit(id, caption)
+
+  def pollOnModel(self):
+    self.__model.poll()

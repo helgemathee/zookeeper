@@ -87,8 +87,9 @@ class zkDbTableModel(QtCore.QAbstractTableModel):
     self.__data = self.__conn.call(self.__procedure, self.__procedureArgs)
 
     if self.rowCount() == prevRowCount:
-      if self.rowCount() > 0:
-        self.dataChanged.emit(self.createIndex(0, 0), self.createIndex(self.rowCount()-1, self.columnCount()-1))
+      # if self.rowCount() > 0:
+      #   self.dataChanged.emit(self.createIndex(0, 0), self.createIndex(self.rowCount()-1, self.columnCount()-1))
+      self.modelReset.emit()
     else:
       self.modelReset.emit()
 
