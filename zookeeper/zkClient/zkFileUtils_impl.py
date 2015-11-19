@@ -14,7 +14,9 @@ globals()['zkUncMap'] = None
 def zk_getUncMap():
   if globals()['zkUncMap']:
     return globals()['zkUncMap']
-  cmdargs = ['net', 'use']
+
+  netPath = os.path.join(os.environ['WINDIR'], 'System32', 'net.exe')
+  cmdargs = [netPath, 'use']
   p = subprocess.Popen(cmdargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell = True)
   p.wait()
   (stdout, stderr) = p.communicate()
