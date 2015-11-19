@@ -52,7 +52,8 @@ class zkDialog(QtGui.QDialog):
     offset = 0
     for field in fields:
       tooltip = field.get('tooltip', '')
-      label = QtGui.QLabel(field['name'], gridWidget)
+      labelCaption = field.get('label', field.get('name', 'field'))
+      label = QtGui.QLabel(labelCaption, gridWidget)
       label.setToolTip(tooltip)
       gridLayout.addWidget(label, offset, 0)
       edit = None

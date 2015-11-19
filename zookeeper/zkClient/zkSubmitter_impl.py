@@ -156,10 +156,10 @@ class zkSubmitter(object):
       return
 
     fields = []
-    fields += [{'name': 'dcc', 'value': self.getDCCName(), 'type': 'str', 'readonly': True, 'tooltip': 'The name of the DCC'}]
-    fields += [{'name': 'dccversion', 'value': self.getDCCVersion(), 'type': 'str', 'readonly': True, 'tooltip': 'The version of the DCC'}]
-    fields += [{'name': 'renderer', 'value': self.getRendererName(), 'type': 'str', 'readonly': True, 'tooltip': 'The name of the renderer'}]
-    fields += [{'name': 'rendererversion', 'value': self.getRendererVersion(), 'type': 'str', 'readonly': True, 'tooltip': 'The version of the renderer'}]
+    fields += [{'name': 'dcc', 'label': 'DCC', 'value': self.getDCCName(), 'type': 'str', 'readonly': True, 'tooltip': 'The name of the DCC'}]
+    fields += [{'name': 'dccversion', 'label': 'DCC Version', 'value': self.getDCCVersion(), 'type': 'str', 'readonly': True, 'tooltip': 'The version of the DCC'}]
+    fields += [{'name': 'renderer', 'label': 'Renderer', 'value': self.getRendererName(), 'type': 'str', 'readonly': True, 'tooltip': 'The name of the renderer'}]
+    fields += [{'name': 'rendererversion', 'label': 'Renderer Version', 'value': self.getRendererVersion(), 'type': 'str', 'readonly': True, 'tooltip': 'The version of the renderer'}]
 
     # ensure that we have one project at least!
     pairs = zookeeper.zkDB.zkProject.getNameComboPairs(self.__conn, condition = 'project_type != \'DELETED\'')
@@ -177,13 +177,13 @@ class zkSubmitter(object):
           projectid = pair[0]
           break
 
-    fields += [{'name': 'projectid', 'value': projectid, 'type': 'combo', 'comboitems': pairs, 'tooltip': "The name of the project"}]
-    fields += [{'name': 'jobname', 'value': self.getJobDefaultName(), 'type': 'str', 'tooltip': "The name of the job", 'readonly': True}]
-    fields += [{'name': 'jobpriority', 'value': 50, 'type': 'int', 'tooltip': "The priority of the job"}]
-    fields += [{'name': 'mincores', 'value': 4, 'type': 'int', 'tooltip': "The minimum of CPU cores a client machine requires."}]
-    fields += [{'name': 'minramgb', 'value': 8, 'type': 'int', 'tooltip': "The minimum of RAM (GB) a client machine requires."}]
-    fields += [{'name': 'mingpuramgb', 'value': 2, 'type': 'int', 'tooltip': "The minimum of GPU RAM (GB) a client machine requires."}]
-    fields += [{'name': 'overwrite', 'value': False, 'type': 'bool', 'tooltip': "If checked the delivery will overwrite existing frames without checking."}]
+    fields += [{'name': 'projectid', 'label': 'Project', 'value': projectid, 'type': 'combo', 'comboitems': pairs, 'tooltip': "The name of the project"}]
+    fields += [{'name': 'jobname', 'label': 'Job', 'value': self.getJobDefaultName(), 'type': 'str', 'tooltip': "The name of the job", 'readonly': True}]
+    fields += [{'name': 'jobpriority', 'label': 'Priority', 'value': 50, 'type': 'int', 'tooltip': "The priority of the job"}]
+    fields += [{'name': 'mincores', 'label': 'Minimum Cores', 'value': 4, 'type': 'int', 'tooltip': "The minimum of CPU cores a client machine requires."}]
+    fields += [{'name': 'minramgb', 'label': 'Minimum RAM', 'value': 8, 'type': 'int', 'tooltip': "The minimum of RAM (GB) a client machine requires."}]
+    fields += [{'name': 'mingpuramgb', 'label': 'Minimum GPU RAM', 'value': 2, 'type': 'int', 'tooltip': "The minimum of GPU RAM (GB) a client machine requires."}]
+    fields += [{'name': 'overwrite', 'label': 'Overwrite files', 'value': False, 'type': 'bool', 'tooltip': "If checked the delivery will overwrite existing frames without checking."}]
     fields += self.getExtraFields()
 
     def onAccepted(fields):

@@ -165,12 +165,12 @@ class zkSoftimageSubmitter(zkSubmitter):
     else:
       print "Frame Set / Timeline not supported."
 
-    fields += [{'name': 'framestart', 'value': framestart, 'type': 'int', 'tooltip': 'The first frame of the sequence'}]
-    fields += [{'name': 'frameend', 'value': frameend, 'type': 'int', 'tooltip': 'The last frame of the sequence'}]
-    fields += [{'name': 'framestep', 'value': framestep, 'type': 'int', 'tooltip': 'The stepping across the sequence'}]
-    fields += [{'name': 'packagesize', 'value': 20, 'type': 'int', 'tooltip': 'The number of frames which are processed as a batch.'}]
-    fields += [{'name': 'highprio_firstlast', 'value': False, 'type': 'bool', 'tooltip': 'Use higher priority for the first and last frame.'}]
-    fields += [{'name': 'capturejob', 'value': False, 'type': 'bool', 'tooltip': 'Enabling this also creates a capture movie.'}]
+    fields += [{'name': 'framestart', 'label': 'First Frame', 'value': framestart, 'type': 'int', 'tooltip': 'The first frame of the sequence'}]
+    fields += [{'name': 'frameend', 'label': 'Last Frame', 'value': frameend, 'type': 'int', 'tooltip': 'The last frame of the sequence'}]
+    fields += [{'name': 'framestep', 'label': 'Frame Step', 'value': framestep, 'type': 'int', 'tooltip': 'The stepping across the sequence'}]
+    fields += [{'name': 'packagesize', 'label': 'Package Size', 'value': 20, 'type': 'int', 'tooltip': 'The number of frames which are processed as a batch.'}]
+    fields += [{'name': 'highprio_firstlast', 'label': 'Bump boundaries', 'value': False, 'type': 'bool', 'tooltip': 'Use higher priority for the first and last frame.'}]
+    # fields += [{'name': 'capturejob', 'label': 'capturejob', 'value': False, 'type': 'bool', 'tooltip': 'Enabling this also creates a capture movie.'}]
 
     prop = self.__app.ActiveSceneRoot.Properties.GetItem('zookeeper')
     if prop:
@@ -223,7 +223,7 @@ class zkSoftimageSubmitter(zkSubmitter):
     frameend = results['frameend']
     framestep = results['framestep']
     packagesize = results['packagesize']
-    capturejob = results['capturejob']
+    capturejob = results.get('capturejob', False)
     highprio_firstlast = results['highprio_firstlast']
 
     # submit all external files
