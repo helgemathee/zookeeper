@@ -10,6 +10,9 @@ from zkWorkThread_impl import zkWorkThread
 def getSoftimageEnv(cfg, dccVersion):
   env = os.environ.copy()
 
+  if not env.has('ADSKFLEX_LICENSE_FILE'):
+    env['ADSKFLEX_LICENSE_FILE'] = ''
+
   env.update({
     'SI_HOME': 'C:\Program Files\Autodesk\Softimage %s' % dccVersion,
     'MI_ENABLE_PIPE_MODE': '1',
@@ -22,13 +25,14 @@ def getSoftimageEnv(cfg, dccVersion):
     'SOFTIMAGE_COMMONFILES': 'C:\Program Files\Common Files\Softimage',
     'SI_CER': '1',
     'SOFTIMAGE_LICENSE_METHOD': 'Standalone', # Licensing method: Standalone | MSSA | Network
-    'ADSKFLEX_LICENSE_FILE': '', # License servers specified from the setup. Format: [port1]@host1[;[port2]@host2]...
     'XSI_USERROOT': cfg.get('softimage_user_root'),
   })
+
   env.update({
     'XSI_HOME': env['SI_HOME'],
     'XSI_BINDIR': env['SI_HOME'] + '\\Application\\bin',
   })
+
   env.update({
     'SI_DBDIR': env['XSI_USERROOT'],
     'XSISDK_ROOT': env['SI_HOME'] + '\\XSISDK',
