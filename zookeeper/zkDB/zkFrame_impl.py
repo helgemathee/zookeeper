@@ -113,3 +113,9 @@ class zkFrame(zkEntity):
       path = os.path.join(folder, str(self.id)+'.log')
       return path
     return None
+
+  def setAsFailed(self):
+    self.connection.call("set_frame_failed", [self.id])
+
+  def setAsProcessing(self, machine_id):
+    self.connection.call("set_frame_processing", [self.id, machine_id])

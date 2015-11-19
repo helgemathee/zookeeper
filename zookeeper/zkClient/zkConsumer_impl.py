@@ -116,7 +116,7 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
     self.addWidgetToCentral(self.__widgets['log'])
 
     self.__timers['poll'] = QtCore.QTimer(self)
-    self.__timers['poll'].setInterval(2003) # every 2 seconds
+    self.__timers['poll'].setInterval(5003) # every 5 seconds
     self.__timers['poll'].setSingleShot(False)
 
     self.__timers['garbagecollect'] = QtCore.QTimer(self)
@@ -124,7 +124,7 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
     self.__timers['garbagecollect'].setSingleShot(False)
 
     self.__timers['delivery'] = QtCore.QTimer(self)
-    self.__timers['delivery'].setInterval(5107) # every 5 seconds, not quite so we don't overlap
+    self.__timers['delivery'].setInterval(15107) # every 15 seconds, not quite so we don't overlap
     self.__timers['delivery'].setSingleShot(False)
 
     self.connect(self.__timers['poll'], QtCore.SIGNAL("timeout()"), self.poll)

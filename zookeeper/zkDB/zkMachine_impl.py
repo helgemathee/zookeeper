@@ -90,11 +90,7 @@ class zkMachine(zkEntity):
 
   def _updateHangingFrames(self, bracket):
     if not self.id is None:
-      cond = 'frame_machineid = %d and (frame_status = \'PROCESSING\')' % self.id
-      frames = zookeeper.zkDB.zkFrame.getAll(self.connection, condition = cond)
-      for frame in frames:
-        frame.status = 'WAITING'
-        bracket.push(frame)
+      self.connection.call('cleanup_frame_on_machine_start', [self.id])
 
   def updatePhysicalState(self, write = True):
     self.lastseen = 'NOW()'

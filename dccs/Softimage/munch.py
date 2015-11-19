@@ -18,14 +18,7 @@ def log(message):
   Application.LogMessage(prefix+str(message))
 
 def setFrameAsFailed(connection, frame, reason):
-  # set to waiting + increase tries
-  if frame.tries < 3:
-    frame.tries = frame.tries + 1
-    frame.status = 'WAITING'
-  else:
-    frame.status = 'FAILED'
-    frame.ended = 'NOW()'
-  frame.write()
+  frame.setAsFailed()
   log('Frame %d failed: %s' % (frame.time, reason))
 
 def munch():
@@ -230,10 +223,7 @@ def munch():
     if not nextJob.id == job.id:
       Application.SetValue("PlayControl.Current", Application.GetValue("PlayControl.GlobalIn"))
 
-    nextFrame.machineid = machine.id
-    nextFrame.started = 'NOW()'
-    nextFrame.status = 'PROCESSING'
-    nextFrame.write()
+    nextFrame.setAsProcessing(machine.id)
 
     job = nextJob
     input = nextInput

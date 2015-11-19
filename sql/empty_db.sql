@@ -148,6 +148,7 @@ CREATE TABLE `machine` (
   `machine_id` int(11) NOT NULL AUTO_INCREMENT,
   `machine_name` varchar(45) NOT NULL,
   `machine_level` tinyint(4) DEFAULT '3',
+  `machine_frameid` int(11) DEFAULT '-1',
   `machine_ips` varchar(255) NOT NULL,
   `machine_macadresses` varchar(255) NOT NULL,
   `machine_lastseen` datetime DEFAULT NULL,
@@ -159,6 +160,7 @@ CREATE TABLE `machine` (
   `machine_cpuusage` int(11) DEFAULT '0',
   `machine_ramavailablemb` int(11) DEFAULT '0',
   `machine_ramusedmb` int(11) DEFAULT '0',
+  `machine_installeddccs` varchar(1024) DEFAULT NULL,
   PRIMARY KEY (`machine_id`),
   UNIQUE KEY `machine_name_UNIQUE` (`machine_name`),
   UNIQUE KEY `machine_id_UNIQUE` (`machine_id`)
@@ -171,7 +173,7 @@ CREATE TABLE `machine` (
 
 LOCK TABLES `machine` WRITE;
 /*!40000 ALTER TABLE `machine` DISABLE KEYS */;
-INSERT INTO `machine` VALUES (1,'none',1,' ',' ',NULL,'OFFLINE','MED',0,0,0,0,0,0);
+INSERT INTO `machine` VALUES (1,'none',1,-1,' ',' ',NULL,'OFFLINE','MED',0,0,0,0,0,0,NULL);
 /*!40000 ALTER TABLE `machine` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -318,7 +320,7 @@ CREATE TABLE `validunc` (
   `validunc_id` int(11) NOT NULL AUTO_INCREMENT,
   `validunc_path` varchar(96) NOT NULL,
   PRIMARY KEY (`validunc_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -327,13 +329,40 @@ CREATE TABLE `validunc` (
 
 LOCK TABLES `validunc` WRITE;
 /*!40000 ALTER TABLE `validunc` DISABLE KEYS */;
-INSERT INTO `validunc` VALUES (1,'\\\\domain\\public'),(2,'\\\\domain\\tomsporer');
+INSERT INTO `validunc` VALUES (1,'\\\\domain\\public'),(2,'\\\\domain\\tomsporer'),(5,'\\\\192.168.1.10\\public'),(6,'\\\\192.168.1.10\\tomsporer');
 /*!40000 ALTER TABLE `validunc` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
 -- Dumping routines for database 'zookeeper'
 --
+/*!50003 DROP PROCEDURE IF EXISTS `cleanup_frame_on_machine_start` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`mysql`@`%` PROCEDURE `cleanup_frame_on_machine_start`(in target INT(11))
+BEGIN
+	UPDATE
+		frame
+	SET
+		frame.frame_status = 'WAITING',
+        frame.frame_machineid = 1
+	WHERE
+		frame.frame_status = 'PROCESSING' and
+        frame.frame_machineid = target;
+	COMMIT;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `delete_job` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -419,35 +448,6 @@ BEGIN
 		project_type = 'DELETED'
 	WHERE
 		project_id = target;
-END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 DROP PROCEDURE IF EXISTS `empty_db` */;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8 */ ;
-/*!50003 SET character_set_results = utf8 */ ;
-/*!50003 SET collation_connection  = utf8_general_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE DEFINER=`mysql`@`%` PROCEDURE `empty_db`()
-BEGIN
-  TRUNCATE externalfile;
-  TRUNCATE frame;
-  TRUNCATE input;
-  TRUNCATE job;
-  TRUNCATE notification;
-  TRUNCATE output;
-  TRUNCATE project;
-  TRUNCATE uncmap;
-  DELETE FROM machine WHERE machine_id > 1; 
-  ALTER TABLE machine AUTO_INCREMENT = 2;
-  COMMIT;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -788,7 +788,7 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `look_for_work`(IN my_machine_id INT(11), IN max_results INT(11))
 BEGIN
@@ -797,9 +797,11 @@ BEGIN
     machine.machine_id = my_machine_id and 
     frame.frame_jobid = job.job_id and 
     frame.frame_status = 'WAITING' and 
+    frame.frame_machineid != my_machine_id and # don't do the same frame twice on the same machine
     job.job_mincores <= machine.machine_cores and 
     job.job_minramgb <= machine.machine_ramgb and 
-    job.job_mingpuramgb <= machine.machine_gpuramgb
+    job.job_mingpuramgb <= machine.machine_gpuramgb and
+    FIND_IN_SET(CONCAT(job.job_dcc, ' ', job.job_dccversion), machine.machine_installeddccs) > 0
   ORDER BY job.job_priority DESC, 
     frame.frame_priority DESC, 
     frame.frame_package ASC,
@@ -934,6 +936,65 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `set_frame_failed` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`mysql`@`%` PROCEDURE `set_frame_failed`(in target INT(11))
+BEGIN
+	UPDATE 
+		frame 
+	SET 
+		frame.frame_status = IF(frame.frame_tries < 2, 'WAITING', 'FAILED'), 
+        frame.frame_tries = frame.frame_tries + 1,
+        frame.frame_ended = NOW()
+	WHERE frame.frame_id = target;
+    COMMIT;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `set_frame_processing` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`mysql`@`%` PROCEDURE `set_frame_processing`(in target INT(11), in targetMachine INT(11))
+BEGIN
+	UPDATE 
+		frame
+	SET
+		frame.frame_status = 'PROCESSING',
+        frame.frame_started = NOW(),
+        frame.frame_machineid = targetMachine
+	WHERE
+		frame.frame_id = target;
+	UPDATE
+		machine
+	SET
+		machine.machine_frameid = target
+	WHERE
+		machine.machine_id = targetMachine;
+	COMMIT;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `set_machine_priority` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -1008,6 +1069,35 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `truncate_complete_db` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`mysql`@`%` PROCEDURE `truncate_complete_db`()
+BEGIN
+  TRUNCATE externalfile;
+  TRUNCATE frame;
+  TRUNCATE input;
+  TRUNCATE job;
+  TRUNCATE notification;
+  TRUNCATE output;
+  TRUNCATE project;
+  TRUNCATE uncmap;
+  DELETE FROM machine WHERE machine_id > 1; 
+  ALTER TABLE machine AUTO_INCREMENT = 2;
+  COMMIT;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -1018,4 +1108,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2015-11-18 19:24:50
+-- Dump completed on 2015-11-19 19:52:21

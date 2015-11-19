@@ -32,10 +32,7 @@ class zkWorkThread(QtCore.QThread):
         self.__process.kill()
 
   def run(self):
-    self.__frame.machineid = self.__machine.id
-    self.__frame.started = 'NOW()'
-    self.__frame.status = 'PROCESSING'
-    self.__frame.write()
+    self.__frame.setAsProcessing(self.__machine.id)
 
   def launchSubProcess(self, cmd, args, env):
     if not os.path.exists(cmd):

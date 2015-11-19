@@ -1,6 +1,7 @@
 import os
 import re
 import psutil
+import time
 import datetime
 import zookeeper
 import subprocess
@@ -24,6 +25,17 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
 
     self.setMinimumWidth(640)
     self.setMinimumHeight(800)
+
+    self.__widgets['buttonsWidget'] = QtGui.QWidget()
+    self.__widgets['buttonsWidget'].setContentsMargins(0, 0, 0, 0)
+    self.addWidgetToCentral(self.__widgets['buttonsWidget'])
+
+    buttonsLayout = QtGui.QHBoxLayout()
+    self.__widgets['buttonsWidget'].setLayout(buttonsLayout)
+
+    self.__widgets['refreshButton'] = QtGui.QPushButton("Refresh", self.__widgets['buttonsWidget'])
+    buttonsLayout.addWidget(self.__widgets['refreshButton'])
+    self.__widgets['refreshButton'].clicked.connect(self.poll)
 
     self.__widgets['tabs'] = QtGui.QTabWidget()
     self.addWidgetToCentral(self.__widgets['tabs'])
@@ -81,10 +93,10 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     self.__widgets['tabs'].addTab(self.__widgets['frames'], 'frames')
     self.__widgets['tabs'].addTab(self.__widgets['log'], 'log')
 
-    self.__timers['poll'] = QtCore.QTimer(self)
-    self.__timers['poll'].setInterval(1000)
-    self.__timers['poll'].setSingleShot(False)
-    self.connect(self.__timers['poll'], QtCore.SIGNAL("timeout()"), self.poll)
+    # self.__timers['poll'] = QtCore.QTimer(self)
+    # self.__timers['poll'].setInterval(10000)
+    # self.__timers['poll'].setSingleShot(False)
+    # self.connect(self.__timers['poll'], QtCore.SIGNAL("timeout()"), self.poll)
 
     for key in self.__timers:
       self.__timers[key].start()
