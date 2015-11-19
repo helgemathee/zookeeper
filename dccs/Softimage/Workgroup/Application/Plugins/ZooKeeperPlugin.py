@@ -3,6 +3,7 @@ import sys
 import zookeeper
 import win32com.client
 from win32com.client import constants
+from PySide import QtCore, QtGui
 
 def XSILoadPlugin( in_reg ):
   in_reg.Author = "Helge Mathee"
@@ -114,6 +115,11 @@ def zkSynchSceneToNetwork_Execute(  ):
 
     relScenePath = os.path.relpath(scenePathName, sourceProject)
     Application.SaveSceneAs(os.path.join(targetProject, relScenePath))
+
+    message = "The scene is now in the target location. It has been saved as\n\n"
+    message += os.path.normpath(os.path.join(targetProject, relScenePath))
+    message += "\n\nYou can submit this scene for rendering now."
+    QtGui.QMessageBox.information(None, 'ZooKeeper', message)
 
   dialog = zookeeper.zkUI.zkFieldsDialog(fields, onAcceptedCallback = onAccepted, onRejectedCallback = None)
   dialog.setMinimumWidth(600)

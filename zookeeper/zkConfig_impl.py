@@ -24,6 +24,7 @@ class zkConfig(object):
     self.set('softimage_user_root', 'c:\\temp\\users', type = 'folder', label = 'Temporary user location', tooltip = 'The temporary softimage render user folder.', onlyIfNotExists = True)
     self.set('softimage_workgroup_root', 'c:\\temp\\workgroups', type = 'folder', label = 'Temporary workgroup location', tooltip = 'The root folder for the softimage workgroup.', onlyIfNotExists = True)
     self.set('softimage_flipbook_version', '2014 SP2', type = 'str', label = 'Softimage Flipbook Version', tooltip = 'The softimage version to use for flipbook.', onlyIfNotExists = True)
+    self.set('softimage_versions', '2014', type = 'str', label = 'Softimage Versions', tooltip = 'The softimage versions installed on this machine (without SP), comma separated.', onlyIfNotExists = True)
 
   def _read(self):
     if os.path.exists(self.__path):

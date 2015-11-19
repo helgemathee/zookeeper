@@ -57,12 +57,11 @@ class zkSoftimageWorkThread(zkWorkThread):
 
     cfg = zookeeper.zkConfig()
     dccversion = job.dccversion
-    folder = os.path.join(cfg.get('softimage_root_folder', ''), 'Softimage %s' % dccversion)
-    if not os.path.exists(folder):
-      if dccversion == '2014':
-        dccversion = '2014 SP2'
-        folder = os.path.join(cfg.get('softimage_root_folder', ''), 'Softimage %s' % dccversion)
-        self.log('Using 2014 SP2 instead of 2014')
+    folder = None
+    for suffix in ['SP2', 'SP1', '']:
+      folder = os.path.join(cfg.get('softimage_root_folder', ''), 'Softimage %s %s' % (dccversion, suffix))
+      if os.path.exists(folder):
+        break
 
     if not os.path.exists(folder):
       return

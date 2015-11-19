@@ -10,7 +10,10 @@ def zk_resolveEnvVarsInPath(path):
       path = os.path.normpath(os.environ[parts[0][1:]] + parts[1] + parts[2])
   return path
 
+globals()['zkUncMap'] = None
 def zk_getUncMap():
+  if globals()['zkUncMap']:
+    return globals()['zkUncMap']
   cmdargs = ['net', 'use']
   p = subprocess.Popen(cmdargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell = True)
   p.wait()
@@ -30,6 +33,7 @@ def zk_getUncMap():
       unc = unc.partition(' ')[0]
     result[drive] = unc
 
+  globals()['zkUncMap'] = result
   return result
 
 def zk_uncFromDrivePath(path):
@@ -54,11 +58,13 @@ def zk_validateFilePath(path, shouldExist=True):
   return True
 
 def zk_validateNetworkFilePath(path, validUncPaths = None, shouldExist=True):
+  
   if not zk_validateFilePath(path, shouldExist):
     return False
 
   path = zk_resolveEnvVarsInPath(path)
   drive = os.path.splitdrive(path)[0]
+
   if drive[1] == ":":
     uncpath = zk_uncFromDrivePath(path)
     if uncpath == path and uncpath[1] == ':':

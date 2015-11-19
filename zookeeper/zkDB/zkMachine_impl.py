@@ -49,8 +49,20 @@ class zkMachine(zkEntity):
       memory = psutil.virtual_memory()
       memoryGB = int(float(memory.total) / float(1024 * 1024 * 1024) + 0.5)
 
+      cfg = zkConfig()
+
       self.ramgb = memoryGB
-      self.gpuramgb = zkConfig().get('gpuramgb', 1)
+      self.gpuramgb = cfg.get('gpuramgb', 1)
+
+      softimage_versions = cfg.get('softimage_versions', '').split(',')
+      dccVersions = []
+      for softimage_version in softimage_versions:
+        v = softimage_version.strip()
+        if len(v) == 0:
+          continue
+        dccVersions += ['Softimage '+v]
+      self.installeddccs = ','.join(dccVersions)
+
       if self.__asClient:
         self.status = 'ONLINE'
       self.updatePhysicalState(write = False)
