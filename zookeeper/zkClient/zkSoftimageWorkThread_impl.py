@@ -74,6 +74,9 @@ class zkSoftimageWorkThread(zkWorkThread):
 
     env = getSoftimageEnv(cfg, dccversion)
 
+    for key in env:
+      self.log('Env "%s" = "%s"' % (key, str(env[key])))
+
     zookeeperPath = os.path.split(os.path.split(zookeeper.__file__)[0])[0]
     dccPath = os.path.join(zookeeperPath, 'dccs', 'Softimage')
 
