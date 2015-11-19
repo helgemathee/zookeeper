@@ -10,7 +10,7 @@ from zkWorkThread_impl import zkWorkThread
 def getSoftimageEnv(cfg, dccVersion):
   env = os.environ.copy()
 
-  if not env.has('ADSKFLEX_LICENSE_FILE'):
+  if not env.has_key('ADSKFLEX_LICENSE_FILE'):
     env['ADSKFLEX_LICENSE_FILE'] = ''
 
   env.update({
