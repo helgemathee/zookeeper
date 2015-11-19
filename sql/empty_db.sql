@@ -831,11 +831,14 @@ BEGIN
 	DELETE FROM 
 		output
 	USING
-		output, frame
+		output, frame, machine
 	WHERE
 		output_frameid = target AND
         output_frameid = frame_id AND
-        frame_status != 'PROCESSING';
+        (
+			frame_status != 'PROCESSING' OR
+            frame_machineid != (SELECT machine_frameid FROM machine WHERE machine_id = frame_machineid LIMIT 1)
+		);
 	UPDATE 
 		frame 
 	SET 
@@ -843,7 +846,11 @@ BEGIN
         frame_machineid = 1 
 	WHERE 
 		frame_id = target AND 
-        frame_status != 'PROCESSING';
+        (
+			frame_status != 'PROCESSING' OR
+            frame_machineid != (SELECT machine_frameid FROM machine WHERE machine_id = frame_machineid LIMIT 1)
+		);
+            
 	COMMIT;
 END ;;
 DELIMITER ;
@@ -1108,4 +1115,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2015-11-19 19:52:21
+-- Dump completed on 2015-11-19 21:16:59
