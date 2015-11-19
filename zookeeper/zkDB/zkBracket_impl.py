@@ -20,10 +20,10 @@ class zkBracket(object):
       tables[entity.table] = True
 
     sql = []
-    for table in tables:
-      sql += ['LOCK TABLES %s WRITE;' % table]
+    # for table in tables:
+    #   sql += ['LOCK TABLES %s WRITE;' % table]
     self.__conn.execute('\n'.join(sql))
     for entity in self.__entities:
       entity.write()
     self.__entities = []
-    self.__conn.execute('UNLOCK TABLES;')
+    # self.__conn.execute('UNLOCK TABLES;')
