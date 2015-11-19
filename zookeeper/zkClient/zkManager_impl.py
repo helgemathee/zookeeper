@@ -47,7 +47,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
       zookeeper.zkDB.zkMachine,
       procedure = 'get_jobs_for_manager',
       labels = labels,
-      fillItemCallback = self.onJobFillItem
+      getItemDataCallback = self.onJobGetData
       )
     self.__widgets['jobs'].contextMenuRequested.connect(self.onJobContextMenu)
 
@@ -68,7 +68,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
       zookeeper.zkDB.zkMachine,
       procedure = 'get_machines_for_manager',
       labels = labels,
-      fillItemCallback = self.onMachineFillItem
+      getItemDataCallback = self.onMachineGetData
       )
     self.__widgets['machines'].contextMenuRequested.connect(self.onMachineContextMenu)
 
@@ -80,7 +80,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
       procedure = 'get_frames_for_manager',
       procedureArgs = [0],
       labels = labels,
-      fillItemCallback = self.onFrameFillItem
+      getItemDataCallback = self.onFrameGetData
       )
     self.__widgets['frames'].contextMenuRequested.connect(self.onFrameContextMenu)
 
@@ -93,10 +93,10 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     self.__widgets['tabs'].addTab(self.__widgets['frames'], 'frames')
     self.__widgets['tabs'].addTab(self.__widgets['log'], 'log')
 
-    # self.__timers['poll'] = QtCore.QTimer(self)
-    # self.__timers['poll'].setInterval(10000)
-    # self.__timers['poll'].setSingleShot(False)
-    # self.connect(self.__timers['poll'], QtCore.SIGNAL("timeout()"), self.poll)
+    self.__timers['poll'] = QtCore.QTimer(self)
+    self.__timers['poll'].setInterval(5000)
+    self.__timers['poll'].setSingleShot(False)
+    self.connect(self.__timers['poll'], QtCore.SIGNAL("timeout()"), self.poll)
 
     for key in self.__timers:
       self.__timers[key].start()
@@ -108,93 +108,104 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     if hasattr(widget, 'poll'):
       widget.poll()
 
-  def onMachineFillItem(self, table, item, id, caption, data):
+  def onMachineGetData(self, table, caption, id, data, role):
     if data is None:
-      return False
+      return None
       
     if caption == 'status':
-      if data == 'OFFLINE':
-        item.setBackground(QtCore.Qt.red)
-      else:
-        item.setBackground(QtCore.Qt.green)
+      if role == QtCore.Qt.BackgroundRole:
+        if data == 'OFFLINE':
+          return QtGui.QBrush(QtCore.Qt.red)
+        else:
+          return QtGui.QBrush(QtCore.Qt.green)
     elif caption == 'prio':
-      if data == 'OFF':
-        item.setBackground(QtCore.Qt.red)
-      elif data == 'LOW':
-        item.setBackground(QtCore.Qt.yellow)
-      elif data == 'MED':
-        item.setBackground(QtCore.Qt.green)
-      elif data == 'HIGH':
-        item.setBackground(QtCore.Qt.darkGreen)
+      if role == QtCore.Qt.BackgroundRole:
+        if data == 'OFF':
+          return QtGui.QBrush(QtCore.Qt.red)
+        elif data == 'LOW':
+          return QtGui.QBrush(QtCore.Qt.yellow)
+        elif data == 'MED':
+          return QtGui.QBrush(QtCore.Qt.green)
+        elif data == 'HIGH':
+          return QtGui.QBrush(QtCore.Qt.darkGreen)
+
     elif caption == 'cpu':
-      s = table.horizontalHeader().sectionSize(4)
-      r = int(float(s) * float(data) / 100.0 + 0.5)
-      grad = QtGui.QLinearGradient(r-1, 0, r, 0)
-      grad.setColorAt(0, QtCore.Qt.blue)
-      grad.setColorAt(1, QtCore.Qt.white)
-      item.setBackground(grad)
-      item.setText(str(data)+'%')
-      return True
+      if role == QtCore.Qt.DisplayRole:
+        return str(data) + '%'
+      elif role == QtCore.Qt.BackgroundRole:
+        s = table.horizontalHeader().sectionSize(4)
+        r = int(float(s) * float(data) / 100.0 + 0.5)
+        grad = QtGui.QLinearGradient(r-1, 0, r, 0)
+        grad.setColorAt(0, QtCore.Qt.blue)
+        grad.setColorAt(1, QtCore.Qt.white)
+        return QtGui.QBrush(grad)
+
     elif caption == 'ram':
-      s = table.horizontalHeader().sectionSize(5)
-      r = int(float(s) * float(data) / 100.0 + 0.5)
-      grad = QtGui.QLinearGradient(r-1, 0, r, 0)
-      grad.setColorAt(0, QtCore.Qt.magenta)
-      grad.setColorAt(1, QtCore.Qt.white)
-      item.setBackground(grad)
-      item.setText(str(data)+'%')
-      return True
+      if role == QtCore.Qt.DisplayRole:
+        return str(data) + '%'
+      elif role == QtCore.Qt.BackgroundRole:
+        s = table.horizontalHeader().sectionSize(5)
+        r = int(float(s) * float(data) / 100.0 + 0.5)
+        grad = QtGui.QLinearGradient(r-1, 0, r, 0)
+        grad.setColorAt(0, QtCore.Qt.magenta)
+        grad.setColorAt(1, QtCore.Qt.white)
+        return QtGui.QBrush(grad)
 
-    return False
+    return data
 
-  def onJobFillItem(self, table, item, id, caption, data):
+  def onJobGetData(self, table, caption, id, data, role):
     if data is None:
-      return False
+      return None
 
     if caption == 'status':
-      if data > 0:
-        item.setBackground(QtCore.Qt.yellow)
-        item.setText('processing')
-      else:
-        item.setBackground(QtCore.Qt.white)
-        item.setText('halted')
-      return True
+      if role == QtCore.Qt.DisplayRole:
+        if data > 0:
+          return 'processing'
+        else:
+          return 'halted'
+      elif role == QtCore.Qt.BackgroundRole:
+        if data > 0:
+          return QtGui.QBrush(QtCore.Qt.yellow)
+        else:
+          return None
+
     elif caption == 'progress':
-      s = table.horizontalHeader().sectionSize(7)
-      r = int(float(s) * float(data) / 100.0 + 0.5)
-      grad = QtGui.QLinearGradient(r-1, 0, r, 0)
-      grad.setColorAt(0, QtCore.Qt.green)
-      grad.setColorAt(1, QtCore.Qt.white)
-      item.setBackground(grad)
-      item.setText(str(data)+'%')
-      return True
+      if role == QtCore.Qt.DisplayRole:
+        return str(data)+'%'
+      elif role == QtCore.Qt.BackgroundRole:
+        s = table.horizontalHeader().sectionSize(7)
+        r = int(float(s) * float(data) / 100.0 + 0.5)
+        grad = QtGui.QLinearGradient(r-1, 0, r, 0)
+        grad.setColorAt(0, QtCore.Qt.green)
+        grad.setColorAt(1, QtCore.Qt.white)
+        return QtGui.QBrush(grad)
 
-    return False
+    return data
 
-  def onFrameFillItem(self, table, item, id, caption, data):
+  def onFrameGetData(self, table, caption, id, data, role):
     if caption == 'status':
-      if data == 'PROCESSING':
-        item.setBackground(QtCore.Qt.yellow)
-      elif data == 'COMPLETED':
-        item.setBackground(QtCore.Qt.green)
-      elif data == 'DELIVERED':
-        item.setBackground(QtCore.Qt.darkGreen)
-      elif data == 'STOPPED' or data == 'FAILED':
-        item.setBackground(QtCore.Qt.red)
-      else:
-        item.setBackground(QtCore.Qt.white)
-      item.setText(data.lower())
-      return True
+      if role == QtCore.Qt.DisplayRole:
+        return data.lower()
+      elif role == QtCore.Qt.BackgroundRole:
+        print data
+        if data == 'PROCESSING':
+          return QtGui.QBrush(QtCore.Qt.yellow)
+        elif data == 'COMPLETED':
+          return QtGui.QBrush(QtCore.Qt.green)
+        elif data == 'DELIVERED':
+          return QtGui.QBrush(QtCore.Qt.darkGreen)
+        elif data == 'STOPPED' or data == 'FAILED':
+          return QtGui.QBrush(QtCore.Qt.red)
+
     elif caption == 'duration':
-      if not data:
-        item.setText('')
-      else:
-        seconds = data
-        m, s = divmod(seconds, 60)
-        h, m = divmod(m, 60)
-        item.setText("%d:%02d:%02d" % (h, m, s))
-      return True
-    return False
+      if role == QtCore.Qt.DisplayRole:
+        if data: 
+          seconds = data
+          m, s = divmod(seconds, 60)
+          h, m = divmod(m, 60)
+          return "%d:%02d:%02d" % (h, m, s)
+
+    return data
 
   def onMachineContextMenu(self, id, col):
     menu = QtGui.QMenu()
@@ -308,7 +319,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
       menu.addSeparator()
 
     def onShowFrames():
-      self.__widgets['frames'].setProcedureArgs([id])
+      self.__widgets['frames'].model().setProcedureArgs([id])
       self.__widgets['tabs'].setCurrentWidget(self.__widgets['frames'])
 
     menu.addAction('show frames in manager').triggered.connect(onShowFrames)
@@ -324,7 +335,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
 
       menu.addAction('set prio to %d' % prio).triggered.connect(onTriggered)
 
-    for prio in [25, 50, 57, 100, 125]:
+    for prio in [25, 50, 75, 100, 125]:
       setupPrioAction(menu, prio)
 
     menu.addSeparator()
@@ -418,7 +429,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
 
       menu.addAction('set prio to %d' % prio).triggered.connect(onTriggered)
 
-    for prio in [25, 50, 57, 100, 125]:
+    for prio in [25, 50, 75, 100, 125]:
       setupPrioAction(menu, prio)
 
     menu.addSeparator()

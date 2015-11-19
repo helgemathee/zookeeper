@@ -78,6 +78,7 @@ class zkMachine(zkEntity):
       bracket = zookeeper.zkDB.zkBracket(self.connection)
 
       self.status = 'OFFLINE'
+      self.frameid = -1
       self.cpuusage = 0
       self.ramavailablemb = 0
       self.ramusedmb = 0
