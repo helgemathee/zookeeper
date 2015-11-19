@@ -12,6 +12,9 @@ def getSoftimageEnv(cfg, dccVersion):
 
   if not env.has_key('ADSKFLEX_LICENSE_FILE'):
     env['ADSKFLEX_LICENSE_FILE'] = ''
+    env['SOFTIMAGE_LICENSE_METHOD'] = 'Standalone'
+  else:
+    env['SOFTIMAGE_LICENSE_METHOD'] = 'Network'
 
   env.update({
     'SI_HOME': 'C:\Program Files\Autodesk\Softimage %s' % dccVersion,
@@ -24,7 +27,6 @@ def getSoftimageEnv(cfg, dccVersion):
     'XSI_HIGH_QUALITY_VIEWPORT_MAX_SHADOW_SAMPLES': '8',
     'SOFTIMAGE_COMMONFILES': 'C:\Program Files\Common Files\Softimage',
     'SI_CER': '1',
-    'SOFTIMAGE_LICENSE_METHOD': 'Standalone', # Licensing method: Standalone | MSSA | Network
     'XSI_USERROOT': cfg.get('softimage_user_root'),
   })
 
