@@ -84,6 +84,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
       getItemDataCallback = self.onFrameGetData
       )
     self.__widgets['frames'].contextMenuRequested.connect(self.onFrameContextMenu)
+    self.__widgets['frames'].doubleClicked.connect(self.onFrameDoubleClicked)
 
     # log
     self.__widgets['log'] = QtGui.QPlainTextEdit()
@@ -257,36 +258,39 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     pos = QtGui.QCursor().pos()
     menu.exec_(pos)
 
+  def launchFlipBook(self, job_id, output_name):
+    frame_range = self.__conn.call('get_frame_range_for_job', [job_id])
+    output = zookeeper.zkDB.zkOutput.getByCondition(self.__conn, 'output_jobid = %s AND output_name = %s' % (job_id, repr(str(output_name))))
+
+    mainParts = os.path.split(output.path)
+    fileParts = mainParts[1].split('.')
+    file_ext = fileParts[-1]
+    frame_no = fileParts[-2]
+
+    path = mainParts[0]
+    for i in range(len(fileParts)-2):
+      path = os.path.join(path, fileParts[i])
+    path += '.'+file_ext
+
+    softimage_root_folder = self.__cfg.get('softimage_root_folder', '')
+    dccVersion = self.__cfg.get('softimage_flipbook_version', '2014 SP2')
+
+    env = zookeeper.zkClient.getSoftimageEnv(self.__cfg, '2014 SP2')
+    for key in env:
+      env[key] = str(env[key])
+
+    bin = os.path.join(softimage_root_folder, 'Softimage '+dccVersion, 'Application', 'bin', 'flip.exe')
+    padding = '(fn).%s(ext)' % ''.ljust(len(frame_no), '#')
+    cmdArgs = [bin, path, frame_range[0][0], frame_range[0][1], 1, 30, '-p', padding, '-m']
+
+    for i in range(len(cmdArgs)):
+      cmdArgs[i] = str(cmdArgs[i])
+    subprocess.Popen(cmdArgs, env = env)
+
   def _setupFlipbookAction(self, menu, job_id, output_name):
 
     def onTriggered():
-      frame_range = self.__conn.call('get_frame_range_for_job', [job_id])
-      output = zookeeper.zkDB.zkOutput.getByCondition(self.__conn, 'output_jobid = %s AND output_name = %s' % (job_id, repr(str(output_name))))
-
-      mainParts = os.path.split(output.path)
-      fileParts = mainParts[1].split('.')
-      file_ext = fileParts[-1]
-      frame_no = fileParts[-2]
-
-      path = mainParts[0]
-      for i in range(len(fileParts)-2):
-        path = os.path.join(path, fileParts[i])
-      path += '.'+file_ext
-
-      softimage_root_folder = self.__cfg.get('softimage_root_folder', '')
-      dccVersion = self.__cfg.get('softimage_flipbook_version', '2014 SP2')
-
-      env = zookeeper.zkClient.getSoftimageEnv(self.__cfg, '2014 SP2')
-      for key in env:
-        env[key] = str(env[key])
-
-      bin = os.path.join(softimage_root_folder, 'Softimage '+dccVersion, 'Application', 'bin', 'flip.exe')
-      padding = '(fn).%s(ext)' % ''.ljust(len(frame_no), '#')
-      cmdArgs = [bin, path, frame_range[0][0], frame_range[0][1], 1, 30, '-p', padding, '-m']
-
-      for i in range(len(cmdArgs)):
-        cmdArgs[i] = str(cmdArgs[i])
-      subprocess.Popen(cmdArgs, env = env)
+      self.launchFlipBook(job_id, output_name)
 
     menu.addAction('open %s in flipbook' % output_name).triggered.connect(onTriggered)
 
@@ -456,3 +460,16 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
 
     pos = QtGui.QCursor().pos()
     menu.exec_(pos)
+
+  def onFrameDoubleClicked(self, index):
+    id = self.__widgets['frames'].model().getIdFromIndex(index)
+    frame = zookeeper.zkDB.zkFrame.getById(self.__conn, id)
+    outputs = frame.getAllOutputs()
+    if len(outputs) > 0:
+      filePath = outputs[0].path
+      url = QtCore.QUrl()
+      if filePath.startswith("\\\\") or filePath.startswith("//"):
+        url.setUrl(QtCore.QDir.toNativeSeparators(filePath))
+      else:
+        url = QtCore.QUrl.fromLocalFile(filePath);
+      QtGui.QDesktopServices.openUrl(url)
