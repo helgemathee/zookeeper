@@ -279,9 +279,9 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
     for output_id in output_ids:
       output = zookeeper.zkDB.zkOutput.getById(self.__conn, output_id[0])
       job = output.job
-      if job.machineid != uncmap_machineid:
-        uncmap_machineid = job.machineid
-        uncmap = zookeeper.zkDB.zkUncMap.getUncMapForMachine(self.__conn, self.__machine.id)
+      if job.machine != uncmap_machineid:
+        uncmap_machineid = job.machine
+        uncmap = zookeeper.zkDB.zkUncMap.getUncMapForMachine(self.__conn, uncmap_machineid)
       scratchPath = output.getScratchFile(self.__cfg)
       networkPath = output.path
       for drive in uncmap:
