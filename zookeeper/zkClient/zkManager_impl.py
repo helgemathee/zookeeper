@@ -41,7 +41,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     self.addWidgetToCentral(self.__widgets['tabs'])
 
     # jobs
-    labels = ['id', 'project', 'job', 'user', 'frames', 'prio', 'status', 'progress']
+    labels = ['project', 'job', 'user', 'frames', 'prio', 'status', 'progress']
     self.__widgets['jobs'] = zookeeper.zkUI.zkDbTable(
       self.__conn,
       zookeeper.zkDB.zkMachine,
@@ -53,7 +53,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     self.__widgets['jobs'].doubleClicked.connect(self.onJobDoubleClicked)
 
     # projects
-    labels = ['id', 'project', 'jobs']
+    labels = ['project', 'jobs']
     self.__widgets['projects'] = zookeeper.zkUI.zkDbTable(
       self.__conn,
       zookeeper.zkDB.zkMachine,
@@ -63,7 +63,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     self.__widgets['projects'].contextMenuRequested.connect(self.onProjectContextMenu)
 
     # machines
-    labels = ['id', 'name', 'status', 'prio', 'cpu', 'ram']
+    labels = ['name', 'status', 'prio', 'cpu', 'ram']
     self.__widgets['machines'] = zookeeper.zkUI.zkDbTable(
       self.__conn,
       zookeeper.zkDB.zkMachine,
@@ -74,7 +74,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     self.__widgets['machines'].contextMenuRequested.connect(self.onMachineContextMenu)
 
     # frames
-    labels = ['id', 'job', 'time', 'status', 'duration', 'machine', 'prio', 'package']
+    labels = ['job', 'time', 'status', 'duration', 'machine', 'prio', 'package']
     self.__widgets['frames'] = zookeeper.zkUI.zkDbTable(
       self.__conn,
       zookeeper.zkDB.zkMachine,
@@ -135,7 +135,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
       if role == QtCore.Qt.DisplayRole:
         return str(data) + '%'
       elif role == QtCore.Qt.BackgroundRole:
-        s = table.horizontalHeader().sectionSize(4)
+        s = table.horizontalHeader().sectionSize(3)
         r = int(float(s) * float(data) / 100.0 + 0.5)
         grad = QtGui.QLinearGradient(r-1, 0, r, 0)
         grad.setColorAt(0, QtCore.Qt.blue)
@@ -146,7 +146,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
       if role == QtCore.Qt.DisplayRole:
         return str(data) + '%'
       elif role == QtCore.Qt.BackgroundRole:
-        s = table.horizontalHeader().sectionSize(5)
+        s = table.horizontalHeader().sectionSize(4)
         r = int(float(s) * float(data) / 100.0 + 0.5)
         grad = QtGui.QLinearGradient(r-1, 0, r, 0)
         grad.setColorAt(0, QtCore.Qt.magenta)
@@ -175,7 +175,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
       if role == QtCore.Qt.DisplayRole:
         return str(data)+'%'
       elif role == QtCore.Qt.BackgroundRole:
-        s = table.horizontalHeader().sectionSize(7)
+        s = table.horizontalHeader().sectionSize(6)
         r = int(float(s) * float(data) / 100.0 + 0.5)
         grad = QtGui.QLinearGradient(r-1, 0, r, 0)
         grad.setColorAt(0, QtCore.Qt.green)
@@ -261,8 +261,9 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
   def launchFlipBook(self, job_id, output_name):
     frame_range = self.__conn.call('get_frame_range_for_job', [job_id])
     output = zookeeper.zkDB.zkOutput.getByCondition(self.__conn, 'output_jobid = %s AND output_name = %s' % (job_id, repr(str(output_name))))
+    path = self.getResolvedPathFromJob(output.job, output.path)
 
-    mainParts = os.path.split(output.path)
+    mainParts = os.path.split(path)
     fileParts = mainParts[1].split('.')
     file_ext = fileParts[-1]
     frame_no = fileParts[-2]
@@ -302,7 +303,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
 
       def onTriggered():
         output = zookeeper.zkDB.zkOutput.getByCondition(self.__conn, 'output_jobid = %s AND output_name = %s' % (job_id, repr(str(output_name))))
-        filePath = output.path
+        filePath = self.getResolvedPathFromJob(output.job, output.path)
         filePath = os.path.split(filePath)[0]
         url = QtCore.QUrl()
         if filePath.startswith("\\\\") or filePath.startswith("//"):
@@ -389,7 +390,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
 
       def onTriggered():
         output = zookeeper.zkDB.zkOutput.getById(self.__conn, output_id)
-        filePath = output.path
+        filePath = self.getResolvedPathFromJob(output.job, output.path)
         if asFolder:
           filePath = os.path.split(filePath)[0]
         url = QtCore.QUrl()
@@ -467,9 +468,18 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     outputs = frame.getAllOutputs()
     if len(outputs) > 0:
       filePath = outputs[0].path
+      filepath = self.getResolvedPathFromJob(frame.job, filePath)
+
       url = QtCore.QUrl()
       if filePath.startswith("\\\\") or filePath.startswith("//"):
         url.setUrl(QtCore.QDir.toNativeSeparators(filePath))
       else:
         url = QtCore.QUrl.fromLocalFile(filePath);
       QtGui.QDesktopServices.openUrl(url)
+
+  def getResolvedPathFromJob(self, job, path):
+    uncmap = zookeeper.zkDB.zkUncMap.getUncMapForMachine(self.__conn, job.machine)
+    for drive in uncmap:
+      if path.lower().startswith(drive.lower()):
+        path = uncmap[drive] + path[len(drive):]
+    return path
