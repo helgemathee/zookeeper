@@ -110,7 +110,8 @@ class zkSoftimageSubmitter(zkSubmitter):
     extFiles = scene.ExternalFiles
     for i in range(extFiles.Count):
       extFile = extFiles(i)
-      result += [{'path': extFile.ResolvedPath, 'exist': True, 'group': extFile.FileType}]
+      for j in range(extFile.NumberOfFilesInSequence):
+        result += [{'path': extFile.GetFileInSequence(j), 'exist': True, 'group': extFile.FileType}]
 
     # also add the outputs for validation
     frameBuffers = currentPass.FrameBuffers
