@@ -36,7 +36,7 @@ class zkDbTableModel(QtCore.QAbstractTableModel):
       return 0
     if parent.isValid():
       return 1
-    return len(self.__data[0])
+    return len(self.__data[0]) - 1 # skip id
 
   def data(self, index, role = QtCore.Qt.DisplayRole):
     if role == QtCore.Qt.TextAlignmentRole:
@@ -45,7 +45,7 @@ class zkDbTableModel(QtCore.QAbstractTableModel):
     if not role in [QtCore.Qt.DisplayRole, QtCore.Qt.BackgroundRole]:
       return None
 
-    result = self.__data[index.row()][index.column()]
+    result = self.__data[index.row()][index.column()+1] # skip it
     if index.column() > 0 and self.__getItemDataCallback:
       id = self.__data[index.row()][0]
       result = self.__getItemDataCallback(self.__table, self.__labels[index.column()], id, result, role)
