@@ -23,5 +23,8 @@
  ✔ labels for field in dialog @done (15-11-19 14:33)
  ✔ document softimage installation / workgroup/ python scripting language (system python etc) @done (15-11-19 14:33)
  ✔ configuration for which dccs / versions are supported @done (15-11-19 15:38)
- ☐ network licenses
+ ✔ network licenses @done (15-11-20 10:16)
  ☐ validate all valid UNC paths for accessibility
+ ☐ multi select action in manager UI
+ ☐ ensure to maintain selection in dbTable upon poll
+ ☐ groups - each machine belongs to a group - the submitter can choose which machines
