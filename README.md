@@ -34,11 +34,13 @@ pip install pyside
 git clone https://github.com/helgemathee/zookeeper.git c:\zookeeper
 ```
 
+If you get "git is an unknown command" or such, please use the GIT Cmd instead of the windows default CMD.
+
 D) Shortcuts ( you can use the icon found in "C:\zookeeper\launchers")
 
 - A shortcut on the desktop to "c:\zookeeper\launchers\ZooKeeperConfig.pyw" named "Config"
 - A shortcut on the desktop to "c:\zookeeper\launchers\ZooKeeperManager.pyw" named "Manager"
-- A shortcut on the desktop to "c:\zookeeper\launchers\ZooKeeperLauncher.pyw" named "Launcher"
+- A shortcut on the desktop to "c:\zookeeper\launchers\ZooKeeperMunch.pyw" named "Munch"
 
 E) Launch the local config tool 
 
