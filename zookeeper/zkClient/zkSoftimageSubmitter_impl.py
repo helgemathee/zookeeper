@@ -271,33 +271,42 @@ class zkSoftimageSubmitter(zkSubmitter):
       output.path = zk_uncFromDrivePath(capturePath)
       frame.pushOutputForSubmit(output)
 
-    job = zookeeper.zkDB.zkJob.createNew(self.connection)
-    job.project = project
-    job.name = results['jobname']
-    job.input = input
-    job.type = 'ALL'
-    self.decorateJobWithDefaults(fields, job)
-    bracket.push(job)
+    passes = scene.Passes
+    for i in range(passes.Count):
+      passObj = passes(i)
+      sceneName = str(scene.Name)
+      passName = str(passObj.Name)
 
-    packageoffset = 0
-    package = 0
+      if not results.get('pass_'+str(passObj.Name), False):
+        continue
 
-    for f in range(framestart, frameend+1, framestep):
+      job = zookeeper.zkDB.zkJob.createNew(self.connection)
+      job.project = project
+      job.name = '%s|%s' % (sceneName, passName)
+      job.input = input
+      job.type = 'ALL'
+      self.decorateJobWithDefaults(fields, job)
+      bracket.push(job)
 
-      self.__app.LogMessage('Submitting frame '+str(f))
+      packageoffset = 0
+      package = 0
 
-      if packageoffset % packagesize == 0:
-        package = package + 1
-      packageoffset = packageoffset + 1
+      for f in range(framestart, frameend+1, framestep):
 
-      frame = zookeeper.zkDB.zkFrame.createNew(self.connection)
-      frame.job = job
-      frame.time = f
-      frame.priority = 50
-      frame.package = package
-      if highprio_firstlast:
-        if f == framestart or f == frameend:
-          frame.priority = 75
-          frame.package = 1
-      job.pushFrameForSubmit(frame)
+        self.__app.LogMessage('Submitting frame '+str(f))
+
+        if packageoffset % packagesize == 0:
+          package = package + 1
+        packageoffset = packageoffset + 1
+
+        frame = zookeeper.zkDB.zkFrame.createNew(self.connection)
+        frame.job = job
+        frame.time = f
+        frame.priority = 50
+        frame.package = package
+        if highprio_firstlast:
+          if f == framestart or f == frameend:
+            frame.priority = 75
+            frame.package = 1
+        job.pushFrameForSubmit(frame)
 

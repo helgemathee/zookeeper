@@ -40,15 +40,18 @@ class zkDialog(QtGui.QDialog):
     logoLable.setPixmap(logoPixmap)
     layout.addWidget(logoLable, 0, QtCore.Qt.AlignTop | QtCore.Qt.AlignHCenter)
 
-    scrollArea = QtGui.QScrollArea(self)
-    scrollArea.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-    scrollArea.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
-    scrollArea.setBackgroundRole(QtGui.QPalette.Dark)
-    scrollArea.setContentsMargins(5, 0, 5, 0);
-    layout.addWidget(scrollArea)
+    # scrollArea = QtGui.QScrollArea(self)
+    # scrollArea.setSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+    # scrollArea.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+    # scrollArea.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+    # scrollArea.setBackgroundRole(QtGui.QPalette.Dark)
+    # scrollArea.setContentsMargins(5, 0, 5, 0);
+    # layout.addWidget(scrollArea)
 
-    gridWidget = QtGui.QWidget()
-    gridWidget.setSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.MinimumExpanding)
+    gridWidget = QtGui.QWidget(self)
+    layout.addWidget(gridWidget)
+    # gridWidget = QtGui.QWidget()
+    # gridWidget.setSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.MinimumExpanding)
 
     gridLayout = QtGui.QGridLayout()
     gridWidget.setLayout(gridLayout)
@@ -154,8 +157,8 @@ class zkDialog(QtGui.QDialog):
 
       offset = offset + 1
 
-    scrollArea.setWidgetResizable(False)
-    scrollArea.setWidget(gridWidget)
+    # scrollArea.setWidgetResizable(True)
+    # scrollArea.setWidget(gridWidget)
 
     buttonsWidget = QtGui.QDialogButtonBox(self)
     buttonsWidget.addButton(QtGui.QDialogButtonBox.Cancel)
