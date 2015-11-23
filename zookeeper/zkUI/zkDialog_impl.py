@@ -40,10 +40,15 @@ class zkDialog(QtGui.QDialog):
     logoLable.setPixmap(logoPixmap)
     layout.addWidget(logoLable, 0, QtCore.Qt.AlignTop | QtCore.Qt.AlignHCenter)
 
-    gridWidget = QtGui.QScrollArea(self)
-    gridWidget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-    gridWidget.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-    layout.addWidget(gridWidget)
+    scrollArea = QtGui.QScrollArea(self)
+    scrollArea.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+    scrollArea.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+    scrollArea.setBackgroundRole(QtGui.QPalette.Dark)
+    scrollArea.setContentsMargins(5, 0, 5, 0);
+    layout.addWidget(scrollArea)
+
+    gridWidget = QtGui.QWidget()
+    gridWidget.setSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.MinimumExpanding)
 
     gridLayout = QtGui.QGridLayout()
     gridWidget.setLayout(gridLayout)
@@ -148,6 +153,9 @@ class zkDialog(QtGui.QDialog):
       self.__edits[field['name']] = edit
 
       offset = offset + 1
+
+    scrollArea.setWidgetResizable(False)
+    scrollArea.setWidget(gridWidget)
 
     buttonsWidget = QtGui.QDialogButtonBox(self)
     buttonsWidget.addButton(QtGui.QDialogButtonBox.Cancel)
