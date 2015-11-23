@@ -83,10 +83,12 @@ def zkSynchSceneToNetwork_Execute(  ):
       externalFile = externalFiles(i)
       resolvedPath = externalFile.ResolvedPath
       if pathsHit.has_key(resolvedPath):
+        index = pathsHit[resolvedPath]
+        pathsToAdapt[index] += [{'obj': externalFile, 'type': 'ExternalFile'}]
         continue
       pathsHit[resolvedPath] = len(pathsToSynch)
       pathsToSynch += [resolvedPath]
-      pathsToAdapt += [{'obj': externalFile, 'type': 'ExternalFile'}]
+      pathsToAdapt += [[{'obj': externalFile, 'type': 'ExternalFile'}]]
 
     sourceProject = fields[0]['value']
     targetProject = fields[1]['value']
@@ -110,8 +112,9 @@ def zkSynchSceneToNetwork_Execute(  ):
     for i in range(len(pathsToAdapt)):
       if synchedPaths[i] is None:
         continue
-      if pathsToAdapt[i]['type'] == 'ExternalFile':
-        pathsToAdapt[i]['obj'].Path = synchedPaths[i]
+      for pathToAdapt in pathsToAdapt[i]:
+        if pathToAdapt['type'] == 'ExternalFile':
+          pathToAdapt['obj'].Path = synchedPaths[i]
 
     relScenePath = os.path.relpath(scenePathName, sourceProject)
     Application.SaveSceneAs(os.path.join(targetProject, relScenePath))
