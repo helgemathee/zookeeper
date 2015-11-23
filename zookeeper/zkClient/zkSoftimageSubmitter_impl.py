@@ -163,6 +163,12 @@ class zkSoftimageSubmitter(zkSubmitter):
     else:
       print "Frame Set / Timeline not supported."
 
+    passes = scene.Passes
+    for i in range(passes.Count):
+      passObj = passes(i)
+      enabled = currentPass.Name == passObj.Name   
+      fields += [{'name': 'pass_'+str(passObj.Name), 'label': 'Pass '+str(passObj.Name), 'value': enabled, 'type': 'bool'}]
+
     fields += [{'name': 'framestart', 'label': 'First Frame', 'value': framestart, 'type': 'int', 'tooltip': 'The first frame of the sequence'}]
     fields += [{'name': 'frameend', 'label': 'Last Frame', 'value': frameend, 'type': 'int', 'tooltip': 'The last frame of the sequence'}]
     fields += [{'name': 'framestep', 'label': 'Frame Step', 'value': framestep, 'type': 'int', 'tooltip': 'The stepping across the sequence'}]

@@ -40,7 +40,9 @@ class zkDialog(QtGui.QDialog):
     logoLable.setPixmap(logoPixmap)
     layout.addWidget(logoLable, 0, QtCore.Qt.AlignTop | QtCore.Qt.AlignHCenter)
 
-    gridWidget = QtGui.QWidget(self)
+    gridWidget = QtGui.QScrollArea(self)
+    gridWidget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+    gridWidget.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
     layout.addWidget(gridWidget)
 
     gridLayout = QtGui.QGridLayout()
