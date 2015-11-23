@@ -61,12 +61,8 @@ class zkSoftimageSubmitter(zkSubmitter):
     for field in fields:
       results[field['name']] = field['value']
 
-    print 'performPostDialogChecks'
-
     if results.get('overwrite', False):
       return True
-
-    print 'we are not overwrite... ok'
 
     scene = self.__app.ActiveProject.ActiveScene
     currentPass = scene.ActivePass
@@ -281,6 +277,8 @@ class zkSoftimageSubmitter(zkSubmitter):
     package = 0
 
     for f in range(framestart, frameend+1, framestep):
+
+      self.__app.LogMessage('Submitting frame '+str(f))
 
       if packageoffset % packagesize == 0:
         package = package + 1
