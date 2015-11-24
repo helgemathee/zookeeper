@@ -90,6 +90,10 @@ def zkSynchSceneToNetwork_Execute(  ):
       pathsToSynch += [resolvedPath]
       pathsToAdapt += [[{'obj': externalFile, 'type': 'ExternalFile'}]]
 
+    # here you can add additional files, they need to be added in the format of
+    # pathsToSynch += [resolvedPathOnDisc]
+    # pathsToAdapt += [[{'obj': xsiObjectToUpdate, 'type': 'MyType'}]]
+
     sourceProject = fields[0]['value']
     targetProject = fields[1]['value']
     createProject = fields[2]['value']
@@ -113,8 +117,14 @@ def zkSynchSceneToNetwork_Execute(  ):
       if synchedPaths[i] is None:
         continue
       for pathToAdapt in pathsToAdapt[i]:
+
         if pathToAdapt['type'] == 'ExternalFile':
+
           pathToAdapt['obj'].Path = synchedPaths[i]
+
+        # here you can add other cases for your own file object types
+        # elif pathToAdapt['type'] == 'MyType':
+        #   pathToAdapt['obj'].filePathParam.Value = synchedPaths[i]
 
     relScenePath = os.path.relpath(scenePathName, sourceProject)
     Application.SaveSceneAs(os.path.join(targetProject, relScenePath))
