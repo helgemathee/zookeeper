@@ -229,7 +229,7 @@ def zk_mapAllValidNetworkShares(connection, deleteExisting = False):
     p = subprocess.Popen(cmdargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell = True)
     p.wait()
     (stdout, stderr) = p.communicate()
-    if stdout.lower().find('successfully') == -1 && stdout.lower().find('erfolgreich') == -1:
+    if stdout.lower().find('successfully') == -1 and stdout.lower().find('erfolgreich') == -1:
       return (False, 'Could not connect to share %s.\n\n%s' % (validShare.path, stderr))
     found[validShare.path.lower()] = True
 
