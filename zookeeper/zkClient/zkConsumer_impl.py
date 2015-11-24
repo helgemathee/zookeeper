@@ -286,6 +286,9 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
     uncmap = None
 
     frame_ids = {}
+    for output_id in output_ids:
+      output = zookeeper.zkDB.zkOutput.getById(self.__conn, output_id[0])
+      frame_ids[output.frameid] = frame_ids.get(output_id, 0) + 1
 
     for output_id in output_ids:
       output = zookeeper.zkDB.zkOutput.getById(self.__conn, output_id[0])
@@ -319,17 +322,24 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
 
         self.log('Delivering frame '+scratchPath+' to '+networkPath)
         shutil.copyfile(scratchPath, networkPath)
-        os.remove(scratchPath)
-        frame_ids[str(output.frameid)] = True
-        output.status = 'DELIVERED'
-        output.write()
+        if os.path.exists(networkPath):
+          os.remove(scratchPath)
+          frame_ids[output.frameid] = frame_ids[output.frameid] - 1
+          output.status = 'DELIVERED'
+          output.write()
+        else:
+          self.log('Cannot deliver frame: %s' % e.strerror)
       except IOError as e:
         self.log('Cannot deliver frame: %s' % e.strerror)
       # except:
       #   pass
 
-    if len(frame_ids.keys()) > 0:
-      self.__conn.execute('UPDATE frame SET frame_status = \'DELIVERED\' WHERE frame_id in (%s);' % ','.join(frame_ids.keys()))
+    deliveredFrames = []
+    for key in frame_ids:
+      if frame_ids[key] == 0:
+        deliveredFrames += [str(key)]
+    if len(deliveredFrames) > 0:
+      self.__conn.execute('UPDATE frame SET frame_status = \'DELIVERED\' WHERE frame_id in (%s);' % ','.join(deliveredFrames))
 
   def garbagecollect(self):
     if not self.__cfg.get('scratchdisc_enabled', False):
