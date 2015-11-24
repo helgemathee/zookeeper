@@ -288,7 +288,14 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
     frame_ids = {}
     for output_id in output_ids:
       output = zookeeper.zkDB.zkOutput.getById(self.__conn, output_id[0])
-      frame_ids[output.frameid] = frame_ids.get(output_id, 0) + 1
+      if frame_ids.has_key(output.frameid):
+        continue
+      frame = output.frame
+      allOutputs = frame.getAllOutputs()
+      frame_ids[output.frameid] = 0
+      for allOutput in allOutputs:
+        if allOutput.status == 'PENDING':
+          frame_ids[output.frameid] = frame_ids[output.frameid] + 1
 
     for output_id in output_ids:
       output = zookeeper.zkDB.zkOutput.getById(self.__conn, output_id[0])
