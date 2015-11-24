@@ -28,7 +28,7 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
       self.close()
       return
 
-    (networkSuccess, networkError) = zookeeper.zkClient.zk_mapAllValidNetworkShares(connection)
+    (networkSuccess, networkError) = zookeeper.zkClient.zk_mapAllValidNetworkShares(connection, deleteExisting=True)
     if not networkSuccess:
       QtGui.QMessageBox.critical(None, "ZooKeeper Error", networkError)
       self.close()

@@ -193,25 +193,30 @@ def zk_synchronizeFilesBetweenFolders(files, sourceFolder, targetFolder, logFunc
     result += [f3]
   return result
 
-def zk_mapAllValidNetworkShares(connection):
+def zk_mapAllValidNetworkShares(connection, deleteExisting = False):
   netPath = os.path.join(os.environ['WINDIR'], 'System32', 'net.exe')
-  cmdargs = [netPath, 'use']
-  p = subprocess.Popen(cmdargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell = True)
-  p.wait()
-  (stdout, stderr) = p.communicate()
-  lines = stdout.replace('\r', '').split('\n')
 
   found = {}
 
-  for l in lines:
-    if l.lower().startswith('ok '):
-      l = l[2:].strip()
-      if l[0] != '\\':
-        l = l.partition(' ')[2].strip()
-      if l[0:2] != '\\\\':
-        continue
-      l = l.partition(' ')[0]
-      found[l.lower()] = True
+  if deleteExisting:
+    cmdargs = [netPath, 'use', '/delete', '*', '/Y']
+    p = subprocess.Popen(cmdargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell = True)
+  else:
+    cmdargs = [netPath, 'use']
+    p = subprocess.Popen(cmdargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell = True)
+    p.wait()
+    (stdout, stderr) = p.communicate()
+    lines = stdout.replace('\r', '').split('\n')
+
+    for l in lines:
+      if l.lower().startswith('ok '):
+        l = l[2:].strip()
+        if l[0] != '\\':
+          l = l.partition(' ')[2].strip()
+        if l[0:2] != '\\\\':
+          continue
+        l = l.partition(' ')[0]
+        found[l.lower()] = True
 
   user = zookeeper.zkDB.zkSetting.getByName(connection, 'render_user').value
   password = zookeeper.zkDB.zkSetting.getByName(connection, 'render_password').value
