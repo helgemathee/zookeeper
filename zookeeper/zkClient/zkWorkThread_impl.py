@@ -35,6 +35,7 @@ class zkWorkThread(QtCore.QThread):
     self.__frame.setAsProcessing(self.__machine.id)
 
   def launchSubProcess(self, cmd, args, env):
+
     if not os.path.exists(cmd):
       self.__machine.sendNotification('Cannot start "%s"' % cmd, self.frame, severity='ERROR')
       return False

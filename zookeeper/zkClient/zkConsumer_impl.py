@@ -23,6 +23,17 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
 
     super(zkConsumer, self).__init__('Munch - %s' % self.__machine.name)
 
+    if not os.environ['USERNAME'].lower() == 'render':
+      QtGui.QMessageBox.critical(None, "ZooKeeper Error", 'You need to be logged on as the render user.')
+      self.close()
+      return
+
+    (networkSuccess, networkError) = zookeeper.zkClient.zk_mapAllValidNetworkShares(connection)
+    if not networkSuccess:
+      QtGui.QMessageBox.critical(None, "ZooKeeper Error", networkError)
+      self.close()
+      return
+
     self.__cfg = zookeeper.zkConfig()
 
     self.__widgets = {}

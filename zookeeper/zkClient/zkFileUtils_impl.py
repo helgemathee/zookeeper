@@ -2,6 +2,7 @@ import os
 import shutil
 import subprocess
 import fnmatch
+import zookeeper
 
 def zk_resolveEnvVarsInPath(path):
   if path.startswith('$'):
@@ -192,3 +193,39 @@ def zk_synchronizeFilesBetweenFolders(files, sourceFolder, targetFolder, logFunc
     result += [f3]
   return result
 
+def zk_mapAllValidNetworkShares(connection):
+  netPath = os.path.join(os.environ['WINDIR'], 'System32', 'net.exe')
+  cmdargs = [netPath, 'use']
+  p = subprocess.Popen(cmdargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell = True)
+  p.wait()
+  (stdout, stderr) = p.communicate()
+  lines = stdout.replace('\r', '').split('\n')
+
+  found = {}
+
+  for l in lines:
+    if l.lower().startswith('ok '):
+      l = l[2:].strip()
+      if l[0] != '\\':
+        l = l.partition(' ')[2].strip()
+      if l[0:2] != '\\\\':
+        continue
+      l = l.partition(' ')[0]
+      found[l.lower()] = True
+
+  user = zookeeper.zkDB.zkSetting.getByName(connection, 'render_user').value
+  password = zookeeper.zkDB.zkSetting.getByName(connection, 'render_password').value
+
+  validShares = zookeeper.zkDB.zkValidUnc.getAll(connection)
+  for validShare in validShares:
+    if found.has_key(validShare.path.lower()):
+      continue
+    cmdargs = [netPath, 'use', validShare.path, '/user:%s' % user, password]
+    p = subprocess.Popen(cmdargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell = True)
+    p.wait()
+    (stdout, stderr) = p.communicate()
+    if stdout.lower().find('successfully') == -1:
+      return (False, 'Could not connect to share %s.\n\n%s' % (validShare.path, stderr))
+    found[validShare.path.lower()] = True
+
+  return (True, '')
