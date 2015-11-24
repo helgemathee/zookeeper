@@ -230,7 +230,7 @@ def zk_mapAllValidNetworkShares(connection, deleteExisting = False):
     p.wait()
     (stdout, stderr) = p.communicate()
     if stdout.lower().find('successfully') == -1 and stdout.lower().find('erfolgreich') == -1:
-      return (False, 'Could not connect to share %s.\n\n%s' % (validShare.path, stderr))
+      return (False, 'Could not connect to share %s.\n\n%s' % (validShare.path, stdout + stderr))
     found[validShare.path.lower()] = True
 
   return (True, '')
