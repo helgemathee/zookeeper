@@ -117,6 +117,17 @@ class zkSoftimageSubmitter(zkSubmitter):
         continue
       result += [{'path': fb.GetResolvedPath(1), 'exist': False, 'group': 'render output'}]
 
+    # redshift IES profile files
+    objects = self.__app.FindObjects('', '{6495C5C1-FD18-474E-9703-AEA66631F7A7}')
+    for i in range(objects.Count):
+      o = objects(i)
+      if not o.Name.lower() == 'redshift_ies':
+        continue
+      iesPath = str(o.profileString.Value)
+      if not os.path.exists(iesPath):
+        iesPath = os.path.join(self.__app.ActiveProject.Path, iesPath)
+      result += [{'path': iesPath, 'exist': True, 'group': 'IESProfile'}]
+
     # todo: ICE caches etc, ass caches etc..
 
     return result
@@ -243,6 +254,20 @@ class zkSoftimageSubmitter(zkSubmitter):
       f = zookeeper.zkDB.zkExternalFile.getOrCreateByProjectAndPaths(self.connection, project.id, xsiFile.Path, xsiFile.ResolvedPath, type = xsiFile.FileType, resolution = resolution)
       if f.id is None:
         self.__app.LogMessage('Error: Could not create external file for '+xsiFile.Path)
+
+    # redshift IES profile files
+    objects = self.__app.FindObjects('', '{6495C5C1-FD18-474E-9703-AEA66631F7A7}')
+    for i in range(objects.Count):
+      o = objects(i)
+      if not o.Name.lower() == 'redshift_ies':
+        continue
+      iesPath = str(o.profileString.Value)
+      resolvedPath = iesPath
+      if not os.path.exists(iesPath):
+        resolvedPath = os.path.join(self.__app.ActiveProject.Path, resolvedPath)
+      f = zookeeper.zkDB.zkExternalFile.getOrCreateByProjectAndPaths(self.connection, project.id, iesPath, resolvedPath, type = 'IESProfile', resolution = -1)
+      if f.id is None:
+        self.__app.LogMessage('Error: Could not create external file for '+iesPath)
 
     if capturejob:
 

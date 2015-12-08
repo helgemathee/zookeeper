@@ -103,6 +103,31 @@ def munch():
       else:
         model.active_resolution.value = extFile.resolution
 
+  # redshift IES profile files
+  objects = self.__app.FindObjects('', '{6495C5C1-FD18-474E-9703-AEA66631F7A7}')
+  for i in range(objects.Count):
+    o = objects(i)
+    if not o.Name.lower() == 'redshift_ies':
+      continue
+    userPath = str(o.profileString.Value)
+    if extFileCompleted.has_key(userPath):
+      o.profileString.Value = extFileCompleted[userPath]
+      continue
+
+    extFile = zookeeper.zkDB.zkExternalFile.getByProjectAndUserPath(connection, project.id, userPath)
+    if extFile:
+      log('Found external file for "%s"' % userPath)
+      synchronizedPath = extFile.synchronize(cfg, uncMap)
+      if not synchronizedPath:
+        log('ERROR: Could not synchronize file.')
+        continue
+      else:
+        extFileCompleted[userPath] = synchronizedPath
+        o.profileString.Value = extFileCompleted[userPath]
+    else:
+      log("ERROR: External file for \"%s\" not found in DB!" % userPath)
+      continue
+
   while(True):
 
     log('Working on %s - %s, frame %d' % (project.name, job.name, frame.time))
