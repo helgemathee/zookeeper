@@ -66,8 +66,13 @@ class zkExternalFile(zkEntity):
 
   @classmethod
   def getByProjectAndUserPath(cls, conn, projectid, userPath):
+    realUserPath = userPath
+    if userPath.find('..') > -1:
+      parts = realUserPath.rpartition('[')
+      realUserPath = parts[0] + '#' + parts[2].partition(']')[2]
+
     table = cls.getTableName()
-    sql = 'SELECT %s_id FROM %s WHERE %s_projectid = %d AND %s_userpath = %s;' % (table, table, table, projectid, table, repr(str(userPath)))
+    sql = 'SELECT %s_id FROM %s WHERE %s_projectid = %d AND %s_userpath = %s;' % (table, table, table, projectid, table, repr(str(realUserPath)))
     ids = conn.execute(sql, errorPrefix=table)
     for id in ids:
       return cls(conn, id=id[0])
