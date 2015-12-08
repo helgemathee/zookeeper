@@ -89,7 +89,6 @@ class zkExternalFile(zkEntity):
 
   def synchronize(self, cfg, uncMap = None, logFunc = None):
     numFrames = 1
-    print str(self.id) + ': ' + str(self.start) + ' - ' + str(self.end)
     if not self.end is None and not self.start is None:
       numFrames = self.end - self.start + 1
     result = None
@@ -122,6 +121,6 @@ class zkExternalFile(zkEntity):
         else:
           print message
       if not result and resultPath:
-        result = os.path.join(os.path.split(resultPath)[0], os.path.split(scratchPath)[1])
+        result = os.path.join(os.path.split(resultPath)[0], os.path.split(networkPath)[1])
 
     return result
