@@ -83,11 +83,14 @@ class zkExternalFile(zkEntity):
     return scratchPath
 
   def synchronize(self, cfg, uncMap = None, logFunc = None):
-    numFrames = self.end - self.start + 1
+    numFrames = 1
+    print str(self.id) + ': ' + str(self.start) + ' - ' + str(self.end)
+    if not self.end is None and not self.start is None:
+      numFrames = self.end - self.start + 1
     result = None
     for i in range(numFrames):
-      f = str(self.start + i)
-      f = f.ljust(self.padding, '0')
+      f = str(int(self.start) + i)
+      f = f.rjust(int(self.padding), '0')
       networkPath = self.resolvedpath
 
       # correct unc paths
