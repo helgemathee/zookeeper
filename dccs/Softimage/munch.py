@@ -105,6 +105,8 @@ def munch():
       else:
         model.active_resolution.value = extFile.resolution
 
+  Application.SaveScene()
+
   while(True):
 
     log('Working on %s - %s, frame %d' % (project.name, job.name, frame.time))
