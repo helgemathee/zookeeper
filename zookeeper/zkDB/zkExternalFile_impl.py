@@ -128,6 +128,5 @@ class zkExternalFile(zkEntity):
         networkFile = os.path.split(networkPath)[1]
         networkFile = networkFile.replace('#', '[%d..%d;%d]' % (int(self.start), int(self.end), int(self.padding)))
         result = os.path.join(os.path.split(resultPath)[0], annotateFileName(networkFile))
-        print result
 
     return result
