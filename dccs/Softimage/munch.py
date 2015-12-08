@@ -104,7 +104,7 @@ def munch():
         model.active_resolution.value = extFile.resolution
 
   # redshift IES profile files
-  objects = self.__app.FindObjects('', '{6495C5C1-FD18-474E-9703-AEA66631F7A7}')
+  objects = Application.FindObjects('', '{6495C5C1-FD18-474E-9703-AEA66631F7A7}')
   for i in range(objects.Count):
     o = objects(i)
     if not o.Name.lower() == 'redshift_ies':
