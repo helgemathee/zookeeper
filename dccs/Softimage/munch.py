@@ -111,7 +111,7 @@ def munch():
       continue
     userPath = str(o.profileString.Value)
     if extFileCompleted.has_key(userPath):
-      o.profileString.Value = extFileCompleted[userPath]
+      Application.SetValue(str(o.profileString), str(extFileCompleted[userPath]))
       continue
 
     extFile = zookeeper.zkDB.zkExternalFile.getByProjectAndUserPath(connection, project.id, userPath)
@@ -123,7 +123,7 @@ def munch():
         continue
       else:
         extFileCompleted[userPath] = synchronizedPath
-        o.profileString.Value = extFileCompleted[userPath]
+        Application.SetValue(str(o.profileString), str(extFileCompleted[userPath]))
     else:
       log("ERROR: External file for \"%s\" not found in DB!" % userPath)
       continue
