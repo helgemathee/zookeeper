@@ -90,8 +90,6 @@ def munch():
       else:
         extFileCompleted[userPath] = synchronizedPath
         xsiFile.Path = synchronizedPath
-        log(xsiFile.Path)
-        log(xsiFile.ResolvedPath)
     else:
       log("ERROR: External file for \"%s\" not found in DB!" % userPath)
       continue
@@ -104,8 +102,6 @@ def munch():
         Application.UpdateReferencedModel(model.FullName)
       else:
         model.active_resolution.value = extFile.resolution
-
-  Application.SaveScene()
 
   while(True):
 
