@@ -112,13 +112,8 @@ class zkExternalFile(zkEntity):
       scratchFolder = os.path.join(scratchDisc, self.type)
 
       def annotateFileName(fileName):
-        splitPos = fileName.rfind('.')
-        bracketPos = fileName.rfind('[')
-        annotation = '_id'+str(self.id)
-        if bracketPos > -1:
-          splitPos = bracketPos
-          annotation = annotation + '_'
-        return fileName[0:splitPos] + annotation + fileName[splitPos:]
+        annotation = 'id'+str(self.id)+'_'
+        return annotation + fileName
 
       scratchPath = os.path.join(scratchFolder, annotateFileName(networkFile))
 
