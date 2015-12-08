@@ -126,7 +126,7 @@ class zkSoftimageSubmitter(zkSubmitter):
       iesPath = str(o.profileString.Value)
       if not os.path.exists(iesPath):
         iesPath = os.path.join(self.__app.ActiveProject.Path, iesPath)
-      result += [{'path': iesPath, 'exist': True, 'group': 'IESProfile'}]
+      result += [{'path': iesPath, 'exist': True, 'group': 'IESProfiles'}]
 
     # todo: ICE caches etc, ass caches etc..
 
@@ -265,7 +265,7 @@ class zkSoftimageSubmitter(zkSubmitter):
       resolvedPath = iesPath
       if not os.path.exists(iesPath):
         resolvedPath = os.path.join(self.__app.ActiveProject.Path, resolvedPath)
-      f = zookeeper.zkDB.zkExternalFile.getOrCreateByProjectAndPaths(self.connection, project.id, iesPath, resolvedPath, type = 'IESProfile', resolution = -1)
+      f = zookeeper.zkDB.zkExternalFile.getOrCreateByProjectAndPaths(self.connection, project.id, iesPath, resolvedPath, type = 'IESProfiles', resolution = -1)
       if f.id is None:
         self.__app.LogMessage('Error: Could not create external file for '+iesPath)
 
