@@ -120,7 +120,7 @@ class zkExternalFile(zkEntity):
           annotation = annotation + '_'
         return fileName[0:splitPos] + annotation + fileName[splitPos:]
 
-      scratchPath = os.path.join(scratchFolder, annotateFileName(networkFile)
+      scratchPath = os.path.join(scratchFolder, annotateFileName(networkFile))
 
       (resultPath, reasonForCopy) = zookeeper.zkClient.zk_synchronizeFile(realNetworkPath, scratchPath)
       if reasonForCopy:
