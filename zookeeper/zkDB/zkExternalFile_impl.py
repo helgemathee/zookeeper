@@ -107,11 +107,20 @@ class zkExternalFile(zkEntity):
       realNetworkPath = networkPath.replace('#', f)
 
       networkFile = os.path.split(realNetworkPath)[1]
-      networkParts = networkFile.rpartition('.')
 
       scratchDisc = self.project.getScratchFolder(cfg)
       scratchFolder = os.path.join(scratchDisc, self.type)
-      scratchPath = os.path.join(scratchFolder, networkParts[0]+'_id'+str(self.id)+'.'+networkParts[2])
+
+      def annotateFileName(fileName):
+        splitPos = fileName.rfind('.')
+        bracketPos = fileName.rfind('[')
+        annotation = '_id'+str(self.id)
+        if bracketPos > -1:
+          splitPos = bracketPos
+          annotation = annotation + '_'
+        return fileName[0:splitPos] + annotation + fileName[splitPos:]
+
+      scratchPath = os.path.join(scratchFolder, annotateFileName(networkFile)
 
       (resultPath, reasonForCopy) = zookeeper.zkClient.zk_synchronizeFile(realNetworkPath, scratchPath)
       if reasonForCopy:
@@ -123,8 +132,7 @@ class zkExternalFile(zkEntity):
       if not result and resultPath:
         networkFile = os.path.split(networkPath)[1]
         networkFile = networkFile.replace('#', '[%d..%d;%d]' % (int(self.start), int(self.end), int(self.padding)))
-        networkParts = networkFile.rpartition('.')
-        result = os.path.join(os.path.split(resultPath)[0], networkParts[0]+'_id'+str(self.id)+'.'+networkParts[2])
+        result = os.path.join(os.path.split(resultPath)[0], annotateFileName(networkFile))
         print result
 
     return result
