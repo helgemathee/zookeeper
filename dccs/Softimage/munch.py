@@ -128,6 +128,12 @@ def munch():
       log("ERROR: External file for \"%s\" not found in DB!" % userPath)
       continue
 
+  scenePathParts = scenePath.rpartition('.')
+  scenePathChanged = scenePathParts[0] + '_resolved' + scenePathParts[1] + scenePathParts[2]
+  Application.SaveSceneAs(scenePathChanged)
+  Application.OpenScene(scenePathChanged, False, False)
+  scene = Application.ActiveProject.ActiveScene
+
   while(True):
 
     log('Working on %s - %s, frame %d' % (project.name, job.name, frame.time))
