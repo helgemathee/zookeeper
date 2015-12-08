@@ -117,6 +117,6 @@ class zkExternalFile(zkEntity):
         else:
           print message
       if not result and resultPath:
-        result = os.path.join(os.path.split(resultPath)[0], os.path.split(networkPath)[1])
+        result = os.path.join(os.path.split(resultPath)[0], os.path.split(scratchPath)[1])
 
     return result
