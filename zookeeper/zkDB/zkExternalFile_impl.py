@@ -32,15 +32,33 @@ class zkExternalFile(zkEntity):
 
   @classmethod
   def getOrCreateByProjectAndPaths(cls, conn, projectid, userPath, resolvedPath, type = 'otherfile', resolution = -1):
+    realUserPath = userPath
+    realResolvedPath = resolvedPath
+    if userPath.find('..') > -1:
+      parts = realResolvedPath.rpartition('[')
+      realResolvedPath = parts[0] + '#' + parts[2].partition(']')[2]
+      parts = realUserPath.rpartition('[')
+      realUserPath = parts[0] + '#' + parts[2].partition(']')[2]
+
     table = cls.getTableName()
-    sql = 'SELECT %s_id FROM %s WHERE %s_projectid = %d AND %s_resolvedpath = %s;' % (table, table, table, projectid, table, repr(str(resolvedPath)))
+    sql = 'SELECT %s_id FROM %s WHERE %s_projectid = %d AND %s_resolvedpath = %s;' % (table, table, table, projectid, table, repr(str(realResolvedPath)))
     ids = conn.execute(sql, errorPrefix=table)
     for id in ids:
       return cls(conn, id=id[0])
     extFile = cls(conn)
     extFile.projectid = projectid
-    extFile.userpath = userPath
-    extFile.resolvedpath = resolvedPath
+
+    if userPath.find('..') > -1:
+      parts = userPath.rpartition('[')
+      frameSection = parts[2].partition(']')[0]
+      extFile.start = frameSection.partition('..')[0]
+      extFile.end = frameSection.partition('..')[2].partition(';')[0]
+      extFile.padding = frameSection.partition('..')[2].partition(';')[2]
+      if extFile.padding == '':
+        extFile.padding = 0
+
+    extFile.userpath = realUserPath
+    extFile.resolvedpath = realResolvedPath
     extFile.type = type
     extFile.resolution = resolution
     extFile.write()
@@ -65,28 +83,37 @@ class zkExternalFile(zkEntity):
     return scratchPath
 
   def synchronize(self, cfg, uncMap = None, logFunc = None):
-    networkPath = self.resolvedpath
+    numFrames = self.end - self.start + 1
+    result = None
+    for i in range(numFrames):
+      f = str(self.start + i)
+      f = f.ljust(self.padding, '0')
+      networkPath = self.resolvedpath
 
-    # correct unc paths
-    if uncMap:
-      for u in uncMap:
-        if networkPath.lower().startswith(u.lower()):
-          networkPath = uncMap[u] + networkPath[len(u):]
-          break
+      # correct unc paths
+      if uncMap:
+        for u in uncMap:
+          if networkPath.lower().startswith(u.lower()):
+            networkPath = uncMap[u] + networkPath[len(u):]
+            break
 
-    networkFile = os.path.split(networkPath)[1]
-    networkParts = networkFile.rpartition('.')
+      realNetworkPath = networkPath.replace('#', f)
 
-    scratchDisc = self.project.getScratchFolder(cfg)
-    scratchFolder = os.path.join(scratchDisc, self.type)
-    scratchPath = os.path.join(scratchFolder, networkParts[0]+'_id'+str(self.id)+'.'+networkParts[2])
+      networkFile = os.path.split(realNetworkPath)[1]
+      networkParts = networkFile.rpartition('.')
 
-    (resultPath, reasonForCopy) = zookeeper.zkClient.zk_synchronizeFile(networkPath, scratchPath)
-    if reasonForCopy:
-      message = 'ZooKeeper: updated cache for '+networkPath+' because '+reasonForCopy
-      if logFunc:
-        logFunc(message)
-      else:
-        print message
+      scratchDisc = self.project.getScratchFolder(cfg)
+      scratchFolder = os.path.join(scratchDisc, self.type)
+      scratchPath = os.path.join(scratchFolder, networkParts[0]+'_id'+str(self.id)+'.'+networkParts[2])
 
-    return resultPath
+      (resultPath, reasonForCopy) = zookeeper.zkClient.zk_synchronizeFile(realNetworkPath, scratchPath)
+      if reasonForCopy:
+        message = 'ZooKeeper: updated cache for '+realNetworkPath+' because '+reasonForCopy
+        if logFunc:
+          logFunc(message)
+        else:
+          print message
+      if not result and resultPath:
+        result = os.path.join(os.path.split(resultPath)[0], os.path.split(networkPath)[1])
+
+    return result

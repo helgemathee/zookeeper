@@ -240,7 +240,9 @@ class zkSoftimageSubmitter(zkSubmitter):
         model = param.Parent
         if param.Name == 'res'+str(model.active_resolution.value):
           resolution = model.active_resolution.value
-      zookeeper.zkDB.zkExternalFile.getOrCreateByProjectAndPaths(self.connection, project.id, xsiFile.Path, xsiFile.ResolvedPath, type = xsiFile.FileType, resolution = resolution)
+      f = zookeeper.zkDB.zkExternalFile.getOrCreateByProjectAndPaths(self.connection, project.id, xsiFile.Path, xsiFile.ResolvedPath, type = xsiFile.FileType, resolution = resolution)
+      if f.id is None:
+        self.__app.LogMessage('Error: Could not create external file for '+xsiFile.Path)
 
     if capturejob:
 
