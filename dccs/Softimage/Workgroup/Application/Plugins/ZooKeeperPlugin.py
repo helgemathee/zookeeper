@@ -30,7 +30,7 @@ def zkSubmit_Init( in_ctxt ):
   return True
 
 def zkSubmit_Execute(  ):
-  conn = zookeeper.zkDB.zkConnection(debug = True)
+  conn = zookeeper.zkDB.zkConnection(debug = False)
   submitter = zookeeper.zkClient.zkSoftimageSubmitter(conn, Application, constants)
   submitter.submitWithDialog()
   return True
