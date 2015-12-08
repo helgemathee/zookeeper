@@ -122,7 +122,7 @@ class zkExternalFile(zkEntity):
           print message
       if not result and resultPath:
         networkFile = os.path.split(networkPath)[1]
-        networkFile = networkFile.replace('#', '%d..%d;%d' % (int(self.start), int(self.end), int(self.padding)))
+        networkFile = networkFile.replace('#', '[%d..%d;%d]' % (int(self.start), int(self.end), int(self.padding)))
         networkParts = networkFile.rpartition('.')
         result = os.path.join(os.path.split(resultPath)[0], networkParts[0]+'_id'+str(self.id)+'.'+networkParts[2])
         print result
