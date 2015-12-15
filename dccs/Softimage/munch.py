@@ -81,12 +81,9 @@ def munch():
   
     resolvedPath = xsiFile.ResolvedPath
     userPath = xsiFile.Path
-    if extFileCompleted.has_key(userPath):
-      xsiFile.Path = extFileCompleted[userPath]
-      continue
   
     extFile = zookeeper.zkDB.zkExternalFile.getByProjectAndUserPath(connection, project.id, userPath)
-    if extFile:
+    if not extFileCompleted.has_key(userPath) and extFile:
       log('Found external file for "%s"' % userPath)
       synchronizedPath = extFile.synchronize(cfg, uncMap)
       if not synchronizedPath:
@@ -95,7 +92,7 @@ def munch():
       else:
         extFileCompleted[userPath] = synchronizedPath
         xsiFile.Path = synchronizedPath
-    else:
+    elif not extFile:
       log("ERROR: External file for \"%s\" not found in DB!" % userPath)
       continue
 
