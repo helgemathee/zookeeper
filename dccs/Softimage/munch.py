@@ -100,11 +100,12 @@ def munch():
       owners = xsiFile.Owners
       param = owners(0)
       model = param.Parent
+      log('Processing referenced model '+model.Name)
       if model.active_resolution.value == extFile.resolution:
         Application.UpdateReferencedModel(model.FullName)
       else:
         model.active_resolution.value = extFile.resolution
-      Application.MakeModelLocal(model.FullName)
+      Application.MakeModelLocal(model.FullName, "", "")
   
   xsiFiles = scene.ExternalFiles
   for i in range(xsiFiles.Count):
