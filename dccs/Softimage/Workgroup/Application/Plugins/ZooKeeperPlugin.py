@@ -82,6 +82,11 @@ def zkSynchSceneToNetwork_Execute(  ):
     for i in range(externalFiles.Count):
       externalFile = externalFiles(i)
       resolvedPath = externalFile.ResolvedPath
+
+      # invalid rigid body cache
+      if resolvedPath.lower().endswith('rigidbodycache.xsi'):
+        continue
+
       if pathsHit.has_key(resolvedPath):
         index = pathsHit[resolvedPath]
         pathsToAdapt[index] += [{'obj': externalFile, 'type': 'ExternalFile'}]
@@ -93,6 +98,39 @@ def zkSynchSceneToNetwork_Execute(  ):
     # here you can add additional files, they need to be added in the format of
     # pathsToSynch += [resolvedPathOnDisc]
     # pathsToAdapt += [[{'obj': xsiObjectToUpdate, 'type': 'MyType'}]]
+    utils = XSIUtils
+    envs = scene.SimulationEnvironments
+    if envs.Count > 0:
+      env = envs(0)
+      simCtrl = env.SimulationTimeControl
+      offset = simCtrl.offset.Value
+      duration = simCtrl.duration.Value
+      caches = env.Caches
+      for i in range(caches.Count):
+        cache = caches(i)
+        items = cache.SourceItems
+        for j in range(items.Count):
+          item = items(j)
+          try:
+            target = Application.Dictionary.GetObject(item.Target)
+          except:
+            continue
+          path = simCtrl.FilePath.Value
+          path += simCtrl.FileName.Value
+          path += simCtrl.FileTypeString.Value
+          tokenNames = []
+          tokenValues = []
+          tokenNames += ['model']
+          tokenValues += [target.Model.Name]
+          tokenNames += ['object']
+          tokenValues += [target.Parent3DObject.Name]
+          tokenNames += ['version']
+          tokenValues += [simCtrl.VersionString.Value]
+
+          for frame in range(int(offset), int(duration)+1):
+            resolvedPath = utils.ResolveTokenString(path, frame, False, tokenNames, tokenValues)
+            pathsToSynch += [resolvedPath]
+            pathsToAdapt += [[{'obj': item, 'type': 'ICECache'}]]
 
     sourceProject = fields[0]['value']
     targetProject = fields[1]['value']

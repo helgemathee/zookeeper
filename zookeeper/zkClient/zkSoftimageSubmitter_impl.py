@@ -106,6 +106,12 @@ class zkSoftimageSubmitter(zkSubmitter):
     extFiles = scene.ExternalFiles
     for i in range(extFiles.Count):
       extFile = extFiles(i)
+      resolvedPath = extFile.ResolvedPath
+
+      # invalid rigid body cache
+      if resolvedPath.lower().endswith('rigidbodycache.xsi'):
+        continue
+
       for j in range(extFile.NumberOfFilesInSequence):
         result += [{'path': extFile.GetFileInSequence(j), 'exist': True, 'group': extFile.FileType}]
 
@@ -245,6 +251,12 @@ class zkSoftimageSubmitter(zkSubmitter):
     xsiFiles = scene.ExternalFiles
     for i in range(xsiFiles.Count):
       xsiFile = xsiFiles(i)
+      resolvedPath = xsiFile.ResolvedPath
+
+      # invalid rigid body cache
+      if resolvedPath.lower().endswith('rigidbodycache.xsi'):
+        continue
+
       resolution = -1
       if xsiFile.FileType == 'Models':
         param = xsiFile.Owners(0)

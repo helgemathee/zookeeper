@@ -76,6 +76,12 @@ def munch():
   extFileCompleted = {}
   for i in range(xsiFiles.Count):
     xsiFile = xsiFiles(i)
+    resolvedPath = xsiFile.ResolvedPath
+
+    # invalid rigid body cache
+    if resolvedPath.lower().endswith('rigidbodycache.xsi'):
+      continue
+
     userPath = xsiFile.Path
     if extFileCompleted.has_key(userPath):
       xsiFile.Path = extFileCompleted[userPath]
