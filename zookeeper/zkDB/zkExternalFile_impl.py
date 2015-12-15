@@ -89,6 +89,12 @@ class zkExternalFile(zkEntity):
 
   def synchronize(self, cfg, uncMap = None, logFunc = None):
     numFrames = 1
+    if self.start is None:
+      self.start = 1
+    if self.end is None:
+      self.end = 1
+    if self.padding is None:
+      self.padding = 0
     if not self.end is None and not self.start is None:
       numFrames = self.end - self.start + 1
     result = None

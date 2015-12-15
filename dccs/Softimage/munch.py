@@ -76,16 +76,15 @@ def munch():
   extFileCompleted = {}
   for i in range(xsiFiles.Count):
     xsiFile = xsiFiles(i)
+    if xsiFile.FileType != 'Models':
+      continue 
+  
     resolvedPath = xsiFile.ResolvedPath
-
-    # invalid rigid body cache
-    if resolvedPath.lower().endswith('rigidbodycache.xsi'):
-      continue
-
     userPath = xsiFile.Path
     if extFileCompleted.has_key(userPath):
       xsiFile.Path = extFileCompleted[userPath]
       continue
+  
     extFile = zookeeper.zkDB.zkExternalFile.getByProjectAndUserPath(connection, project.id, userPath)
     if extFile:
       log('Found external file for "%s"' % userPath)
@@ -100,7 +99,7 @@ def munch():
       log("ERROR: External file for \"%s\" not found in DB!" % userPath)
       continue
 
-    if xsiFile.FileType == 'Models' and extFile.resolution > -1:
+    if extFile.resolution > -1:
       owners = xsiFile.Owners
       param = owners(0)
       model = param.Parent
@@ -108,6 +107,38 @@ def munch():
         Application.UpdateReferencedModel(model.FullName)
       else:
         model.active_resolution.value = extFile.resolution
+      Application.MakeModelLocal(model.FullName)
+  
+  xsiFiles = scene.ExternalFiles
+  for i in range(xsiFiles.Count):
+    xsiFile = xsiFiles(i)
+    if xsiFile.FileType == 'Models':
+      continue 
+
+    resolvedPath = xsiFile.ResolvedPath
+
+    # invalid rigid body cache
+    if resolvedPath.lower().endswith('rigidbodycache.xsi'):
+      continue
+
+    userPath = xsiFile.Path
+    if extFileCompleted.has_key(userPath):
+      xsiFile.Path = extFileCompleted[userPath]
+      continue
+  
+    extFile = zookeeper.zkDB.zkExternalFile.getByProjectAndUserPath(connection, project.id, userPath)
+    if extFile:
+      log('Found external file for "%s"' % userPath)
+      synchronizedPath = extFile.synchronize(cfg, uncMap)
+      if not synchronizedPath:
+        log('ERROR: Could not synchronize file.')
+        continue
+      else:
+        extFileCompleted[userPath] = synchronizedPath
+        xsiFile.Path = synchronizedPath
+    else:
+      log("ERROR: External file for \"%s\" not found in DB!" % userPath)
+      continue
 
   # redshift IES profile files
   objects = Application.FindObjects('', '{6495C5C1-FD18-474E-9703-AEA66631F7A7}')
