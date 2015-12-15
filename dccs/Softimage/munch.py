@@ -95,6 +95,8 @@ def munch():
     elif not extFile:
       log("ERROR: External file for \"%s\" not found in DB!" % userPath)
       continue
+    else:
+      xsiFile.Path = extFileCompleted[userPath]
 
     if extFile.resolution > -1:
       owners = xsiFile.Owners
