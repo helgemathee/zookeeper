@@ -73,7 +73,10 @@ def zkSynchSceneToNetwork_Execute(  ):
   sys.stderr = hook
 
   def onAccepted(fields):
+    conn = None
+    validUncPaths = []
     scene = Application.ActiveProject.ActiveScene
+    clips = scene.ImageClips
     scenePathName = str(scene.FileName.Value)
     externalFiles = scene.ExternalFiles
     pathsToSynch = []
@@ -91,6 +94,36 @@ def zkSynchSceneToNetwork_Execute(  ):
         index = pathsHit[resolvedPath]
         pathsToAdapt[index] += [{'obj': externalFile, 'type': 'ExternalFile'}]
         continue
+
+      # for textures etc below referenced models
+      # we will need to ensure that the user does not have models in the scene which 
+      # are not on shared storages
+      if externalFile.FileType != 'Models':
+        owner = externalFile.Owners(0)
+        if owner:
+          if owner.IsLocked():
+            if not conn:
+              conn = zookeeper.zkDB.zkConnection(debug = False)
+              uncPathFieldList = zookeeper.zkDB.zkValidUnc.getFieldList(conn, 'path')
+              for uncPath in uncPathFieldList:
+                validUncPaths += [uncPath[1]]          
+
+            messageCaption = str(owner)
+            source = owner.Parent
+            if source.Type == 'ImageSource':
+              for j in range(clips.Count):
+                clip = clips(j)
+                if not str(clip.Source) == str(source):
+                  continue
+                material = clip.Owners(1)
+                messageCaption = str(material.Owners(1)).partition('.')[0]
+
+            if not zookeeper.zkClient.zk_validateNetworkFilePath(resolvedPath, validUncPaths, shouldExist = True):
+              QtGui.QMessageBox.critical(None, 'ZooKeeper Error', 'The referenced model\n%s"\ncontains some paths which are not pointing\nto shared storage. Please correct the referenced model by moving the files\nmanually and update the paths manually as well.' % messageCaption)
+              return False
+
+            continue
+
       pathsHit[resolvedPath] = len(pathsToSynch)
       pathsToSynch += [resolvedPath]
       pathsToAdapt += [[{'obj': externalFile, 'type': 'ExternalFile'}]]
@@ -127,7 +160,7 @@ def zkSynchSceneToNetwork_Execute(  ):
           tokenNames += ['version']
           tokenValues += [simCtrl.VersionString.Value]
 
-          for frame in range(int(offset), int(duration)+1):
+          for frame in range(int(offset), int(duration)+2):
             resolvedPath = utils.ResolveTokenString(path, frame, False, tokenNames, tokenValues)
             pathsToSynch += [resolvedPath]
             pathsToAdapt += [[{'obj': item, 'type': 'ICECache'}]]
