@@ -1,6 +1,7 @@
 from zkConnection_impl import zkConnection
 from zkBracket_impl import zkBracket
 from zkMachine_impl import zkMachine
+from zkMachineGroup_impl import zkMachineGroup
 from zkProject_impl import zkProject
 from zkInput_impl import zkInput
 from zkJob_impl import zkJob
@@ -11,3 +12,4 @@ from zkNotification_impl import zkNotification
 from zkUncMap_impl import zkUncMap
 from zkValidUnc_impl import zkValidUnc
 from zkSetting_impl import zkSetting
+from zkMemberShip_impl import zkMemberShip

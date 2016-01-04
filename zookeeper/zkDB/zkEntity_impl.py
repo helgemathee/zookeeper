@@ -186,13 +186,16 @@ class zkEntity(object):
     if not condition:
       return
     table = cls.getTableName()
-    sql = 'DELETE FROM %s WHERE ' + condition + ';'
-    self.execute(sql)
+    sql = 'DELETE FROM %s WHERE %s;' % (table, condition)
+    conn.execute(sql, errorPrefix = table)
 
   @classmethod
-  def getAll(cls, conn, condition=None, limit=None, order=None):
+  def getAll(cls, conn, condition=None, limit=None, order=None, additionalTables=None):
     table = cls.getTableName()
-    sql = 'SELECT %s_id FROM %s' % (table, table)
+    tables = [table]
+    if additionalTables:
+      tables += additionalTables
+    sql = 'SELECT %s_id FROM %s' % (table, ', '.join(tables))
     if not condition is None:
       sql += ' WHERE %s' % str(condition)
     if not limit is None:
