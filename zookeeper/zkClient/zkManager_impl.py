@@ -53,7 +53,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     self.__widgets['jobs'].doubleClicked.connect(self.onJobDoubleClicked)
 
     # projects
-    labels = ['project', 'jobs']
+    labels = ['project', 'jobs', 'machines']
     self.__widgets['projects'] = zookeeper.zkUI.zkDbTable(
       self.__conn,
       zookeeper.zkDB.zkMachine,

@@ -13,6 +13,11 @@ class zkMachineGroup(zkEntity):
   def __init__(self, connection, id = None):
     super(zkMachineGroup, self).__init__(connection, table = 'mgroup', id = id)
 
+  def delete(self):
+    if self.id == 1:
+      return False
+    return super(zkMachineGroup, self).delete(procedure = 'delete_group')
+
   def containsMachine(self, machine_id):
     if self.id == 1:
       return True

@@ -168,11 +168,15 @@ class zkEntity(object):
   def getTableName(cls):
     return cls.__name__[2:].lower()
 
-  def delete(self):
-    if self.id is None:
-      return
-    sql = 'DELETE FROM %s WHERE %s_id = %d;' % (self.table, self.table, self.id)
-    self.execute(sql)
+  def delete(self, procedure = None):
+    if self.__id is None:
+      return False
+
+    if procedure is None:
+      sql = 'DELETE FROM %s WHERE %s_id = %d;' % (self.table, self.table, self.id)
+      self.execute(sql)
+    else:
+      self.__conn.call(procedure = procedure, args = [self.__id])
 
     self.__id = None
     self.__initiallyRead = False
