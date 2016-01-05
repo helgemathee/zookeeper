@@ -205,7 +205,13 @@ class zkSubmitter(object):
       self.createJobFramesAndOutput(fields, self.__conn, b, p, i)
       b.write()
 
-      QtGui.QMessageBox.information(None, 'ZooKeeper', 'Job "%s" submitted.' % results['jobname'])
+      msgBox = QtGui.QMessageBox()
+      msgBox.setText("ZooKeeper")
+      msgBox.setInformativeText('Job "%s" submitted.' % results['jobname'])
+      msgBox.setStandardButtons(QtGui.QMessageBox.Ok)
+      msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
+      msgBox.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+      msgBox.exec_()
 
     dialog = zookeeper.zkUI.zkSubmitDialog(fields, onAccepted)
     dialog.exec_()
