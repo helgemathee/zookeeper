@@ -7,7 +7,7 @@ class zkDbTable(QtGui.QTableView):
 
   __model = None
 
-  contextMenuRequested = QtCore.Signal(int, str)
+  contextMenuRequested = QtCore.Signal(list, str)
 
   def __init__(self, conn, itemCls, procedure = None, procedureArgs = None, labels = None, getItemDataCallback = None, parent = None):
 
@@ -27,15 +27,20 @@ class zkDbTable(QtGui.QTableView):
 
   def onContextMenuRequested(self, point):
     indices = self.selectedIndexes()
-    index = self.indexAt(point)
-    if not index.isValid:
+    if not indices:
       return
-    id = int(self.__model.getIdFromIndex(index))
-    caption = self.__model.headerData(index.column(), QtCore.Qt.Orientation.Horizontal)
-    self.contextMenuRequested.emit(id, caption)
+    ids = []
+    for index in indices:
+      if not index.isValid:
+        continue
+      id = int(self.__model.getIdFromIndex(index))
+      ids += [id]
+      caption = self.__model.headerData(index.column(), QtCore.Qt.Orientation.Horizontal)
+    self.contextMenuRequested.emit(ids, caption)
 
   def pollOnModel(self):
     indices = self.selectedIndexes()
     self.__model.poll()
-    for i in range(len(indices)):
-      self.selectionModel().select(indices[i], QtGui.QItemSelectionModel.Select)
+    if indices:
+      for i in range(len(indices)):
+        self.selectionModel().select(indices[i], QtGui.QItemSelectionModel.Select)

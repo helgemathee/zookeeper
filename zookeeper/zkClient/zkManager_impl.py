@@ -214,7 +214,8 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     def setupPrioAction(menu, prio):
 
       def onTriggered():
-        self.__conn.call('set_machine_priority', [id, prio])
+        for id in ids:
+          self.__conn.call('set_machine_priority', [id, prio])
         self.poll()
 
       menu.addAction('set %s' % prio).triggered.connect(onTriggered)
@@ -296,8 +297,9 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     menu.addAction('open %s in flipbook' % output_name).triggered.connect(onTriggered)
 
   def onJobContextMenu(self, ids, col):
-
     menu = QtGui.QMenu()
+
+    firstId = ids[0]
 
     def setupRevealAction(menu, job_id, output_name):
 
@@ -314,17 +316,17 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
 
       menu.addAction('open %s folder' % output_name).triggered.connect(onTriggered)
 
-    outputs = self.__conn.call('get_outputs_per_job', [id])
+    outputs = self.__conn.call('get_outputs_per_job', [firstId])
     if len(outputs) > 0:
       for output in outputs:
-        setupRevealAction(menu, id, output[0])
+        setupRevealAction(menu, firstId, output[0])
       menu.addSeparator()
       for output in outputs:
-        self._setupFlipbookAction(menu, id, output[0])
+        self._setupFlipbookAction(menu, firstId, output[0])
       menu.addSeparator()
 
     def onShowFrames():
-      self.__widgets['frames'].model().setProcedureArgs([id])
+      self.__widgets['frames'].model().setProcedureArgs([firstId])
       self.__widgets['tabs'].setCurrentWidget(self.__widgets['frames'])
 
     menu.addAction('show frames in manager').triggered.connect(onShowFrames)
@@ -333,9 +335,10 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     def setupPrioAction(menu, prio):
 
       def onTriggered():
-        job = zookeeper.zkDB.zkJob.getById(self.__conn, id)
-        job.priority = prio
-        job.write()
+        for id in ids:
+          job = zookeeper.zkDB.zkJob.getById(self.__conn, id)
+          job.priority = prio
+          job.write()
         self.poll()
 
       menu.addAction('set prio to %d' % prio).triggered.connect(onTriggered)
@@ -346,17 +349,20 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     menu.addSeparator()
 
     def onResubmit():
-      self.__conn.call('resubmit_job', [id])
+      for id in ids:
+        self.__conn.call('resubmit_job', [id])
       self.poll()
     menu.addAction('resubmit').triggered.connect(onResubmit)
 
     def onStop():
-      self.__conn.call("stop_job", [id])
+      for id in ids:
+        self.__conn.call("stop_job", [id])
       self.poll()
     menu.addAction('stop').triggered.connect(onStop)
 
     def onResume():
-      self.__conn.call("resume_job", [id])
+      for id in ids:
+        self.__conn.call("resume_job", [id])
       self.poll()
     menu.addAction('resume').triggered.connect(onResume)
 
@@ -370,7 +376,8 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
       msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
       ret = msgBox.exec_()
       if ret == QtGui.QMessageBox.Ok:
-        self.__conn.call('delete_job', [id])
+        for id in ids:
+          self.__conn.call('delete_job', [id])
         self.poll()
     menu.addAction('delete').triggered.connect(onDelete)
 
@@ -385,6 +392,8 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
   def onFrameContextMenu(self, ids, col):
 
     menu = QtGui.QMenu()
+
+    firstId = ids[0]
 
     def setupRevealAction(menu, output_id, output_name, asFolder = False):
 
@@ -402,7 +411,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
 
       menu.addAction('open %s%s' % (output_name, (' folder' if asFolder else ''))).triggered.connect(onTriggered)
 
-    outputs = self.__conn.call('get_outputs_per_frame', [id])
+    outputs = self.__conn.call('get_outputs_per_frame', [firstId])
     if len(outputs) > 0:
       for output in outputs:
         setupRevealAction(menu, output[0], output[1])
@@ -410,7 +419,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
       for output in outputs:
         setupRevealAction(menu, output[0], output[1], True)
       menu.addSeparator()
-      frame = zookeeper.zkDB.zkFrame.getById(self.__conn, id)
+      frame = zookeeper.zkDB.zkFrame.getById(self.__conn, firstId)
       for output in outputs:
         self._setupFlipbookAction(menu, frame.jobid, output[1])
       menu.addSeparator()
@@ -418,7 +427,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     setting = zookeeper.zkDB.zkSetting.getByName(self.__conn, 'log_root')
     if setting:
       def onShowLog():
-        frame = zookeeper.zkDB.zkFrame.getById(self.__conn, id)
+        frame = zookeeper.zkDB.zkFrame.getById(self.__conn, firstId)
         path = frame.log
         if path:
           if os.path.exists(path):
@@ -432,9 +441,10 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     def setupPrioAction(menu, prio):
 
       def onTriggered():
-        frame = zookeeper.zkDB.zkFrame.getById(self.__conn, id)
-        frame.priority = prio
-        frame.write()
+        for id in ids:
+          frame = zookeeper.zkDB.zkFrame.getById(self.__conn, id)
+          frame.priority = prio
+          frame.write()
         self.poll()
 
       menu.addAction('set prio to %d' % prio).triggered.connect(onTriggered)
@@ -445,17 +455,20 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     menu.addSeparator()
 
     def onResubmit():
-      self.__conn.call("resubmit_frame", [id])
+      for id in ids:
+        self.__conn.call("resubmit_frame", [id])
       self.poll()
     menu.addAction('resubmit').triggered.connect(onResubmit)
 
     def onStop():
-      self.__conn.call("stop_frame", [id])
+      for id in ids:
+        self.__conn.call("stop_frame", [id])
       self.poll()
     menu.addAction('stop').triggered.connect(onStop)
 
     def onResume():
-      self.__conn.call("resume_frame", [id])
+      for id in ids:
+        self.__conn.call("resume_frame", [id])
       self.poll()
     menu.addAction('resume').triggered.connect(onResume)
 
