@@ -1,5 +1,6 @@
 import os
 from PySide import QtCore, QtGui
+import zookeeper
 
 class zkMainWindow(QtGui.QMainWindow):
 
@@ -8,7 +9,7 @@ class zkMainWindow(QtGui.QMainWindow):
   def __init__(self, title, createLogo = True, parent = None):
     super(zkMainWindow, self).__init__(parent)
 
-    self.setWindowTitle('ZooKeeper '+title)
+    self.setWindowTitle('ZooKeeper '+title+' '+str(zookeeper.version))
     self.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.MinimumExpanding)
 
     iconPath = os.path.join(os.path.split(__file__)[0], 'logo_low.png')
