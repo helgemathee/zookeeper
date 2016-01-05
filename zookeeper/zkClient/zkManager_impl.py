@@ -72,6 +72,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
       getItemDataCallback = self.onMachineGetData
       )
     self.__widgets['machines'].contextMenuRequested.connect(self.onMachineContextMenu)
+    self.__widgets['machines'].doubleClicked.connect(self.onMachineDoubleClicked)
 
     # frames
     labels = ['job', 'time', 'status', 'duration', 'machine', 'prio', 'package']
@@ -225,6 +226,16 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
 
     pos = QtGui.QCursor().pos()
     menu.exec_(pos)
+
+  def onMachineDoubleClicked(self, index):
+    id = self.__widgets['machines'].model().getIdFromIndex(index)
+    machine = zookeeper.zkDB.zkMachine(self.__conn, id = id, asClient = False)
+    if machine.frameid == -1:
+      return
+    frame = zookeeper.zkDB.zkFrame(self.__conn, id = machine.frameid)
+    job = frame.job
+    self.__widgets['frames'].model().setProcedureArgs([job.id])
+    self.__widgets['tabs'].setCurrentWidget(self.__widgets['frames'])
 
   def onProjectContextMenu(self, ids, col):
 
