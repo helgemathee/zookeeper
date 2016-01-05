@@ -41,12 +41,16 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     self.addWidgetToCentral(self.__widgets['tabs'])
 
     # jobs
+    # labels = ['project', 'job', 'user', 'frames', 'prio', 'status', 'progress', 'remaining', 'total']
+    # widths = [1,         3,     1,      1,        1,      1,        6,          2,           2      ]
     labels = ['project', 'job', 'user', 'frames', 'prio', 'status', 'progress']
+    widths = [2,         3,     1,      1,        1,      1,        6,        ]
     self.__widgets['jobs'] = zookeeper.zkUI.zkDbTable(
       self.__conn,
       zookeeper.zkDB.zkMachine,
       procedure = 'get_jobs_for_manager',
       labels = labels,
+      widths = widths,
       getItemDataCallback = self.onJobGetData
       )
     self.__widgets['jobs'].contextMenuRequested.connect(self.onJobContextMenu)
