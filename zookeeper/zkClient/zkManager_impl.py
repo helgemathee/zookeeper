@@ -65,16 +65,31 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     self.__widgets['projects'].contextMenuRequested.connect(self.onProjectContextMenu)
 
     # machines
-    labels = ['name', 'status', 'prio', 'cpu', 'ram']
+    labels = ['name', 'groups', 'status', 'prio', 'cpu', 'ram']
+    widths = [2,      4,        1.3,      1,      2,     2    ]
     self.__widgets['machines'] = zookeeper.zkUI.zkDbTable(
       self.__conn,
       zookeeper.zkDB.zkMachine,
       procedure = 'get_machines_for_manager',
       labels = labels,
+      widths = widths,
       getItemDataCallback = self.onMachineGetData
       )
     self.__widgets['machines'].contextMenuRequested.connect(self.onMachineContextMenu)
     self.__widgets['machines'].doubleClicked.connect(self.onMachineDoubleClicked)
+
+    # groups
+    labels = ['name', 'machines']
+    widths = [2,      10        ]
+    self.__widgets['groups'] = zookeeper.zkUI.zkDbTable(
+      self.__conn,
+      zookeeper.zkDB.zkMachineGroup,
+      procedure = 'get_groups_for_manager',
+      labels = labels,
+      widths = widths,
+      getItemDataCallback = self.onMachineGroupGetData
+      )
+    self.__widgets['groups'].contextMenuRequested.connect(self.onMachineGroupContextMenu)
 
     # frames
     labels = ['job', 'time', 'status', 'duration', 'machine', 'prio', 'package']
@@ -95,6 +110,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     self.__widgets['tabs'].addTab(self.__widgets['jobs'], 'jobs')
     self.__widgets['tabs'].addTab(self.__widgets['projects'], 'projects')
     self.__widgets['tabs'].addTab(self.__widgets['machines'], 'machines')
+    self.__widgets['tabs'].addTab(self.__widgets['groups'], 'groups')
     self.__widgets['tabs'].addTab(self.__widgets['frames'], 'frames')
     self.__widgets['tabs'].addTab(self.__widgets['log'], 'log')
 
@@ -114,9 +130,16 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
       widget.pollOnModel()
 
   def onMachineGetData(self, table, caption, id, data, role):
+
+    if caption == 'groups':
+      groups = ['all']
+      if not data == 'none' and data:
+        groups += str(data).split(',')
+      return ', '.join(groups)
+
     if data is None:
       return None
-      
+
     if caption == 'status':
       if role == QtCore.Qt.BackgroundRole:
         if data == 'OFFLINE':
@@ -155,6 +178,19 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
         grad.setColorAt(0, QtCore.Qt.magenta)
         grad.setColorAt(1, QtCore.Qt.white)
         return QtGui.QBrush(grad)
+
+    return data
+
+  def onMachineGroupGetData(self, table, caption, id, data, role):
+    if data is None:
+      return None
+      
+    if caption == 'machines' and id == 1:
+      results = self.__conn.execute('SELECT machine_name FROM machine ORDER BY machine_name ASC;')
+      names = []
+      for result in results:
+        names += [str(result[0]).strip()]
+      return ', '.join(names)
 
     return data
 
@@ -231,6 +267,105 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     for prio in ['OFF', 'LOW', 'MED', 'HIGH']:
       setupPrioAction(menu, prio)
 
+    menu.addSeparator()
+
+    def setupGroupAction(menu, group):
+
+      insideAll = True
+      for id in ids:
+        inside = group.containsMachine(id)
+        if not inside:
+          insideAll = False
+
+      def onToggled(state):
+        for id in ids:
+          if state:
+            group.addMachine(id)
+          else:
+            group.removeMachine(id)
+        self.poll()
+
+      action = menu.addAction('group %s' % group.name)
+      action.setCheckable(True)
+      action.setChecked(insideAll)
+      action.toggled.connect(onToggled)
+
+    groups = zookeeper.zkDB.zkMachineGroup.getAll(self.__conn)
+    for group in groups:
+      setupGroupAction(menu, group)
+
+    pos = QtGui.QCursor().pos()
+    menu.exec_(pos)
+
+  def onMachineGroupContextMenu(self, ids, col):
+
+    isAllGroup = len(ids) == 1 and ids[0] == 1
+
+    menu = QtGui.QMenu()
+
+    strids = []
+    for id in ids:
+      strids += [str(id)]
+    groups = zookeeper.zkDB.zkMachineGroup.getAll(self.__conn, condition = 'machinegroup_id != 1 AND machinegroup_id in (%s)' % ','.join(strids))
+
+    def onNew():
+      def onAccepted(fields):
+        p = zookeeper.zkDB.zkMachineGroup.createNew(self.__conn)
+        p.name = fields[0]['value']
+        p.write()
+        self.poll()
+
+      dialog = zookeeper.zkUI.zkNewMachineGroupDialog(onAccepted, None)
+      dialog.exec_()
+
+    menu.addAction('new group').triggered.connect(onNew)
+
+    menu.addSeparator()
+
+    def setupMemberShipActions(menu, machine):
+
+      insideAll = True
+      for group in groups:
+        inside = group.containsMachine(machine.id)
+        if not inside:
+          insideAll = False
+
+      def onToggled(state):
+        for group in groups:
+          if state:
+            group.addMachine(machine.id)
+          else:
+            group.removeMachine(machine.id)
+        self.poll()
+
+      action = menu.addAction('member %s' % machine.name)
+      action.setCheckable(True)
+      action.setChecked(insideAll)
+      action.setEnabled(not isAllGroup)
+      action.toggled.connect(onToggled)
+
+    machines = zookeeper.zkDB.zkMachine.getAll(self.__conn, order = 'machine_name ASC')
+    for machine in machines:
+      setupMemberShipActions(menu, machine)
+
+    menu.addSeparator()
+
+    def onDelete():
+      msgBox = QtGui.QMessageBox()
+      msgBox.setText("Are you sure?")
+      msgBox.setInformativeText("This will remove this group and set all projects using it to the 'all' group.")
+      msgBox.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
+      msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
+      ret = msgBox.exec_()
+      if ret == QtGui.QMessageBox.Ok:
+        for id in ids:
+          self.__conn.call('delete_group', [id])
+        self.poll()
+
+    action = menu.addAction('delete')
+    action.triggered.connect(onDelete)
+    action.setEnabled(not isAllGroup)
+
     pos = QtGui.QCursor().pos()
     menu.exec_(pos)
 
@@ -262,6 +397,33 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
 
     menu.addSeparator()
 
+    def setupGroupAction(menu, group):
+
+      insideAll = True
+      for id in ids:
+        project = zookeeper.zkDB.zkProject.getById(self.__conn, id = id)
+        inside = group.id == project.machinegroup
+        if not inside:
+          insideAll = False
+
+      def onToggled(state):
+        for id in ids:
+          project = zookeeper.zkDB.zkProject.getById(self.__conn, id = id)
+          project.machinegroup = group.id
+          project.write()
+        self.poll()
+
+      action = menu.addAction('group %s' % group.name)
+      action.setCheckable(True)
+      action.setChecked(insideAll)
+      action.toggled.connect(onToggled)
+
+    groups = zookeeper.zkDB.zkMachineGroup.getAll(self.__conn)
+    for group in groups:
+      setupGroupAction(menu, group)
+
+    menu.addSeparator()
+
     def onDelete():
       msgBox = QtGui.QMessageBox()
       msgBox.setText("Are you sure?")
@@ -270,7 +432,8 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
       msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
       ret = msgBox.exec_()
       if ret == QtGui.QMessageBox.Ok:
-        self.__conn.call('delete_project', [id])
+        for id in ids:
+          self.__conn.call('delete_project', [id])
         self.poll()
     menu.addAction('delete').triggered.connect(onDelete)
 

@@ -3,4 +3,4 @@ from zkDB import *
 from zkUI import *
 from zkClient import *
 
-version = 'v1.07'
+version = 'v1.08'

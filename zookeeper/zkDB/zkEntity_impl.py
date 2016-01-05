@@ -14,6 +14,7 @@ class zkEntity(object):
 
     self.__conn = connection
     self.__table = '' + str(table)
+
     self.__id = id
     self.__fieldsChanged = {}
 
@@ -209,6 +210,8 @@ class zkEntity(object):
     sql += ';'
     ids = conn.execute(sql, errorPrefix=table)
     result = []
+    if not ids:
+      return result
     for id in ids:
       result += [cls(conn, id=id[0])]
     return result

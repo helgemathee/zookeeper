@@ -25,22 +25,16 @@ DROP TABLE IF EXISTS `externalfile`;
 CREATE TABLE `externalfile` (
   `externalfile_id` int(11) NOT NULL AUTO_INCREMENT,
   `externalfile_projectid` int(11) NOT NULL,
-  `externalfile_type` varchar(45) NOT NULL,
-  `externalfile_userpath` varchar(1024) NOT NULL,
-  `externalfile_resolvedpath` varchar(1024) NOT NULL,
+  `externalfile_type` varchar(128) NOT NULL,
+  `externalfile_userpath` varchar(2048) NOT NULL,
+  `externalfile_resolvedpath` varchar(2048) NOT NULL,
   `externalfile_resolution` int(11) DEFAULT '-1',
+  `externalfile_start` int(11) DEFAULT '1',
+  `externalfile_end` int(11) DEFAULT '1',
+  `externalfile_padding` int(11) DEFAULT '5',
   PRIMARY KEY (`externalfile_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `externalfile`
---
-
-LOCK TABLES `externalfile` WRITE;
-/*!40000 ALTER TABLE `externalfile` DISABLE KEYS */;
-/*!40000 ALTER TABLE `externalfile` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `frame`
@@ -65,17 +59,8 @@ CREATE TABLE `frame` (
   `frame_duration` int(11) DEFAULT NULL,
   `frame_log` varchar(1024) DEFAULT NULL,
   PRIMARY KEY (`frame_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `frame`
---
-
-LOCK TABLES `frame` WRITE;
-/*!40000 ALTER TABLE `frame` DISABLE KEYS */;
-/*!40000 ALTER TABLE `frame` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `input`
@@ -88,17 +73,8 @@ CREATE TABLE `input` (
   `input_id` int(11) NOT NULL AUTO_INCREMENT,
   `input_path` varchar(1024) NOT NULL,
   PRIMARY KEY (`input_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `input`
---
-
-LOCK TABLES `input` WRITE;
-/*!40000 ALTER TABLE `input` DISABLE KEYS */;
-/*!40000 ALTER TABLE `input` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `job`
@@ -114,7 +90,7 @@ CREATE TABLE `job` (
   `job_user` varchar(45) NOT NULL,
   `job_machine` int(11) NOT NULL,
   `job_type` enum('DELETED','CAPTURE','FIRSTLAST','ALL') NOT NULL DEFAULT 'ALL',
-  `job_name` varchar(45) NOT NULL,
+  `job_name` varchar(1024) NOT NULL,
   `job_priority` int(11) DEFAULT '50',
   `job_dcc` varchar(45) NOT NULL,
   `job_dccversion` varchar(45) NOT NULL,
@@ -125,17 +101,8 @@ CREATE TABLE `job` (
   `job_mingpuramgb` int(11) DEFAULT '0',
   `job_overwriteoutputs` int(11) DEFAULT '0',
   PRIMARY KEY (`job_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `job`
---
-
-LOCK TABLES `job` WRITE;
-/*!40000 ALTER TABLE `job` DISABLE KEYS */;
-/*!40000 ALTER TABLE `job` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `machine`
@@ -178,6 +145,56 @@ INSERT INTO `machine` VALUES (1,'none',1,-1,' ',' ',NULL,'OFFLINE','MED',0,0,0,0
 UNLOCK TABLES;
 
 --
+-- Table structure for table `machinegroup`
+--
+
+DROP TABLE IF EXISTS `machinegroup`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `machinegroup` (
+  `machinegroup_id` int(11) NOT NULL AUTO_INCREMENT,
+  `machinegroup_name` varchar(255) NOT NULL,
+  PRIMARY KEY (`machinegroup_id`),
+  UNIQUE KEY `machinegroup_name_UNIQUE` (`machinegroup_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `machinegroup`
+--
+
+LOCK TABLES `machinegroup` WRITE;
+/*!40000 ALTER TABLE `machinegroup` DISABLE KEYS */;
+INSERT INTO `machinegroup` VALUES (1,'all');
+/*!40000 ALTER TABLE `machinegroup` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `membership`
+--
+
+DROP TABLE IF EXISTS `membership`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `membership` (
+  `membership_id` int(11) NOT NULL AUTO_INCREMENT,
+  `membership_machine` int(11) NOT NULL,
+  `membership_machinegroup` int(11) NOT NULL,
+  PRIMARY KEY (`membership_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `membership`
+--
+
+LOCK TABLES `membership` WRITE;
+/*!40000 ALTER TABLE `membership` DISABLE KEYS */;
+INSERT INTO `membership` VALUES (1,1,1);
+/*!40000 ALTER TABLE `membership` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `notification`
 --
 
@@ -196,15 +213,6 @@ CREATE TABLE `notification` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `notification`
---
-
-LOCK TABLES `notification` WRITE;
-/*!40000 ALTER TABLE `notification` DISABLE KEYS */;
-/*!40000 ALTER TABLE `notification` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `output`
 --
 
@@ -220,17 +228,8 @@ CREATE TABLE `output` (
   `output_name` varchar(45) NOT NULL,
   `output_path` varchar(1024) NOT NULL,
   PRIMARY KEY (`output_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `output`
---
-
-LOCK TABLES `output` WRITE;
-/*!40000 ALTER TABLE `output` DISABLE KEYS */;
-/*!40000 ALTER TABLE `output` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `project`
@@ -243,19 +242,11 @@ CREATE TABLE `project` (
   `project_id` int(11) NOT NULL AUTO_INCREMENT,
   `project_name` varchar(45) NOT NULL,
   `project_type` enum('DELETED','NORMAL') NOT NULL DEFAULT 'NORMAL',
+  `project_machinegroup` int(11) NOT NULL DEFAULT '1',
   PRIMARY KEY (`project_id`),
   UNIQUE KEY `project_name_UNIQUE` (`project_name`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `project`
---
-
-LOCK TABLES `project` WRITE;
-/*!40000 ALTER TABLE `project` DISABLE KEYS */;
-/*!40000 ALTER TABLE `project` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `setting`
@@ -270,7 +261,7 @@ CREATE TABLE `setting` (
   `setting_value` varchar(1024) NOT NULL,
   PRIMARY KEY (`setting_id`),
   UNIQUE KEY `setting_name_UNIQUE` (`setting_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -279,7 +270,7 @@ CREATE TABLE `setting` (
 
 LOCK TABLES `setting` WRITE;
 /*!40000 ALTER TABLE `setting` DISABLE KEYS */;
-INSERT INTO `setting` VALUES (1,'log_root','\\\\domain\\public\\zookeeper\\logs'),(2,'softimage_workgroup_root','\\\\domain\\public\\zookeeper\\workgroups');
+INSERT INTO `setting` VALUES (1,'log_root','\\\\domain\\public\\zookeeper\\logs'),(2,'softimage_workgroup_root','\\\\domain\\public\\zookeeper\\workgroups'),(3,'render_user','render'),(5,'render_password','render123');
 /*!40000 ALTER TABLE `setting` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -297,17 +288,8 @@ CREATE TABLE `uncmap` (
   `uncmap_uncpath` varchar(96) NOT NULL,
   `uncmap_created` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`uncmap_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `uncmap`
---
-
-LOCK TABLES `uncmap` WRITE;
-/*!40000 ALTER TABLE `uncmap` DISABLE KEYS */;
-/*!40000 ALTER TABLE `uncmap` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `validunc`
@@ -320,18 +302,8 @@ CREATE TABLE `validunc` (
   `validunc_id` int(11) NOT NULL AUTO_INCREMENT,
   `validunc_path` varchar(96) NOT NULL,
   PRIMARY KEY (`validunc_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `validunc`
---
-
-LOCK TABLES `validunc` WRITE;
-/*!40000 ALTER TABLE `validunc` DISABLE KEYS */;
-INSERT INTO `validunc` VALUES (1,'\\\\domain\\public'),(2,'\\\\domain\\tomsporer'),(5,'\\\\192.168.1.10\\public'),(6,'\\\\192.168.1.10\\tomsporer');
-/*!40000 ALTER TABLE `validunc` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Dumping routines for database 'zookeeper'
@@ -356,6 +328,39 @@ BEGIN
 	WHERE
 		frame.frame_status = 'PROCESSING' and
         frame.frame_machineid = target;
+	COMMIT;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `delete_group` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`mysql`@`%` PROCEDURE `delete_group`(in g INT(11))
+BEGIN
+	UPDATE 
+		project
+	SET
+		project_machinegroup = 1
+	WHERE 
+		project_machinegroup = g;
+	DELETE FROM 
+		membership
+	WHERE
+		membership_machinegroup = g;
+	DELETE FROM
+		machinegroup
+	WHERE 
+		machinegroup_id = g AND machinegroup_id != 1;
 	COMMIT;
 END ;;
 DELIMITER ;
@@ -515,6 +520,43 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `get_groups_for_manager` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`mysql`@`%` PROCEDURE `get_groups_for_manager`()
+BEGIN
+	SELECT DISTINCT
+		machinegroup_id, 
+        machinegroup_name,
+        (
+			SELECT GROUP_CONCAT(machine_name SEPARATOR ',')
+			FROM
+				machine,
+                membership
+			WHERE
+				membership_machine = machine_id AND
+				membership_machinegroup = machinegroup_id
+			ORDER BY
+				machine_name ASC
+		)
+	FROM
+		machinegroup
+	ORDER BY
+		machinegroup_name ASC;
+    
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `get_jobs_for_manager` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -572,7 +614,39 @@ BEGIN
 				WHERE 
 					frame_jobid = job_id
 			)
-		) 
+		),
+		(
+			SELECT
+				(
+					SUM(timediff(frame_ended, frame_started)) DIV
+					COUNT(frame_id)
+				)
+			FROM
+				frame
+			WHERE
+				frame_jobid = job_id AND
+				frame_status = 'DELIVERED'
+		) *
+		(
+			SELECT
+				COUNT(frame_id)
+			FROM
+				frame
+			WHERE
+				frame_jobid = job_id AND
+				frame_status != 'DELIVERED'
+		),
+		(
+			SELECT
+				(
+					SUM(timediff(frame_ended, frame_started))
+				)
+			FROM
+				frame
+			WHERE
+				frame_jobid = job_id AND
+				frame_status = 'DELIVERED'
+		)
 	FROM 
 		job,
         project
@@ -619,13 +693,25 @@ DELIMITER ;
 /*!50003 SET character_set_results = utf8 */ ;
 /*!50003 SET collation_connection  = utf8_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `get_machines_for_manager`()
 BEGIN
 	SELECT 
 		machine_id, 
         machine_name, 
+        (
+			SELECT GROUP_CONCAT(
+				machinegroup_name SEPARATOR ',')
+			FROM
+				machinegroup,
+                membership
+			WHERE
+				membership_machine = machine_id AND
+				membership_machinegroup = machinegroup_id
+			ORDER BY
+				machinegroup_name ASC
+		),        
         machine_status, 
         machine_priority, 
         machine_cpuusage, 
@@ -715,11 +801,13 @@ BEGIN
 			WHERE 
 				job_projectid = project_id AND
                 job_type != 'DELETED'
-		)
+		),
+        machinegroup_name
 	FROM
-		project
+		project, machinegroup
 	WHERE
-		project_type != 'DELETED'
+		project_type != 'DELETED' AND
+        project_machinegroup = machinegroup_id
 	ORDER BY
 		project_name ASC;
 		
@@ -753,6 +841,38 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `groups_for_machine` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`mysql`@`%` PROCEDURE `groups_for_machine`(in m INT(11))
+BEGIN
+	SELECT DISTINCT
+		machinegroup_name
+	FROM
+		machinegroup, membership
+	WHERE
+		(
+			membership_machinegroup = machinegroup_id AND
+            membership_machine = m
+		)
+        OR
+		machinegroup_id = 1
+	ORDER BY
+		machinegroup_name ASC;
+        
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `look_for_outputs_to_deliver` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -771,7 +891,6 @@ BEGIN
 		frame, output
 	WHERE
 		frame_machineid = target AND
-        frame_status = 'COMPLETED' AND
         output_frameid = frame_id AND
         output_status = 'PENDING';
 END ;;
@@ -792,12 +911,20 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `look_for_work`(IN my_machine_id INT(11), IN max_results INT(11))
 BEGIN
-  SELECT frame.frame_id from frame, job, machine
+  SELECT DISTINCT frame.frame_id from frame, job, project, machine, membership
   WHERE 
     machine.machine_id = my_machine_id and 
     frame.frame_jobid = job.job_id and 
+    frame.frame_projectid = project.project_id and
     frame.frame_status = 'WAITING' and 
     frame.frame_machineid != my_machine_id and # don't do the same frame twice on the same machine
+    (
+		(
+			membership_machinegroup = project.project_machinegroup and
+			membership_machine = my_machine_id
+		) or
+        project.project_machinegroup = 1 # all machines group
+	) and
     job.job_mincores <= machine.machine_cores and 
     job.job_minramgb <= machine.machine_ramgb and 
     job.job_mingpuramgb <= machine.machine_gpuramgb and
@@ -810,6 +937,41 @@ BEGIN
   LIMIT max_results;
 
 
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `machines_for_group` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8 */ ;
+/*!50003 SET character_set_results = utf8 */ ;
+/*!50003 SET collation_connection  = utf8_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`mysql`@`%` PROCEDURE `machines_for_group`(in g INT(11))
+BEGIN
+	SELECT DISTINCT
+		machine_name
+	FROM
+		machine, membership, machinegroup
+	WHERE
+		(
+			membership_machinegroup = g AND
+            membership_machine = machine_id
+		)
+        OR
+        (
+			machinegroup_id = g AND
+            g = 1
+		)
+	ORDER BY
+		machine_name ASC;
+        
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -986,6 +1148,7 @@ BEGIN
 	SET
 		frame.frame_status = 'PROCESSING',
         frame.frame_started = NOW(),
+        frame.frame_ended = NOW(),
         frame.frame_machineid = targetMachine
 	WHERE
 		frame.frame_id = target;
@@ -1098,6 +1261,10 @@ BEGIN
   TRUNCATE uncmap;
   DELETE FROM machine WHERE machine_id > 1; 
   ALTER TABLE machine AUTO_INCREMENT = 2;
+  DELETE FROM machinegroup WHERE machinegroup_id > 1;
+  ALTER TABLE machinegroup AUTO_INCREMENT = 2;
+  DELETE FROM membership WHERE membership_id > 1;
+  ALTER TABLE membership AUTO_INCREMENT = 2;
   COMMIT;
 END ;;
 DELIMITER ;
@@ -1115,4 +1282,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2015-11-19 21:16:59
+-- Dump completed on 2016-01-05 14:29:51
