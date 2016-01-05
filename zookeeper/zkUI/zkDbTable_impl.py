@@ -26,6 +26,7 @@ class zkDbTable(QtGui.QTableView):
     self.setModel(self.__model)
 
   def onContextMenuRequested(self, point):
+    indices = self.selectedIndexes()
     index = self.indexAt(point)
     if not index.isValid:
       return

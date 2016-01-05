@@ -208,7 +208,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
 
     return data
 
-  def onMachineContextMenu(self, id, col):
+  def onMachineContextMenu(self, ids, col):
     menu = QtGui.QMenu()
 
     def setupPrioAction(menu, prio):
@@ -225,7 +225,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     pos = QtGui.QCursor().pos()
     menu.exec_(pos)
 
-  def onProjectContextMenu(self, id, col):
+  def onProjectContextMenu(self, ids, col):
 
     menu = QtGui.QMenu()
 
@@ -295,7 +295,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
 
     menu.addAction('open %s in flipbook' % output_name).triggered.connect(onTriggered)
 
-  def onJobContextMenu(self, id, col):
+  def onJobContextMenu(self, ids, col):
 
     menu = QtGui.QMenu()
 
@@ -382,7 +382,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     self.__widgets['frames'].model().setProcedureArgs([id])
     self.__widgets['tabs'].setCurrentWidget(self.__widgets['frames'])
 
-  def onFrameContextMenu(self, id, col):
+  def onFrameContextMenu(self, ids, col):
 
     menu = QtGui.QMenu()
 
