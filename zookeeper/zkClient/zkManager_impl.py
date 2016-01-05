@@ -247,7 +247,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     def onDelete():
       msgBox = QtGui.QMessageBox()
       msgBox.setText("Are you sure?")
-      msgBox.setInformativeText("This will remove all jobs, frames and outputs...!")
+      msgBox.setInformativeText("This will remove all jobs, frames and outputs (from scratch disc only)...!")
       msgBox.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
       msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
       ret = msgBox.exec_()
@@ -371,7 +371,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     def onDelete():
       msgBox = QtGui.QMessageBox()
       msgBox.setText("Are you sure?")
-      msgBox.setInformativeText("This will remove all frames and outputs...!")
+      msgBox.setInformativeText("This will remove all frames and outputs (from scratch disc only)...!")
       msgBox.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
       msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
       ret = msgBox.exec_()
