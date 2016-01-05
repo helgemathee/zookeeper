@@ -186,7 +186,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
       return None
       
     if caption == 'machines' and id == 1:
-      results = self.__conn.execute('SELECT machine_name FROM machine ORDER BY machine_name ASC;')
+      results = self.__conn.execute('SELECT machine_name FROM machine WHERE machine_id != 1 ORDER BY machine_name ASC;')
       names = []
       for result in results:
         names += [str(result[0]).strip()]
@@ -344,7 +344,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
       action.setEnabled(not isAllGroup)
       action.toggled.connect(onToggled)
 
-    machines = zookeeper.zkDB.zkMachine.getAll(self.__conn, order = 'machine_name ASC')
+    machines = zookeeper.zkDB.zkMachine.getAll(self.__conn, condition = 'machine_id > 1', order = 'machine_name ASC')
     for machine in machines:
       setupMemberShipActions(menu, machine)
 
