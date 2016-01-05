@@ -34,4 +34,7 @@ class zkDbTable(QtGui.QTableView):
     self.contextMenuRequested.emit(id, caption)
 
   def pollOnModel(self):
+    indices = self.selectedIndexes()
     self.__model.poll()
+    for i in range(len(indices)):
+      self.selectionModel().select(indices[i], QtGui.QItemSelectionModel.Select)
