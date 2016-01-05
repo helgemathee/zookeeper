@@ -41,10 +41,8 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     self.addWidgetToCentral(self.__widgets['tabs'])
 
     # jobs
-    # labels = ['project', 'job', 'user', 'frames', 'prio', 'status', 'progress', 'remaining', 'total']
-    # widths = [1,         3,     1,      1,        1,      1,        6,          2,           2      ]
-    labels = ['project', 'job', 'user', 'frames', 'prio', 'status', 'progress']
-    widths = [2,         3,     1,      1,        1,      1,        6,        ]
+    labels = ['project', 'job', 'user', 'frames', 'prio', 'status', 'progress', 'remaining', 'total']
+    widths = [2,         3,     1,      1,        1,      1,        6,          2,           2      ]
     self.__widgets['jobs'] = zookeeper.zkUI.zkDbTable(
       self.__conn,
       zookeeper.zkDB.zkMachine,
@@ -186,6 +184,11 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
         grad.setColorAt(0, QtCore.Qt.green)
         grad.setColorAt(1, QtCore.Qt.white)
         return QtGui.QBrush(grad)
+
+    elif caption in ['remaining', 'total']:
+      if not data:
+        data = 0
+      return str(datetime.timedelta(seconds=int(data)))
 
     return data
 
