@@ -56,6 +56,12 @@ def munch():
   Application.OpenScene(scenePath, False, False)
   scene = Application.ActiveProject.ActiveScene
 
+  # redirect the scene output if it is using the [Scene] token
+  sceneName = os.path.split(input.path)[1].rpartition('.')[0]
+  outputDir = Application.GetValue('Passes.RenderOptions.OutputDir')
+  outputDir = str(outputDir).replace('[Scene]', sceneName)
+  Application.SetValue('Passes.RenderOptions.OutputDir', outputDir)
+
   # vebosity levels
   # try all of them, add redshift, arnold etc
   settings = [
@@ -206,7 +212,6 @@ def munch():
           # replace the scene token with the original scene name
           # this might have changed due to scratch disc file name
           # which are different than the original file names.
-          sceneName = os.path.split(input.path)[1].rpartition('.')[0]
           fn = str(fb.FileName.Value).replace('[Scene]', sceneName)
           fb.FileName.Value = fn
 
