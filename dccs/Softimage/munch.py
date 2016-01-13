@@ -202,6 +202,14 @@ def munch():
           fb = frameBuffers(i)
           if not fb.Parameters.GetItem('Enabled').Value:
             continue
+
+          # replace the scene token with the original scene name
+          # this might have changed due to scratch disc file name
+          # which are different than the original file names.
+          sceneName = os.path.split(input.path)[1].rpartition('.')[0]
+          fn = str(fb.FileName.Value).replace('[Scene]', sceneName)
+          fb.FileName.Value = fn
+
           output = zookeeper.zkDB.zkOutput.createNew(connection)
           output.frame = frame
           output.name = fb.Name
