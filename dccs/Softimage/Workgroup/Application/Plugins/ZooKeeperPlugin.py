@@ -183,7 +183,34 @@ def zkSynchSceneToNetwork_Execute(  ):
     if createProject:
       Application.ActiveProject2 = Application.CreateProject2(targetProject)
 
-    synchedPaths = zookeeper.zkClient.zk_synchronizeFilesBetweenFolders(pathsToSynch, sourceFolder, targetFolder)
+
+    # ------------------------- Juan modified START -------------------------
+    # create progessbar for file syncing
+    progBarFileSync = XSIUIToolkit.ProgressBar
+    progBarMax = len(pathsToSynch)
+
+    progBarFileSync.Maximum = progBarMax
+    progBarFileSync.Step = 1
+    progBarFileSync.Caption = "syncing..."
+    #progBarFileSync.CancelEnabled = true
+    progBarFileSync.Visible = True
+
+    def callFuncProgBar( message ):
+      LogMessage(message)
+      tmpFileName = message.split()[1]
+      tmpFileName = os.path.basename( tmpFileName )
+      progBarFileSync.StatusText = "%s   -   %s / %s" % (tmpFileName, progBarFileSync.Value, progBarMax)
+      progBarFileSync.Increment()
+
+    synchedPaths = zookeeper.zkClient.zk_synchronizeFilesBetweenFolders(pathsToSynch, sourceFolder, targetFolder, logFunc = callFuncProgBar)
+    #synchedPaths = zookeeper.zkClient.zk_synchronizeFilesBetweenFolders(pathsToSynch, sourceFolder, targetFolder)
+
+    # - - - - - - - - - - - - - - - - - -
+    # make sure the progress bar disappears
+    progBarFileSync.Visible = False
+    # ------------------------- Juan modified END -------------------------
+
+
     for i in range(len(pathsToAdapt)):
       if synchedPaths[i] is None:
         continue
