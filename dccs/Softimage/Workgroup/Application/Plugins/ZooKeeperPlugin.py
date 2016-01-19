@@ -166,7 +166,6 @@ def zkSynchSceneToNetwork_Execute(  ):
             pathsToAdapt += [[{'obj': item, 'type': 'ICECache'}]]
 
 
-    # ------------------------- Juan modified START -------------------------
     # add alembic caches to sync
     '''
     the alembic cache operator splits the FilePath and the FileName
@@ -174,18 +173,13 @@ def zkSynchSceneToNetwork_Execute(  ):
     but only the FilePath needs to be changed later
     '''
     abcNodes = Application.FindObjects( "", "{71BEC811-30CA-4F0A-AFD5-E07666749EB8}" )
-
     if abcNodes.Count > 0:
       for abc in abcNodes:
-        #LogMessage ( abc )
         abcResolvedPath = abc.ResolvedFilePath.Value
         abcFilePath = abc.FilePath
 
         pathsToSynch += [abcResolvedPath]
         pathsToAdapt += [[{'obj': abcFilePath, 'type': 'abcCache'}]]
-
-    # ------------------------- Juan modified END -------------------------
-
 
     sourceProject = fields[0]['value']
     targetProject = fields[1]['value']
@@ -206,7 +200,6 @@ def zkSynchSceneToNetwork_Execute(  ):
       Application.ActiveProject2 = Application.CreateProject2(targetProject)
 
 
-    # ------------------------- Juan modified START -------------------------
     # create progessbar for file syncing
     progBarFileSync = XSIUIToolkit.ProgressBar
     progBarMax = len(pathsToSynch)
@@ -214,7 +207,6 @@ def zkSynchSceneToNetwork_Execute(  ):
     progBarFileSync.Maximum = progBarMax
     progBarFileSync.Step = 1
     progBarFileSync.Caption = "syncing..."
-    #progBarFileSync.CancelEnabled = true
     progBarFileSync.Visible = True
 
     def callFuncProgBar( message ):
@@ -225,13 +217,9 @@ def zkSynchSceneToNetwork_Execute(  ):
       progBarFileSync.Increment()
 
     synchedPaths = zookeeper.zkClient.zk_synchronizeFilesBetweenFolders(pathsToSynch, sourceFolder, targetFolder, logFunc = callFuncProgBar)
-    #synchedPaths = zookeeper.zkClient.zk_synchronizeFilesBetweenFolders(pathsToSynch, sourceFolder, targetFolder)
 
-    # - - - - - - - - - - - - - - - - - -
     # make sure the progress bar disappears
     progBarFileSync.Visible = False
-    # ------------------------- Juan modified END -------------------------
-
 
     for i in range(len(pathsToAdapt)):
       if synchedPaths[i] is None:
@@ -242,13 +230,10 @@ def zkSynchSceneToNetwork_Execute(  ):
 
           pathToAdapt['obj'].Path = synchedPaths[i]
 
-
-        # ------------------------- Juan modified START -------------------------
         if pathToAdapt['type'] == 'abcCache':
-          #get just the path
+          # just get the folder name off the path
           abcFilePathSynced = os.path.dirname( synchedPaths[i] )
           pathToAdapt['obj'].Value = abcFilePathSynced
-        # ------------------------- Juan modified END -------------------------
 
         # here you can add other cases for your own file object types
         # elif pathToAdapt['type'] == 'MyType':
