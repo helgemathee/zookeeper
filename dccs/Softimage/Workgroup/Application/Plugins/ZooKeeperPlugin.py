@@ -213,6 +213,7 @@ def zkSynchSceneToNetwork_Execute(  ):
       msg = info.get("message", "")
       LogMessage( msg )
       tmpFileName = info.get("fileName", "")
+      tmpFileName = os.path.basename( tmpFileName )
       progBarFileSync.StatusText = "%s   -   %s / %s" % (tmpFileName, progBarFileSync.Value, progBarMax)
       progBarFileSync.Increment()
 
