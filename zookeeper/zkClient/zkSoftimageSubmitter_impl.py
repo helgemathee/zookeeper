@@ -180,11 +180,19 @@ class zkSoftimageSubmitter(zkSubmitter):
     else:
       print "Frame Set / Timeline not supported."
 
+
+    # make passes names a list to sort alphabetically (...just for the DialogBox)
     passes = scene.Passes
-    for i in range(passes.Count):
-      passObj = passes(i)
-      enabled = currentPass.Name == passObj.Name   
-      fields += [{'name': 'pass_'+str(passObj.Name), 'label': 'Pass '+str(passObj.Name), 'value': enabled, 'type': 'bool'}]
+    passesNameList = list( [ p.Name for p in passes ] )
+    passesNameList.sort( key=lambda y: y.lower() ) # to sort Softimage style...
+
+    # get the selection and set value=True in the Dialog if it matches the pass name
+    selectList = list( self.__app.Selection )
+
+    for pName in passesNameList:
+      enabled = pName in [ s.Name for s in selectList]
+      fields += [{'name': 'pass_'+pName, 'label': 'Pass <b>'+pName+"</b>", 'value': enabled, 'type': 'bool'}]
+
 
     fields += [{'name': 'framestart', 'label': 'First Frame', 'value': framestart, 'type': 'int', 'tooltip': 'The first frame of the sequence'}]
     fields += [{'name': 'frameend', 'label': 'Last Frame', 'value': frameend, 'type': 'int', 'tooltip': 'The last frame of the sequence'}]
