@@ -209,11 +209,10 @@ def zkSynchSceneToNetwork_Execute(  ):
     progBarFileSync.Caption = "syncing..."
     progBarFileSync.Visible = True
 
-    def callFuncProgBar( message, f ):
-      LogMessage(message)
-      #tmpFileName = message.split()[1]
-      #tmpFileName = os.path.basename( tmpFileName )
-      tmpFileName = os.path.basename( f )
+    def callFuncProgBar( **info ):
+      msg = info.get("message", "")
+      LogMessage( msg )
+      tmpFileName = info.get("fileName", "")
       progBarFileSync.StatusText = "%s   -   %s / %s" % (tmpFileName, progBarFileSync.Value, progBarMax)
       progBarFileSync.Increment()
 

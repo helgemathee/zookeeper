@@ -160,7 +160,9 @@ def zk_synchronizeFolder(source, target, pattern = None, logFunc = None):
     if reason:
       message = "Synchronized %s because %s." % (f, reason)
       if logFunc:
-        logFunc(message, f)
+        # when using the callback in your code later please use:   def callFuncMyFunc(**info)   to get a dictionary
+        # cause the argument list may change in the future
+        logFunc(message = message, fileName = f)
       else:
         print message
     result += [resultPath]
@@ -187,7 +189,9 @@ def zk_synchronizeFilesBetweenFolders(files, sourceFolder, targetFolder, logFunc
     if reason:
       message = "Synchronized %s because %s." % (f, reason)
       if logFunc:
-        logFunc(message, f)   # added the file as argument
+        # when using the callback in your code later please use:   def callFuncMyFunc(**info)   to get a dictionary
+        # cause the argument list may change in the future
+        logFunc(message = message, fileName = f)
       else:
         print message
     result += [f3]
