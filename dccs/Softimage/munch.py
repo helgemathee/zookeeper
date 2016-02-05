@@ -73,7 +73,7 @@ def munch():
   for setting in settings:
     try:
       Application.SetValue(setting[0], setting[1])
-      Application.LogMessage("Set '%s' to '%s'" % (setting[0], str(setting[1])))
+      log("Set '%s' to '%s'" % (setting[0], str(setting[1])))
     except:
       pass
 
@@ -86,6 +86,8 @@ def munch():
       continue
     res = int(model.active_resolution.value)
     modelResolution[str(model.name)] = res
+    log("Referenced model %s is using resolution %d." % (str(model.name), res))
+
 
   xsiFiles = scene.ExternalFiles
   extFileCompleted = {}
@@ -120,11 +122,13 @@ def munch():
       if model.ModelKind != 1:
         continue
 
+      log("Hit referenced model %s, path %s" % (str(model.name), resolvedpath))
       res = modelResolution.get(str(model.name), -1)
       if res != extFile.resolution:
+        log("Not the right resolution (%d), skipping..." % int(extFile.resolution))
         continue
 
-      log('Processing referenced model '+model.Name)
+      log("Referenced model %s, resolution (%d), updating..." % (str(model.name), res))
 
       if model.active_resolution.value == extFile.resolution:
         Application.UpdateReferencedModel(model.FullName)
