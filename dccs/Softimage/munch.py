@@ -122,7 +122,7 @@ def munch():
       if model.ModelKind != 1:
         continue
 
-      log("Hit referenced model %s, path %s" % (str(model.name), resolvedpath))
+      log("Hit referenced model %s, path %s" % (str(model.name), str(extFile.resolvedpath)))
       res = modelResolution.get(str(model.name), -1)
       if res != extFile.resolution:
         log("Not the right resolution (%d), skipping..." % int(extFile.resolution))
