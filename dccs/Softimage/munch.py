@@ -115,27 +115,15 @@ def munch():
     else:
       xsiFile.Path = extFileCompleted[userPath]
 
-    if extFile.resolution > -1:
-      owners = xsiFile.Owners
-      for j in range(owners.Count):
-        param = owners(j)
-        model = param.Parent
-        if model.ModelKind != 1:
-          continue
-
-        log("Hit referenced model %s, path %s" % (str(model.name), str(extFile.resolvedpath)))
-        res = modelResolution.get(str(model.name), -1)
-        if res != extFile.resolution:
-          log("Not the right resolution (%d), skipping..." % int(extFile.resolution))
-          continue
-
-        log("Referenced model %s, resolution (%d), updating..." % (str(model.name), res))
-
-        if model.active_resolution.value == extFile.resolution:
-          Application.UpdateReferencedModel(model.FullName)
-        else:
-          model.active_resolution.value = extFile.resolution
-        Application.MakeModelLocal(model.FullName, "", "")
+  for modelName in modelResolution:
+    log("Hit referenced model %s" % (modelname))
+    res = modelResolution[modelName]
+    model = Application.Dictionary.GetObject(modelName)
+    if model.active_resolution.value == res:
+      Application.UpdateReferencedModel(modelName)
+    else:
+      model.active_resolution.value = res
+    Application.MakeModelLocal(modelName, "", "")
 
   xsiFiles = scene.ExternalFiles
   for i in range(xsiFiles.Count):
