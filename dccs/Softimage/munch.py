@@ -55,6 +55,7 @@ def munch():
   # open scene
   Application.OpenScene(scenePath, False, False)
   scene = Application.ActiveProject.ActiveScene
+  sceneRoot = Application.ActiveSceneRoot
 
   # redirect the scene output if it is using the [Scene] token
   sceneName = os.path.split(input.path)[1].rpartition('.')[0]
@@ -76,7 +77,15 @@ def munch():
     except:
       pass
 
-  "Passes.Redshift_Options.AbortOnLicenseFail"
+  # remember all model resolutions
+  models = sceneRoot.Models
+  modelResolution = {}
+  for i in range(models.Count):
+    model = models(i)
+    if model.ModelKind != 1:
+      continue
+    res = int(model.active_resolution.value)
+    models[str(model.name)] = res
 
   xsiFiles = scene.ExternalFiles
   extFileCompleted = {}
@@ -110,11 +119,19 @@ def munch():
       model = param.Parent
       if model.ModelKind != 1:
         continue
+
+      res = modelResolution.get(str(model.name), -1)
+      if res != extFile.resolution:
+        continue
+
+      log('Processing referenced model '+model.Name)
+
       if model.active_resolution.value == extFile.resolution:
-        log('Processing referenced model '+model.Name)
         Application.UpdateReferencedModel(model.FullName)
-        Application.MakeModelLocal(model.FullName, "", "")
-  
+      else:
+        model.active_resolution.value = extFile.resolution
+      Application.MakeModelLocal(model.FullName, "", "")
+
   xsiFiles = scene.ExternalFiles
   for i in range(xsiFiles.Count):
     xsiFile = xsiFiles(i)
