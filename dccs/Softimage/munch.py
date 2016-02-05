@@ -116,7 +116,7 @@ def munch():
       xsiFile.Path = extFileCompleted[userPath]
 
   for modelName in modelResolution:
-    log("Hit referenced model %s" % (modelname))
+    log("Hit referenced model %s" % (modelName))
     res = modelResolution[modelName]
     model = Application.Dictionary.GetObject(modelName)
     if model.active_resolution.value == res:
