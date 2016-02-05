@@ -93,7 +93,7 @@ class zkSoftimageWorkThread(zkWorkThread):
     remotePath = zookeeper.zkDB.zkSetting.getByName(self.connection, 'softimage_workgroup_root').value
 
     self.log('Synchronizing workgroups...')
-    zookeeper.zkClient.zk_synchronizeFolder(remotePath, localPath, logFunc = self.log)
+    zookeeper.zkClient.zk_synchronizeFolder(remotePath, localPath, logFunc = self.logCallback)
 
     workgroups = []
 
