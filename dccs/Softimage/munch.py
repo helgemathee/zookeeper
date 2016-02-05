@@ -85,7 +85,7 @@ def munch():
     if model.ModelKind != 1:
       continue
     res = int(model.active_resolution.value)
-    models[str(model.name)] = res
+    modelResolution[str(model.name)] = res
 
   xsiFiles = scene.ExternalFiles
   extFileCompleted = {}
