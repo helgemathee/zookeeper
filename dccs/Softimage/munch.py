@@ -52,6 +52,24 @@ def munch():
     Application.ActiveProject2 = Application.CreateProject2(projectFolder)
     scenePath = extFile.synchronize(cfg, uncMap)
 
+  scnTocPath = input.path + 'toc'
+  modelResolution = {}
+  if os.path.exists(scnTocPath):
+    scnTocContent = open(scnTocPath, 'r').read().split('\n')
+    for line in scnTocContent:
+      l = line.strip()
+      if not l.startswith('<Model name='):
+        continue
+      if l.find('active_resolution') == -1:
+        continue
+      l = l[13:]
+      (modelName, sep, l) = l.partition('"')
+      l = l.strip()
+      l = l.partition('"')[2]
+      res = int(l.partition('"')[0])
+      modelResolution[str(modelName)] = res
+      log("Referenced model %s is using resolution %d in scntoc file." % (str(modelName), res))
+
   # open scene
   Application.OpenScene(scenePath, False, False)
   scene = Application.ActiveProject.ActiveScene
@@ -79,15 +97,15 @@ def munch():
 
   # remember all model resolutions
   models = sceneRoot.Models
-  modelResolution = {}
   for i in range(models.Count):
     model = models(i)
     if model.ModelKind != 1:
       continue
+    if modelResolution.has_key(str(model.name)):
+      continue
     res = int(model.active_resolution.value)
     modelResolution[str(model.name)] = res
     log("Referenced model %s is using resolution %d." % (str(model.name), res))
-
 
   xsiFiles = scene.ExternalFiles
   extFileCompleted = {}
