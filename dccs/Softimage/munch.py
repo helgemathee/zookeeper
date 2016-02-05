@@ -111,7 +111,7 @@ def munch():
       log('Processing referenced model '+model.Name)
       if model.active_resolution.value == extFile.resolution:
         Application.UpdateReferencedModel(model.FullName)
-      else:
+      elif model.ModelKind == 1:
         model.active_resolution.value = extFile.resolution
       Application.MakeModelLocal(model.FullName, "", "")
   
