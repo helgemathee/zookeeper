@@ -136,9 +136,10 @@ def munch():
   for modelName in modelResolution:
     log("Hit referenced model %s" % (modelName))
     res = modelResolution[modelName]
-    model = Application.Dictionary.GetObject(modelName)
+    activeRes = Application.GetValue('%s.active_resolution' % modelName)
     Application.UpdateReferencedModel(modelName)
-    if model.active_resolution.value != res:
+    if activeRes != res:
+      Application.SetValue('%s.active_resolution' % modelName, res)
       model.active_resolution.value = res
     if res == 0:
       log('Skipping offloaded ref model %s' % (modelName))
