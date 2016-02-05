@@ -123,7 +123,10 @@ class zkWorkThread(QtCore.QThread):
   def process(self):
     self.__process
 
-  def log(self, message):
+  def log(self, **args):
+    message = args.get('message', '')
+    if not message:
+      return
     self.__log.append(message)
     self.logged.emit(message)
 
