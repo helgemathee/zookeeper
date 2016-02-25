@@ -36,6 +36,7 @@ def munch():
 
   machine = zookeeper.zkDB.zkMachine.getById(connection, int(os.environ['ZK_MACHINE']))
   project = zookeeper.zkDB.zkProject.getById(connection, int(os.environ['ZK_PROJECT']))
+  localizeFiles = project.localizefiles
   job = zookeeper.zkDB.zkJob.getById(connection, int(os.environ['ZK_JOB']))
   jobMachine = zookeeper.zkDB.zkMachine.getById(connection, job.machine)
   input = job.input
@@ -45,30 +46,33 @@ def munch():
   uncMap = zookeeper.zkDB.zkUncMap.getUncMapForMachine(connection, jobMachine.id)
 
   # localize scene
-  if scratchdisc_enabled:
+  modelResolution = {}
+  if scratchdisc_enabled and localizeFiles:
     extFile = zookeeper.zkDB.zkExternalFile.getOrCreateByProjectAndPaths(connection, project.id, input.path, input.path, type = 'Softimage\\Scenes')
     scratchPath = extFile.getScratchDiskPath(cfg)
     projectFolder = os.path.split(os.path.split(scratchPath)[0])[0]
     Application.ActiveProject2 = Application.CreateProject2(projectFolder)
     scenePath = extFile.synchronize(cfg, uncMap)
 
-  scnTocPath = input.path + 'toc'
-  modelResolution = {}
-  if os.path.exists(scnTocPath):
-    scnTocContent = open(scnTocPath, 'r').read().split('\n')
-    for line in scnTocContent:
-      l = line.strip()
-      if not l.startswith('<Model name='):
-        continue
-      if l.find('active_resolution') == -1:
-        continue
-      l = l[13:]
-      (modelName, sep, l) = l.partition('"')
-      l = l.strip()
-      l = l.partition('"')[2]
-      res = int(l.partition('"')[0])
-      modelResolution[str(modelName)] = res
-      log("Referenced model %s is using resolution %d in scntoc file." % (str(modelName), res))
+    scnTocPath = input.path + 'toc'
+    if os.path.exists(scnTocPath):
+      scnTocContent = open(scnTocPath, 'r').read().split('\n')
+      for line in scnTocContent:
+        l = line.strip()
+        if not l.startswith('<Model name='):
+          continue
+        if l.find('active_resolution') == -1:
+          continue
+        l = l[13:]
+        (modelName, sep, l) = l.partition('"')
+        l = l.strip()
+        l = l.partition('"')[2]
+        res = int(l.partition('"')[0])
+        modelResolution[str(modelName)] = res
+        log("Referenced model %s is using resolution %d in scntoc file." % (str(modelName), res))
+
+  else:
+    log("ATTENTION: NOT LOCALIZING EXTERNAL FILES!")
 
   # open scene
   Application.OpenScene(scenePath, False, False)
@@ -96,115 +100,117 @@ def munch():
       pass
 
   # remember all model resolutions
-  models = sceneRoot.Models
-  for i in range(models.Count):
-    model = models(i)
-    if model.ModelKind != 1:
-      continue
-    if modelResolution.has_key(str(model.name)):
-      continue
-    res = int(model.active_resolution.value)
-    modelResolution[str(model.name)] = res
-    log("Referenced model %s is using resolution %d." % (str(model.name), res))
+  if localizeFiles:
+    models = sceneRoot.Models
+    for i in range(models.Count):
+      model = models(i)
+      if model.ModelKind != 1:
+        continue
+      if modelResolution.has_key(str(model.name)):
+        continue
+      res = int(model.active_resolution.value)
+      modelResolution[str(model.name)] = res
+      log("Referenced model %s is using resolution %d." % (str(model.name), res))
 
-  xsiFiles = scene.ExternalFiles
-  extFileCompleted = {}
-  for i in range(xsiFiles.Count):
-    xsiFile = xsiFiles(i)
-    if xsiFile.FileType != 'Models':
-      continue 
-  
-    resolvedPath = xsiFile.ResolvedPath
-    userPath = xsiFile.Path
-  
-    extFile = zookeeper.zkDB.zkExternalFile.getByProjectAndUserPath(connection, project.id, userPath)
-    if not extFileCompleted.has_key(userPath) and extFile:
-      log('Found external file for "%s"' % userPath)
-      synchronizedPath = extFile.synchronize(cfg, uncMap)
-      if not synchronizedPath:
-        log('ERROR: Could not synchronize file.')
+    xsiFiles = scene.ExternalFiles
+    extFileCompleted = {}
+    for i in range(xsiFiles.Count):
+      xsiFile = xsiFiles(i)
+      if xsiFile.FileType != 'Models':
+        continue 
+    
+      resolvedPath = xsiFile.ResolvedPath
+      userPath = xsiFile.Path
+    
+      extFile = zookeeper.zkDB.zkExternalFile.getByProjectAndUserPath(connection, project.id, userPath)
+      if not extFileCompleted.has_key(userPath) and extFile:
+        log('Found external file for "%s"' % userPath)
+        synchronizedPath = extFile.synchronize(cfg, uncMap)
+        if not synchronizedPath:
+          log('ERROR: Could not synchronize file.')
+          continue
+        else:
+          extFileCompleted[userPath] = synchronizedPath
+          xsiFile.Path = synchronizedPath
+      elif not extFile:
+        log("ERROR: External file for \"%s\" not found in DB!" % userPath)
         continue
       else:
-        extFileCompleted[userPath] = synchronizedPath
-        xsiFile.Path = synchronizedPath
-    elif not extFile:
-      log("ERROR: External file for \"%s\" not found in DB!" % userPath)
-      continue
-    else:
-      xsiFile.Path = extFileCompleted[userPath]
+        xsiFile.Path = extFileCompleted[userPath]
 
-  for modelName in modelResolution:
-    log("Hit referenced model %s" % (modelName))
-    res = modelResolution[modelName]
-    activeRes = Application.GetValue('%s.active_resolution' % modelName)
-    Application.UpdateReferencedModel(modelName)
-    if activeRes != res:
-      Application.SetValue('%s.active_resolution' % modelName, res)
-      model.active_resolution.value = res
-    if res == 0:
-      log('Skipping offloaded ref model %s' % (modelName))
-    Application.MakeModelLocal(modelName, "", "")
+    for modelName in modelResolution:
+      log("Hit referenced model %s" % (modelName))
+      res = modelResolution[modelName]
+      activeRes = Application.GetValue('%s.active_resolution' % modelName)
+      Application.UpdateReferencedModel(modelName)
+      if activeRes != res:
+        Application.SetValue('%s.active_resolution' % modelName, res)
+        model.active_resolution.value = res
+      if res == 0:
+        log('Skipping offloaded ref model %s' % (modelName))
+      Application.MakeModelLocal(modelName, "", "")
 
-  xsiFiles = scene.ExternalFiles
-  for i in range(xsiFiles.Count):
-    xsiFile = xsiFiles(i)
-    if xsiFile.FileType == 'Models':
-      continue 
+    xsiFiles = scene.ExternalFiles
+    for i in range(xsiFiles.Count):
+      xsiFile = xsiFiles(i)
+      if xsiFile.FileType == 'Models':
+        continue 
 
-    resolvedPath = xsiFile.ResolvedPath
+      resolvedPath = xsiFile.ResolvedPath
 
-    # invalid rigid body cache
-    if resolvedPath.lower().endswith('rigidbodycache.xsi'):
-      continue
-
-    userPath = xsiFile.Path
-    if extFileCompleted.has_key(userPath):
-      xsiFile.Path = extFileCompleted[userPath]
-      continue
-  
-    extFile = zookeeper.zkDB.zkExternalFile.getByProjectAndUserPath(connection, project.id, userPath)
-    if extFile:
-      log('Found external file for "%s"' % userPath)
-      synchronizedPath = extFile.synchronize(cfg, uncMap)
-      if not synchronizedPath:
-        log('ERROR: Could not synchronize file.')
+      # invalid rigid body cache
+      if resolvedPath.lower().endswith('rigidbodycache.xsi'):
         continue
-      else:
-        extFileCompleted[userPath] = synchronizedPath
-        xsiFile.Path = synchronizedPath
-    else:
-      log("ERROR: External file for \"%s\" not found in DB!" % userPath)
-      continue
 
-  # redshift IES profile files
-  objects = Application.FindObjects('', '{6495C5C1-FD18-474E-9703-AEA66631F7A7}')
-  for i in range(objects.Count):
-    o = objects(i)
-    if not o.Name.lower() == 'redshift_ies':
-      continue
-    userPath = str(o.profileString.Value)
-    if extFileCompleted.has_key(userPath):
-      Application.SetValue(str(o.profileString), str(extFileCompleted[userPath]))
-      continue
-
-    extFile = zookeeper.zkDB.zkExternalFile.getByProjectAndUserPath(connection, project.id, userPath)
-    if extFile:
-      log('Found external file for "%s"' % userPath)
-      synchronizedPath = extFile.synchronize(cfg, uncMap)
-      if not synchronizedPath:
-        log('ERROR: Could not synchronize file.')
+      userPath = xsiFile.Path
+      if extFileCompleted.has_key(userPath):
+        xsiFile.Path = extFileCompleted[userPath]
         continue
+    
+      extFile = zookeeper.zkDB.zkExternalFile.getByProjectAndUserPath(connection, project.id, userPath)
+      if extFile:
+        log('Found external file for "%s"' % userPath)
+        synchronizedPath = extFile.synchronize(cfg, uncMap)
+        if not synchronizedPath:
+          log('ERROR: Could not synchronize file.')
+          continue
+        else:
+          extFileCompleted[userPath] = synchronizedPath
+          xsiFile.Path = synchronizedPath
       else:
-        extFileCompleted[userPath] = synchronizedPath
+        log("ERROR: External file for \"%s\" not found in DB!" % userPath)
+        continue
+
+    # redshift IES profile files
+    objects = Application.FindObjects('', '{6495C5C1-FD18-474E-9703-AEA66631F7A7}')
+    for i in range(objects.Count):
+      o = objects(i)
+      if not o.Name.lower() == 'redshift_ies':
+        continue
+      userPath = str(o.profileString.Value)
+      if extFileCompleted.has_key(userPath):
         Application.SetValue(str(o.profileString), str(extFileCompleted[userPath]))
-    else:
-      log("ERROR: External file for \"%s\" not found in DB!" % userPath)
-      continue
+        continue
 
-  scenePathParts = scenePath.rpartition('.')
-  scenePathChanged = scenePathParts[0] + '_resolved' + scenePathParts[1] + scenePathParts[2]
-  Application.SaveSceneAs(scenePathChanged)
-  Application.OpenScene(scenePathChanged, False, False)
+      extFile = zookeeper.zkDB.zkExternalFile.getByProjectAndUserPath(connection, project.id, userPath)
+      if extFile:
+        log('Found external file for "%s"' % userPath)
+        synchronizedPath = extFile.synchronize(cfg, uncMap)
+        if not synchronizedPath:
+          log('ERROR: Could not synchronize file.')
+          continue
+        else:
+          extFileCompleted[userPath] = synchronizedPath
+          Application.SetValue(str(o.profileString), str(extFileCompleted[userPath]))
+      else:
+        log("ERROR: External file for \"%s\" not found in DB!" % userPath)
+        continue
+
+    scenePathParts = scenePath.rpartition('.')
+    scenePathChanged = scenePathParts[0] + '_resolved' + scenePathParts[1] + scenePathParts[2]
+    Application.SaveSceneAs(scenePathChanged)
+    Application.OpenScene(scenePathChanged, False, False)
+
   scene = Application.ActiveProject.ActiveScene
 
   while(True):
