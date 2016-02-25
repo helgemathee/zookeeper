@@ -55,12 +55,13 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     self.__widgets['jobs'].doubleClicked.connect(self.onJobDoubleClicked)
 
     # projects
-    labels = ['project', 'jobs', 'machines']
+    labels = ['project', 'jobs', 'machines', 'localize']
     self.__widgets['projects'] = zookeeper.zkUI.zkDbTable(
       self.__conn,
       zookeeper.zkDB.zkMachine,
       procedure = 'get_projects_for_manager',
-      labels = labels
+      labels = labels,
+      getItemDataCallback = self.onProjectGetData
       )
     self.__widgets['projects'].contextMenuRequested.connect(self.onProjectContextMenu)
 
@@ -191,6 +192,24 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
       for result in results:
         names += [str(result[0]).strip()]
       return ', '.join(names)
+
+    return data
+
+  def onProjectGetData(self, table, caption, id, data, role):
+    if data is None:
+      return None
+
+    if caption == 'localize':
+      if role == QtCore.Qt.DisplayRole:
+        if data > 0:
+          return 'yes'
+        else:
+          return 'no'
+      elif role == QtCore.Qt.BackgroundRole:
+        if data > 0:
+          return QtGui.QBrush(QtCore.Qt.green)
+        else:
+          return QtGui.QBrush(QtCore.Qt.red)
 
     return data
 
