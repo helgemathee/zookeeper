@@ -400,6 +400,8 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
 
   def onProjectContextMenu(self, ids, col):
 
+    firstProject = zookeeper.zkDB.zkProject.getById(self.__conn, id = ids[0])
+
     menu = QtGui.QMenu()
 
     def onNew():
@@ -440,6 +442,24 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
     groups = zookeeper.zkDB.zkMachineGroup.getAll(self.__conn)
     for group in groups:
       setupGroupAction(menu, group)
+
+    menu.addSeparator()
+
+    def onLocalizeToggled(state):
+      localized = 0
+      if state:
+        localized = 1
+      for id in ids:
+        project = zookeeper.zkDB.zkProject.getById(self.__conn, id = id)
+        project.localizefiles = localized
+        project.write()
+      self.poll()
+
+    localizeAction = menu.addAction('localize files')
+    localizeAction.setCheckable(True)
+
+    localizeAction.setChecked(firstProject.localizefiles)
+    localizeAction.toggled.connect(onLocalizeToggled)
 
     menu.addSeparator()
 
