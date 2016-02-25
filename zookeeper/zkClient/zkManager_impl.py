@@ -162,7 +162,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
       if role == QtCore.Qt.DisplayRole:
         return str(data) + '%'
       elif role == QtCore.Qt.BackgroundRole:
-        s = table.horizontalHeader().sectionSize(3)
+        s = table.horizontalHeader().sectionSize(4)
         r = int(float(s) * float(data) / 100.0 + 0.5)
         grad = QtGui.QLinearGradient(r-1, 0, r, 0)
         grad.setColorAt(0, QtCore.Qt.blue)
@@ -173,7 +173,7 @@ class zkManager(zookeeper.zkUI.zkMainWindow):
       if role == QtCore.Qt.DisplayRole:
         return str(data) + '%'
       elif role == QtCore.Qt.BackgroundRole:
-        s = table.horizontalHeader().sectionSize(4)
+        s = table.horizontalHeader().sectionSize(5)
         r = int(float(s) * float(data) / 100.0 + 0.5)
         grad = QtGui.QLinearGradient(r-1, 0, r, 0)
         grad.setColorAt(0, QtCore.Qt.magenta)
