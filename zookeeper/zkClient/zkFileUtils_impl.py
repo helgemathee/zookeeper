@@ -197,7 +197,7 @@ def zk_synchronizeFilesBetweenFolders(files, sourceFolder, targetFolder, logFunc
     result += [f3]
   return result
 
-def zk_mapAllValidNetworkShares(connection, deleteExisting = False):
+def zk_authorizeAllValidNetworkShares(connection, deleteExisting = False, logCallback = None):
   netPath = os.path.join(os.environ['WINDIR'], 'System32', 'net.exe')
 
   found = {}
@@ -235,6 +235,59 @@ def zk_mapAllValidNetworkShares(connection, deleteExisting = False):
     (stdout, stderr) = p.communicate()
     if stdout.lower().find('successfully') == -1 and stdout.lower().find('erfolgreich') == -1:
       return (False, 'Could not connect to share %s.\n\n%s' % (validShare.path, stdout + stderr))
+    if logCallback:
+      logCallback('Authorized share '+validShare.path)
     found[validShare.path.lower()] = True
+
+  return (True, '')
+
+def zk_mapNetworkDrivesForJob(connection, job, logCallback = None):
+  netPath = os.path.join(os.environ['WINDIR'], 'System32', 'net.exe')
+
+  cmdargs = [netPath, 'use']
+  p = subprocess.Popen(cmdargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell = True)
+  p.wait()
+  (stdout, stderr) = p.communicate()
+  lines = stdout.replace('\r', '').split('\n')
+
+  for l in lines:
+    if not l.lower().startswith('ok '):
+      continue
+    if l.find(':') == -1:
+      continue
+
+    l = l[2:].strip()
+
+    drive = l.partition(':')[0]
+    if l[0] != '\\':
+      l = l.partition(' ')[2].strip()
+    if l[0:2] != '\\\\':
+      continue
+
+    share = l.partition(' ')[0]
+
+    cmdargs = [netPath, 'use', drive+':', '/delete']
+    p = subprocess.Popen(cmdargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell = True)
+    p.wait()
+    (stdout, stderr) = p.communicate()
+    if logCallback:
+      logCallback('Drive %s: unmapped.' % drive)
+
+  user = zookeeper.zkDB.zkSetting.getByName(connection, 'render_user').value
+  password = zookeeper.zkDB.zkSetting.getByName(connection, 'render_password').value
+  machine = zookeeper.zkDB.zkMachine.getById(connection, job.machine)
+  uncMaps = machine.getUncMaps()
+
+  for drive in uncMaps:
+    share = uncMaps[drive]
+
+    cmdargs = [netPath, 'use', drive, share, '/user:%s' % user, password]
+    p = subprocess.Popen(cmdargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell = True)
+    p.wait()
+    (stdout, stderr) = p.communicate()
+    if stdout.lower().find('successfully') == -1 and stdout.lower().find('erfolgreich') == -1:
+      return (False, 'Could not connect to share %s.\n\n%s' % (validShare.path, stdout + stderr))
+    if logCallback:
+      logCallback('Mapped drive %s to %s' % (drive, share))
 
   return (True, '')

@@ -71,6 +71,8 @@ class zkWorkThread(QtCore.QThread):
     for key in env:
       env[key] = str(env[key])
 
+    zookeeper.zk_mapNetworkDrivesForJob(self.__conn, job, logCallback=self.log)
+
     cmdargs = [cmd] + args
     self.__process = subprocess.Popen(cmdargs, env = env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell = False)
 

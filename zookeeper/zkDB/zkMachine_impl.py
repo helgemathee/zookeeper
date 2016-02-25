@@ -117,6 +117,9 @@ class zkMachine(zkEntity):
 
     bracket.write()
 
+  def getUncMaps(self):
+    return zookeeper.zkDB.zkUncMap.getUncMapForMachine(self.connection, self.id)
+
   def sendNotification(self, text, frame = None, severity = 'ERROR'):
     notif = zookeeper.zkDB.zkNotification.createNew(self.connection)
     notif.machine = self

@@ -28,12 +28,6 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
       self.close()
       return
 
-    (networkSuccess, networkError) = zookeeper.zkClient.zk_mapAllValidNetworkShares(connection, deleteExisting=True)
-    if not networkSuccess:
-      QtGui.QMessageBox.critical(None, "ZooKeeper Error", networkError)
-      self.close()
-      return
-
     self.__cfg = zookeeper.zkConfig()
 
     self.__widgets = {}
@@ -125,6 +119,12 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
     self.__widgets['log'] = QtGui.QPlainTextEdit()
     self.__widgets['log'].setReadOnly(True)
     self.addWidgetToCentral(self.__widgets['log'])
+
+    (networkSuccess, networkError) = zookeeper.zkClient.zk_authorizeAllValidNetworkShares(connection, deleteExisting=True, logCallback=self.log)
+    if not networkSuccess:
+      QtGui.QMessageBox.critical(None, "ZooKeeper Error", networkError)
+      self.close()
+      return
 
     self.__timers['poll'] = QtCore.QTimer(self)
     self.__timers['poll'].setInterval(5003) # every 5 seconds
