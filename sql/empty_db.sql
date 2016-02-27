@@ -2,7 +2,7 @@
 --
 -- Host: 192.168.1.10    Database: zookeeper
 -- ------------------------------------------------------
--- Server version	5.7.9-log
+-- Server version 5.7.9-log
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -243,6 +243,7 @@ CREATE TABLE `project` (
   `project_name` varchar(45) NOT NULL,
   `project_type` enum('DELETED','NORMAL') NOT NULL DEFAULT 'NORMAL',
   `project_machinegroup` int(11) NOT NULL DEFAULT '1',
+  `project_localizefiles` int(11) NOT NULL DEFAULT '1',
   PRIMARY KEY (`project_id`),
   UNIQUE KEY `project_name_UNIQUE` (`project_name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
@@ -304,6 +305,7 @@ CREATE TABLE `validunc` (
   PRIMARY KEY (`validunc_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 --
 -- Dumping routines for database 'zookeeper'
@@ -320,15 +322,15 @@ CREATE TABLE `validunc` (
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `cleanup_frame_on_machine_start`(in target INT(11))
 BEGIN
-	UPDATE
-		frame
-	SET
-		frame.frame_status = 'WAITING',
+  UPDATE
+    frame
+  SET
+    frame.frame_status = 'WAITING',
         frame.frame_machineid = 1
-	WHERE
-		frame.frame_status = 'PROCESSING' and
+  WHERE
+    frame.frame_status = 'PROCESSING' and
         frame.frame_machineid = target;
-	COMMIT;
+  COMMIT;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -347,21 +349,21 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `delete_group`(in g INT(11))
 BEGIN
-	UPDATE 
-		project
-	SET
-		project_machinegroup = 1
-	WHERE 
-		project_machinegroup = g;
-	DELETE FROM 
-		membership
-	WHERE
-		membership_machinegroup = g;
-	DELETE FROM
-		machinegroup
-	WHERE 
-		machinegroup_id = g AND machinegroup_id != 1;
-	COMMIT;
+  UPDATE 
+    project
+  SET
+    project_machinegroup = 1
+  WHERE 
+    project_machinegroup = g;
+  DELETE FROM 
+    membership
+  WHERE
+    membership_machinegroup = g;
+  DELETE FROM
+    machinegroup
+  WHERE 
+    machinegroup_id = g AND machinegroup_id != 1;
+  COMMIT;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -380,30 +382,30 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `delete_job`(in target INT(11))
 BEGIN
-	DELETE FROM 
-		output
-	WHERE
-		output_jobid = target;
+  DELETE FROM 
+    output
+  WHERE
+    output_jobid = target;
         
-	DELETE FROM
-		frame
-	WHERE
-		frame_jobid = target;
+  DELETE FROM
+    frame
+  WHERE
+    frame_jobid = target;
         
-	DELETE FROM
-		input
-	USING 
-		input, job
-	WHERE
-		job_id = target AND
-		input_id = job_inputid;
+  DELETE FROM
+    input
+  USING 
+    input, job
+  WHERE
+    job_id = target AND
+    input_id = job_inputid;
         
-	UPDATE
-		job
-	SET
-		job_type = 'DELETED'
-	WHERE
-		job_id = target;
+  UPDATE
+    job
+  SET
+    job_type = 'DELETED'
+  WHERE
+    job_id = target;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -422,37 +424,37 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `delete_project`(in target INT(11))
 BEGIN
-	DELETE FROM 
-		output
-	WHERE
-		output_projectid = target;
+  DELETE FROM 
+    output
+  WHERE
+    output_projectid = target;
         
-	DELETE FROM
-		frame
-	WHERE
-		frame_projectid = target;
+  DELETE FROM
+    frame
+  WHERE
+    frame_projectid = target;
         
-	DELETE FROM
-		input
-	USING 
-		input, job
-	WHERE
-		job_projectid = target AND
-		input_id = job_inputid;
+  DELETE FROM
+    input
+  USING 
+    input, job
+  WHERE
+    job_projectid = target AND
+    input_id = job_inputid;
         
-	UPDATE
-		job
-	SET
-		job_type = 'DELETED'
-	WHERE
-		job_projectid = target;
+  UPDATE
+    job
+  SET
+    job_type = 'DELETED'
+  WHERE
+    job_projectid = target;
 
-	UPDATE
-		project
-	SET
-		project_type = 'DELETED'
-	WHERE
-		project_id = target;
+  UPDATE
+    project
+  SET
+    project_type = 'DELETED'
+  WHERE
+    project_id = target;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -471,8 +473,8 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `get_frames_for_manager`(in currentjob INT(11))
 BEGIN
-	SELECT 
-		frame_id, 
+  SELECT 
+    frame_id, 
         job_name, 
         frame_time, 
         frame_status, 
@@ -480,15 +482,15 @@ BEGIN
         machine_name, 
         frame_priority, 
         frame_package 
-	FROM 
-		frame, 
+  FROM 
+    frame, 
         job, 
         machine 
-	WHERE 
-		job_id = currentjob AND 
+  WHERE 
+    job_id = currentjob AND 
         frame_jobid = job_id AND 
         frame_machineid = machine_id 
-	ORDER BY frame_time ASC;
+  ORDER BY frame_time ASC;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -507,13 +509,13 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `get_frame_range_for_job`(in target INT(11))
 BEGIN
-	SELECT
-		MIN(frame_time),
+  SELECT
+    MIN(frame_time),
         MAX(frame_time)
-	FROM
-		frame
-	WHERE
-		frame_jobid = target;
+  FROM
+    frame
+  WHERE
+    frame_jobid = target;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -532,24 +534,24 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `get_groups_for_manager`()
 BEGIN
-	SELECT DISTINCT
-		machinegroup_id, 
+  SELECT DISTINCT
+    machinegroup_id, 
         machinegroup_name,
         (
-			SELECT GROUP_CONCAT(machine_name SEPARATOR ',')
-			FROM
-				machine,
+      SELECT GROUP_CONCAT(machine_name SEPARATOR ',')
+      FROM
+        machine,
                 membership
-			WHERE
-				membership_machine = machine_id AND
-				membership_machinegroup = machinegroup_id
-			ORDER BY
-				machine_name ASC
-		)
-	FROM
-		machinegroup
-	ORDER BY
-		machinegroup_name ASC;
+      WHERE
+        membership_machine = machine_id AND
+        membership_machinegroup = machinegroup_id
+      ORDER BY
+        machine_name ASC
+    )
+  FROM
+    machinegroup
+  ORDER BY
+    machinegroup_name ASC;
     
 END ;;
 DELIMITER ;
@@ -569,92 +571,92 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `get_jobs_for_manager`()
 BEGIN
-	SELECT 
-		job_id, 
+  SELECT 
+    job_id, 
         project_name,
         job_name, 
         job_user, 
         (
-			SELECT 
-				COUNT(frame_id) 
-			FROM 
-				frame 
-			WHERE 
-				frame_jobid = job_id
-		), 
+      SELECT 
+        COUNT(frame_id) 
+      FROM 
+        frame 
+      WHERE 
+        frame_jobid = job_id
+    ), 
         job_priority, 
         (
-			SELECT 
-				COUNT(frame_id) 
-			FROM 
-				frame 
-			WHERE 
-				frame_jobid = job_id AND 
+      SELECT 
+        COUNT(frame_id) 
+      FROM 
+        frame 
+      WHERE 
+        frame_jobid = job_id AND 
                 frame_status = 'PROCESSING'
-		), 
+    ), 
         ROUND(
-			100.0 * 
+      100.0 * 
             (
-				SELECT 
-					COUNT(frame_id) 
-				FROM 
-					frame 
-				WHERE 
-					frame_jobid = job_id AND 
+        SELECT 
+          COUNT(frame_id) 
+        FROM 
+          frame 
+        WHERE 
+          frame_jobid = job_id AND 
                     (
-						frame_status = 'COMPLETED' or 
+            frame_status = 'COMPLETED' or 
                         frame_status = 'DELIVERED'
-					)
-			) / 
+          )
+      ) / 
             (
-				SELECT 
-					COUNT(frame_id) 
-				FROM 
-					frame 
-				WHERE 
-					frame_jobid = job_id
-			)
-		),
-		(
-			SELECT
-				(
-					SUM(timediff(frame_ended, frame_started)) DIV
-					COUNT(frame_id)
-				)
-			FROM
-				frame
-			WHERE
-				frame_jobid = job_id AND
-				frame_status = 'DELIVERED'
-		) *
-		(
-			SELECT
-				COUNT(frame_id)
-			FROM
-				frame
-			WHERE
-				frame_jobid = job_id AND
-				frame_status != 'DELIVERED'
-		),
-		(
-			SELECT
-				(
-					SUM(timediff(frame_ended, frame_started))
-				)
-			FROM
-				frame
-			WHERE
-				frame_jobid = job_id AND
-				frame_status = 'DELIVERED'
-		)
-	FROM 
-		job,
+        SELECT 
+          COUNT(frame_id) 
+        FROM 
+          frame 
+        WHERE 
+          frame_jobid = job_id
+      )
+    ),
+    (
+      SELECT
+        (
+          SUM(timediff(frame_ended, frame_started)) DIV
+          COUNT(frame_id)
+        )
+      FROM
+        frame
+      WHERE
+        frame_jobid = job_id AND
+        frame_status = 'DELIVERED'
+    ) *
+    (
+      SELECT
+        COUNT(frame_id)
+      FROM
+        frame
+      WHERE
+        frame_jobid = job_id AND
+        frame_status != 'DELIVERED'
+    ),
+    (
+      SELECT
+        (
+          SUM(timediff(frame_ended, frame_started))
+        )
+      FROM
+        frame
+      WHERE
+        frame_jobid = job_id AND
+        frame_status = 'DELIVERED'
+    )
+  FROM 
+    job,
         project
-	WHERE
-		job_type != 'DELETED' AND
+  WHERE
+    job_type != 'DELETED' AND
         job_projectid = project_id
-	ORDER BY 
-		job_id ASC;
+  ORDER BY 
+    job_id ASC;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -673,12 +675,12 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `get_jobs_to_cleanup`()
 BEGIN
-	SELECT 
-		job_id
-	FROM
-		job
-	WHERE
-		job_type = 'DELETED';
+  SELECT 
+    job_id
+  FROM
+    job
+  WHERE
+    job_type = 'DELETED';
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -697,31 +699,31 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `get_machines_for_manager`()
 BEGIN
-	SELECT 
-		machine_id, 
+  SELECT 
+    machine_id, 
         machine_name, 
         (
-			SELECT GROUP_CONCAT(
-				machinegroup_name SEPARATOR ',')
-			FROM
-				machinegroup,
+      SELECT GROUP_CONCAT(
+        machinegroup_name SEPARATOR ',')
+      FROM
+        machinegroup,
                 membership
-			WHERE
-				membership_machine = machine_id AND
-				membership_machinegroup = machinegroup_id
-			ORDER BY
-				machinegroup_name ASC
-		),        
+      WHERE
+        membership_machine = machine_id AND
+        membership_machinegroup = machinegroup_id
+      ORDER BY
+        machinegroup_name ASC
+    ),        
         machine_status, 
         machine_priority, 
         machine_cpuusage, 
         ROUND(100.0 * (machine_ramusedmb / (machine_ramgb * 1024))) 
-	FROM 
-		machine 
-	WHERE 
-		machine_id > 1 
-	ORDER BY 
-		machine_name ASC;
+  FROM 
+    machine 
+  WHERE 
+    machine_id > 1 
+  ORDER BY 
+    machine_name ASC;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -740,15 +742,15 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `get_outputs_per_frame`(in target INT(11))
 BEGIN
-	SELECT 
-		output_id,
-		output_name 
-	FROM 
-		output 
-	WHERE 
-		output_frameid = target
-	ORDER BY
-		output_id;
+  SELECT 
+    output_id,
+    output_name 
+  FROM 
+    output 
+  WHERE 
+    output_frameid = target
+  ORDER BY
+    output_id;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -767,11 +769,11 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `get_outputs_per_job`(in target INT(11))
 BEGIN
-	SELECT
-		DISTINCT(output_name)
-	FROM
-		output
-	WHERE output_jobid = target;
+  SELECT
+    DISTINCT(output_name)
+  FROM
+    output
+  WHERE output_jobid = target;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -790,27 +792,28 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `get_projects_for_manager`()
 BEGIN
-	SELECT
-		project_id,
+  SELECT
+    project_id,
         project_name,
         (
-			SELECT 
-				COUNT(job_id) 
-			FROM 
-				job
-			WHERE 
-				job_projectid = project_id AND
+      SELECT 
+        COUNT(job_id) 
+      FROM 
+        job
+      WHERE 
+        job_projectid = project_id AND
                 job_type != 'DELETED'
-		),
-        machinegroup_name
-	FROM
-		project, machinegroup
-	WHERE
-		project_type != 'DELETED' AND
+    ),
+        machinegroup_name,
+        project_localizefiles
+  FROM
+    project, machinegroup
+  WHERE
+    project_type != 'DELETED' AND
         project_machinegroup = machinegroup_id
-	ORDER BY
-		project_name ASC;
-		
+  ORDER BY
+    project_name ASC;
+    
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -829,12 +832,12 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `get_projects_to_cleanup`()
 BEGIN
-	SELECT 
-		project_id
-	FROM
-		project
-	WHERE
-		project_type = 'DELETED';
+  SELECT 
+    project_id
+  FROM
+    project
+  WHERE
+    project_type = 'DELETED';
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -853,19 +856,19 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `groups_for_machine`(in m INT(11))
 BEGIN
-	SELECT DISTINCT
-		machinegroup_name
-	FROM
-		machinegroup, membership
-	WHERE
-		(
-			membership_machinegroup = machinegroup_id AND
+  SELECT DISTINCT
+    machinegroup_name
+  FROM
+    machinegroup, membership
+  WHERE
+    (
+      membership_machinegroup = machinegroup_id AND
             membership_machine = m
-		)
+    )
         OR
-		machinegroup_id = 1
-	ORDER BY
-		machinegroup_name ASC;
+    machinegroup_id = 1
+  ORDER BY
+    machinegroup_name ASC;
         
 END ;;
 DELIMITER ;
@@ -885,12 +888,12 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `look_for_outputs_to_deliver`(in target INT(11))
 BEGIN
-	SELECT 
-		output_id
-	FROM
-		frame, output
-	WHERE
-		frame_machineid = target AND
+  SELECT 
+    output_id
+  FROM
+    frame, output
+  WHERE
+    frame_machineid = target AND
         output_frameid = frame_id AND
         output_status = 'PENDING';
 END ;;
@@ -919,12 +922,12 @@ BEGIN
     frame.frame_status = 'WAITING' and 
     frame.frame_machineid != my_machine_id and # don't do the same frame twice on the same machine
     (
-		(
-			membership_machinegroup = project.project_machinegroup and
-			membership_machine = my_machine_id
-		) or
+    (
+      membership_machinegroup = project.project_machinegroup and
+      membership_machine = my_machine_id
+    ) or
         project.project_machinegroup = 1 # all machines group
-	) and
+  ) and
     job.job_mincores <= machine.machine_cores and 
     job.job_minramgb <= machine.machine_ramgb and 
     job.job_mingpuramgb <= machine.machine_gpuramgb and
@@ -955,22 +958,22 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `machines_for_group`(in g INT(11))
 BEGIN
-	SELECT DISTINCT
-		machine_name
-	FROM
-		machine, membership, machinegroup
-	WHERE
-		(
-			membership_machinegroup = g AND
+  SELECT DISTINCT
+    machine_name
+  FROM
+    machine, membership, machinegroup
+  WHERE
+    (
+      membership_machinegroup = g AND
             membership_machine = machine_id
-		)
+    )
         OR
         (
-			machinegroup_id = g AND
+      machinegroup_id = g AND
             g = 1
-		)
-	ORDER BY
-		machine_name ASC;
+    )
+  ORDER BY
+    machine_name ASC;
         
 END ;;
 DELIMITER ;
@@ -990,30 +993,30 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `resubmit_frame`(in target INT(11))
 BEGIN
-	DELETE FROM 
-		output
-	USING
-		output, frame, machine
-	WHERE
-		output_frameid = target AND
+  DELETE FROM 
+    output
+  USING
+    output, frame, machine
+  WHERE
+    output_frameid = target AND
         output_frameid = frame_id AND
         (
-			frame_status != 'PROCESSING' OR
+      frame_status != 'PROCESSING' OR
             frame_machineid != (SELECT machine_frameid FROM machine WHERE machine_id = frame_machineid LIMIT 1)
-		);
-	UPDATE 
-		frame 
-	SET 
-		frame_status='WAITING', 
+    );
+  UPDATE 
+    frame 
+  SET 
+    frame_status='WAITING', 
         frame_machineid = 1 
-	WHERE 
-		frame_id = target AND 
+  WHERE 
+    frame_id = target AND 
         (
-			frame_status != 'PROCESSING' OR
+      frame_status != 'PROCESSING' OR
             frame_machineid != (SELECT machine_frameid FROM machine WHERE machine_id = frame_machineid LIMIT 1)
-		);
+    );
             
-	COMMIT;
+  COMMIT;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1032,23 +1035,23 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `resubmit_job`(in target INT(11))
 BEGIN
-	DELETE FROM
-		output
-	USING
-		output, frame
-	WHERE
-		output_jobid = frame_jobid AND
+  DELETE FROM
+    output
+  USING
+    output, frame
+  WHERE
+    output_jobid = frame_jobid AND
         output_jobid = target AND
         frame_status != "PROCESSING";
-	UPDATE 
-		frame 
-	SET 
-		frame_status='WAITING', 
+  UPDATE 
+    frame 
+  SET 
+    frame_status='WAITING', 
         frame_machineid = 1 
-	WHERE 
-		frame_jobid = target AND
+  WHERE 
+    frame_jobid = target AND
         frame_status != 'PROCESSING';
-	COMMIT;
+  COMMIT;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1067,12 +1070,12 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `resume_frame`(in target INT(11))
 BEGIN
-	UPDATE 
-		frame 
-	SET 
-		frame_status='WAITING' 
-	WHERE 
-		frame_id = target AND 
+  UPDATE 
+    frame 
+  SET 
+    frame_status='WAITING' 
+  WHERE 
+    frame_id = target AND 
         frame_status = 'STOPPED';
 END ;;
 DELIMITER ;
@@ -1092,12 +1095,12 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `resume_job`(in target INT(11))
 BEGIN
-	UPDATE 
-		frame 
-	SET 
-		frame_status='WAITING' 
-	WHERE 
-		frame_jobid = target AND 
+  UPDATE 
+    frame 
+  SET 
+    frame_status='WAITING' 
+  WHERE 
+    frame_jobid = target AND 
         frame_status = 'STOPPED';
 END ;;
 DELIMITER ;
@@ -1117,13 +1120,13 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `set_frame_failed`(in target INT(11))
 BEGIN
-	UPDATE 
-		frame 
-	SET 
-		frame.frame_status = IF(frame.frame_tries < 2, 'WAITING', 'FAILED'), 
+  UPDATE 
+    frame 
+  SET 
+    frame.frame_status = IF(frame.frame_tries < 2, 'WAITING', 'FAILED'), 
         frame.frame_tries = frame.frame_tries + 1,
         frame.frame_ended = NOW()
-	WHERE frame.frame_id = target;
+  WHERE frame.frame_id = target;
     COMMIT;
 END ;;
 DELIMITER ;
@@ -1143,22 +1146,22 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `set_frame_processing`(in target INT(11), in targetMachine INT(11))
 BEGIN
-	UPDATE 
-		frame
-	SET
-		frame.frame_status = 'PROCESSING',
+  UPDATE 
+    frame
+  SET
+    frame.frame_status = 'PROCESSING',
         frame.frame_started = NOW(),
         frame.frame_ended = NOW(),
         frame.frame_machineid = targetMachine
-	WHERE
-		frame.frame_id = target;
-	UPDATE
-		machine
-	SET
-		machine.machine_frameid = target
-	WHERE
-		machine.machine_id = targetMachine;
-	COMMIT;
+  WHERE
+    frame.frame_id = target;
+  UPDATE
+    machine
+  SET
+    machine.machine_frameid = target
+  WHERE
+    machine.machine_id = targetMachine;
+  COMMIT;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1177,12 +1180,12 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `set_machine_priority`(in target INT(11), in priority VARCHAR(45))
 BEGIN
-	UPDATE
-		machine
-	SET
-		machine_priority = priority
-	WHERE
-		machine_id = target;
+  UPDATE
+    machine
+  SET
+    machine_priority = priority
+  WHERE
+    machine_id = target;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -1201,12 +1204,12 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `stop_frame`(in target INT(11))
 BEGIN
-	UPDATE 
-		frame 
-	SET 
-		frame_status='STOPPED' 
-	WHERE 
-		frame_id = target AND 
+  UPDATE 
+    frame 
+  SET 
+    frame_status='STOPPED' 
+  WHERE 
+    frame_id = target AND 
         frame_status = 'WAITING';
 END ;;
 DELIMITER ;
@@ -1226,12 +1229,12 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`mysql`@`%` PROCEDURE `stop_job`(in target INT(11))
 BEGIN
-	UPDATE 
-		frame 
-	SET 
-		frame_status='STOPPED' 
-	WHERE 
-		frame_jobid = target AND 
+  UPDATE 
+    frame 
+  SET 
+    frame_status='STOPPED' 
+  WHERE 
+    frame_jobid = target AND 
         frame_status = 'WAITING';
 END ;;
 DELIMITER ;
@@ -1282,4 +1285,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-01-05 14:29:51
+-- Dump completed on 2016-02-27 16:56:33
