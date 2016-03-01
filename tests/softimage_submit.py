@@ -2,7 +2,7 @@
 projectName = "RND"
 inputPath = "X:/exchange/helge/RND/Scenes/city_06.scn"
 renderPass = "Default_Pass" # THIS HAS TO BE SPELLED CORRECTLY!!!!!
-softimageVersion = "2014SP2"
+softimageVersion = "2014"
 renderer = "redshift"
 rendererVersion = "1.316"
 packageSize = 25
@@ -39,7 +39,7 @@ job.user = os.environ['USERNAME']
 job.name = os.path.split(inputPath)[1].rpartition('.')[0]+'|'+renderPass
 job.machine = 1
 job.type = 'ALL'
-job.dcc = 'softimage'
+job.dcc = 'Softimage'
 job.dccversion = softimageVersion
 job.renderer = renderer
 job.rendererversion = rendererVersion
