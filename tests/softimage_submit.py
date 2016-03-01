@@ -50,7 +50,7 @@ for i in frames:
   frame.job = job
   frame.time = i
   frame.priority = 50
-  frame.package = i / packageSize
+  frame.package = 1
   job.pushFrameForSubmit(frame)
 
 bracket.write()
