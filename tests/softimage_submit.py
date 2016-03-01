@@ -29,7 +29,7 @@ if not os.path.exists(inputPath):
   exit(1)
 
 inputFile = zkInput.createNew(conn)
-inputFile.path = 'c:/temp/test.png'
+inputFile.path = inputPath
 bracket.push(inputFile)
 
 job = zkJob.createNew(conn)
