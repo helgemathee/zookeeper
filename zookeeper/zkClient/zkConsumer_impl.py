@@ -122,7 +122,7 @@ class zkConsumer(zookeeper.zkUI.zkMainWindow):
 
     (networkSuccess, networkError) = zookeeper.zkClient.zk_authorizeAllValidNetworkShares(connection, deleteExisting=True, logCallback=self.log)
     if not networkSuccess:
-      QtGui.QMessageBox.critical(None, "ZooKeeper Error", networkError)
+      self.log('ZooKeeper Error:\n'+networkError)
       self.close()
       return
 
