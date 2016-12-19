@@ -148,7 +148,7 @@ def munch():
         model.active_resolution.value = res
       if res == 0:
         log('Skipping offloaded ref model %s' % (modelName))
-      Application.MakeModelLocal(modelName, "", "")
+      # Application.MakeModelLocal(modelName, "", "")
 
     xsiFiles = scene.ExternalFiles
     for i in range(xsiFiles.Count):
