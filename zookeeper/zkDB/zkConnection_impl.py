@@ -76,7 +76,7 @@ class zkConnection(object):
     tries = 5
     while tries > 0:
       try:
-        self.__connector = mysql.connector.connect(user=self.__user, password=self.__password, host=self.__ip, port=self.__port, database=self.__database, buffered=True)
+        self.__connector = mysql.connector.connect(user=self.__user, password=self.__password, host=self.__ip, port=self.__port, database=self.__database, buffered=True, connection_timeout=3)
         print 'Connection successful to %s.' % self.__ip
         break
       except mysql.connector.Error as err:
@@ -85,8 +85,8 @@ class zkConnection(object):
       time.sleep(3)
       tries = tries - 1
 
-    if tries == 0:
-      raise Exception("Cannot connect to zookeeper database.")
+      if tries == 0:
+        raise Exception("Cannot connect to zookeeper database.")
 
     self.__connected = True
     self.execute(('USE %s;' % self.__database), 'Switching database')
