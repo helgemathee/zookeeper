@@ -1,3 +1,4 @@
+import time
 import mysql.connector
 
 class zkConnection(object):
@@ -27,8 +28,12 @@ class zkConnection(object):
     self.ensureConnection()
 
   def __del__(self):
-    self.__connector.close()
+    if self.__connector:
+      self.__connector.close()
     print 'Connection closed to %s.' % self.__ip
+
+  def clone(self):
+    return zkConnection(ip=self.__ip, port=self.__port, user=self.__user, password=self.__password,database=self.__database, debug=self.__debug)
 
   @property
   def connected(self):
@@ -60,15 +65,29 @@ class zkConnection(object):
     elif not self.__connector.is_connected():
       requiresNewConn = True
 
+    try:
+      cursor = self.__connector.cursor()
+    except:
+      requiresNewConn = True
+
     if not requiresNewConn:
       return
 
-    try:
-      self.__connector = mysql.connector.connect(user=self.__user, password=self.__password, host=self.__ip, port=self.__port, database=self.__database, buffered=True)
-      print 'Connection successful to %s.' % self.__ip
-    except mysql.connector.Error as err:
-      print("Connection problem: {}".format(err))
-      return
+    tries = 5
+    while tries > 0:
+      try:
+        self.__connector = mysql.connector.connect(user=self.__user, password=self.__password, host=self.__ip, port=self.__port, database=self.__database, buffered=True)
+        print 'Connection successful to %s.' % self.__ip
+        break
+      except mysql.connector.Error as err:
+        print("Connection problem: {}".format(err))
+      print 'Retrying data base connection...'
+      time.sleep(3)
+      tries = tries - 1
+
+    if tries == 0:
+      raise Exception("Cannot connect to zookeeper database.")
+
     self.__connected = True
     self.execute(('USE %s;' % self.__database), 'Switching database')
 

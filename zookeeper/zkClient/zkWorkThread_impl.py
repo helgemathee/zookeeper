@@ -19,7 +19,7 @@ class zkWorkThread(QtCore.QThread):
 
   def __init__(self, connection, frame, parent = None):
     super(zkWorkThread, self).__init__(parent)
-    self.__conn = connection
+    self.__conn = connection.clone()
     self.__frame = frame
     self.__machine = frame.machine
     self.exiting = False
