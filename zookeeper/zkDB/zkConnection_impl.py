@@ -58,7 +58,7 @@ class zkConnection(object):
   def setDebug(self, state):
     self.__debug = state
 
-  def ensureConnection(self):
+  def ensureConnection(self, force=False):
     requiresNewConn = False
     if self.__connector is None:
       requiresNewConn = True
@@ -70,7 +70,7 @@ class zkConnection(object):
     except:
       requiresNewConn = True
 
-    if not requiresNewConn:
+    if not requiresNewConn and not force:
       return
 
     tries = 5
@@ -91,7 +91,7 @@ class zkConnection(object):
     self.__connected = True
     self.execute(('USE %s;' % self.__database), 'Switching database')
 
-  def execute(self, sql, errorPrefix = "Database"):
+  def execute(self, sql, errorPrefix = "Database", tries=5):
     self.ensureConnection()
     if not self.__connected:
       raise Exception("connection used while not connected.")
@@ -116,6 +116,13 @@ class zkConnection(object):
     except mysql.connector.Error as err:
       print 'Error when executing: << %s >>' % sql
       print(errorPrefix+": {}".format(err))
+
+      if tries > 0:
+        self.ensureConnection(force=True)
+        return self.execute(sql=sql, errorPrefix=errorPrefix, tries=tries-1)
+      else:
+        raise err
+
     return None
 
   def call(self, procedure, args, errorPrefix = "Database"):
