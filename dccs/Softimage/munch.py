@@ -142,7 +142,7 @@ def munch():
       log("Hit referenced model %s" % (modelName))
       res = modelResolution[modelName]
       activeRes = Application.GetValue('%s.active_resolution' % modelName)
-      Application.UpdateReferencedModel(modelName)
+      # Application.UpdateReferencedModel(modelName)
       if activeRes != res:
         Application.SetValue('%s.active_resolution' % modelName, res)
         model.active_resolution.value = res
