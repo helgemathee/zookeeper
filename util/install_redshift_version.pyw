@@ -57,13 +57,14 @@ def installRedShiftZip(softimage_workgroup_root, zipFile):
       process = subprocess.Popen(cmd)
       process.wait()
 
-      xmlPath = os.path.join(addonPath, 'Application', 'Plugins', 'bin', 'nt-x86-64', 'pathconfig.xml')
-      template = "<path name=\"REDSHIFT_COREDATAPATH\" value=\"%s\" />\n"
-      template += "<path name=\"REDSHIFT_PREFSPATH\" value=\"%s\" />\n"
-      xmlContent = template % (
-        "%ZK_SOFTIMAGE_WORKGROUP_ROOT%/renderer/RedShift/%ZK_RENDERER_VERSION%/RedShift",
-        "%ZK_SOFTIMAGE_WORKGROUP_ROOT%/renderer/RedShift/%ZK_RENDERER_VERSION%/Preferences/preferences.xml")
-      open(xmlPath,'w').write(xmlContent)
+      # hmathee: don't create the pathconfig files anymore - we are not using them
+      # xmlPath = os.path.join(addonPath, 'Application', 'Plugins', 'bin', 'nt-x86-64', 'pathconfig.xml')
+      # template = "<path name=\"REDSHIFT_COREDATAPATH\" value=\"%s\" />\n"
+      # template += "<path name=\"REDSHIFT_PREFSPATH\" value=\"%s\" />\n"
+      # xmlContent = template % (
+      #   "%ZK_SOFTIMAGE_WORKGROUP_ROOT%/renderer/RedShift/%ZK_RENDERER_VERSION%/RedShift",
+      #   "%ZK_SOFTIMAGE_WORKGROUP_ROOT%/renderer/RedShift/%ZK_RENDERER_VERSION%/Preferences/preferences.xml")
+      # open(xmlPath,'w').write(xmlContent)
 
   print '\nInstalled to '+workgroup
 
