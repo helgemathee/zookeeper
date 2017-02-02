@@ -50,6 +50,7 @@ def getSoftimageEnv(cfg, dccVersion):
     'SILicMethod': env['SOFTIMAGE_LICENSE_METHOD'],
     '_ADSK_LicServers': env['ADSKFLEX_LICENSE_FILE'],
   })
+
   return env
 
 class zkSoftimageWorkThread(zkWorkThread):
@@ -111,6 +112,11 @@ class zkSoftimageWorkThread(zkWorkThread):
 
     template = template.replace('%WORKGROUPS%', ';'.join(workgroups))
     open(os.path.join(prefsFolder, 'default.xsipref'), 'wb').write(template)
+
+    env.update({
+      'REDSHIFT_COREDATAPATH': os.path.join(workGroupRoot, 'renderer', job.renderer, job.rendererversion, 'RedShift'),
+      'REDSHIFT_PREFSPATH': os.path.join(workGroupRoot, 'renderer', job.renderer, job.rendererversion, 'Preferences', 'preferences.xml')
+      })
 
     args = ['-processing', '-script']
     args += [os.path.join(dccPath, 'munch.py')]
